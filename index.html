@@ -530,6 +530,41 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  /* CAPA DE POESÍA GENERATIVA (Modo Onírico) */
+  .poem-layer {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 8vw 9vh;
+    pointer-events: none;
+    z-index: 60;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  .poem-layer.visible { opacity: 1; }
+  .poem-layer p {
+    margin: 0;
+    max-width: 720px;
+    text-align: center;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(18px, 2.6vw, 32px);
+    line-height: 1.5;
+    color: #f4ecff;
+    text-shadow: 0 0 18px rgba(200, 140, 255, 0.85), 0 0 40px rgba(120, 80, 255, 0.5), 0 2px 6px rgba(0,0,0,0.6);
+    letter-spacing: 0.01em;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 1.6s ease, transform 1.6s ease;
+  }
+  .poem-layer p.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   /* SCROLLBAR */
   .panel::-webkit-scrollbar { width: 6px; }
   .panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
@@ -623,6 +658,7 @@
       <button class="toggle-btn" id="togBars">📊 Barras HP</button>
       <button class="toggle-btn active" id="togDayNight">🌙 Ciclo Auto</button>
       <button class="toggle-btn" id="togAudio">🔊 Audio Vivo</button>
+      <button class="toggle-btn" id="togDream">🌀 Modo Onírico</button>
     </div>
 
     <div class="btnrow">
@@ -679,6 +715,10 @@
 
 <div class="toast" id="toast">Mensaje</div>
 
+<div class="poem-layer" id="poemLayer">
+  <p id="poemText"></p>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -719,6 +759,7 @@
     showEmotes: true,
     showBars: false,
     autoDayNight: true,
+    dreamMode: false,
     activeTool: "food"
   };
 
@@ -827,6 +868,49 @@
   let seasonMetabolismMult = 1;
   let skyParticles = []; // Nieve, hojas y pétalos ambientales
 
+  // Modo Onírico: poesía visual generativa a partir del estado del ecosistema
+  let poemTimer = 0;
+  const POEM_TEMPLATES = [
+    (s) => `${s.season} respira sobre ${s.pop} sombras que aún no saben que sueñan`,
+    (s) => `en la ${s.todLower}, nacieron ${s.births} vidas nuevas — ninguna recuerda su nombre`,
+    (s) => `${s.dominant} camina como si el tiempo no tuviera colmillos`,
+    (s) => `cada muerte es una semilla: ${s.kills} cacerías ya escritas en la tierra`,
+    (s) => `generación ${s.gen}: la mutación es la única forma honesta de la esperanza`,
+    (s) => `bajo un cielo de ${s.seasonLower}, ${s.pop} corazones cuentan el mismo segundo`,
+    (s) => `el agua recuerda a todos los que bebieron y ya no están`,
+    (s) => `${s.dominant} no sabe que es un poema que camina`,
+    (s) => `${s.pop} pulsos diminutos discuten en silencio quién merece sobrevivir`,
+    (s) => `la ${s.todLower} cae sobre el terrario como una pregunta sin dueño`,
+    (s) => `todo lo que muta, muta hacia algo que todavía no tiene nombre`,
+    (s) => `en generación ${s.gen}, alguien aprendió a tener miedo mejor que sus padres`
+  ];
+  function ecosystemSnapshot() {
+    let counts = { herb_agile: 0, herb_mega: 0, carn_pack: 0, carn_apex: 0, scavenger: 0, pollinator: 0 };
+    for (let c of creatures) if (counts[c.speciesId] !== undefined) counts[c.speciesId]++;
+    let dominantId = "herb_agile", dominantCount = -1;
+    for (let k in counts) if (counts[k] > dominantCount) { dominantCount = counts[k]; dominantId = k; }
+    const dominantSpec = Object.values(SPECIES).find((sp) => sp.id === dominantId);
+    const todLabel = document.getElementById("todLabel").textContent || "día";
+    return {
+      pop: creatures.length,
+      births, kills: totalKills, gen: maxGen,
+      season: SEASONS[seasonIdx].name,
+      seasonLower: SEASONS[seasonIdx].name.toLowerCase(),
+      todLower: todLabel.toLowerCase(),
+      dominant: dominantSpec ? dominantSpec.name.toLowerCase() : "algo sin nombre"
+    };
+  }
+  function nextPoemLine() {
+    const tpl = POEM_TEMPLATES[Math.floor(Math.random() * POEM_TEMPLATES.length)];
+    const line = tpl(ecosystemSnapshot());
+    const el = document.getElementById("poemText");
+    el.classList.remove("in");
+    setTimeout(() => {
+      el.textContent = line;
+      el.classList.add("in");
+    }, 350);
+  }
+
   let selectedCreature = null;
 
   // Eventos cósmicos: lluvias de meteoritos, cráteres y zonas de mutación
@@ -901,6 +985,7 @@
   // ==========================================
   const Sound = (function () {
     let ctx = null, master = null, filter = null, padGain = null, windGain = null;
+    let dreamDelay = null, dreamFeedback = null, dreamWet = null;
     let padOscs = [];
     let lastLabel = null;
 
@@ -926,6 +1011,19 @@
       padGain = ctx.createGain();
       padGain.gain.value = 0.5;
       padGain.connect(filter);
+
+      // Eco onírico: bucle de delay silencioso hasta que se active el Modo Onírico
+      dreamDelay = ctx.createDelay(1.2);
+      dreamDelay.delayTime.value = 0.38;
+      dreamFeedback = ctx.createGain();
+      dreamFeedback.gain.value = 0;
+      dreamWet = ctx.createGain();
+      dreamWet.gain.value = 0;
+      padGain.connect(dreamDelay);
+      dreamDelay.connect(dreamFeedback);
+      dreamFeedback.connect(dreamDelay);
+      dreamDelay.connect(dreamWet);
+      dreamWet.connect(master);
 
       CHORD["Día"].forEach((f, i) => {
         const o = ctx.createOscillator();
@@ -1001,6 +1099,12 @@
         padOscs.forEach((o, i) => {
           o.detune.setTargetAtTime((i - 1.5) * 3 + seasonDetune, t, 6);
         });
+      },
+      setDream(on) {
+        if (!ctx) return;
+        const t = ctx.currentTime;
+        dreamWet.gain.setTargetAtTime(on ? 0.4 : 0, t, 1.5);
+        dreamFeedback.gain.setTargetAtTime(on ? 0.45 : 0, t, 1.5);
       },
       pluck() { ping(880 + Math.random() * 220, 0.5, "sine", 0.09); },
       thud() { ping(90, 0.4, "sine", 0.16); },
@@ -2161,13 +2265,29 @@
     }
 
     updateCosmicEvents(dt);
+
+    if (options.dreamMode) {
+      poemTimer -= dt;
+      if (poemTimer <= 0) {
+        nextPoemLine();
+        poemTimer = rand(340, 520);
+      }
+    }
   }
 
   // ==========================================
   // RENDERIZADO DEL MUNDO
   // ==========================================
   function drawWorld() {
-    ctx.clearRect(0, 0, W, H);
+    if (options.dreamMode) {
+      ctx.filter = "none";
+      ctx.fillStyle = "rgba(10, 4, 24, 0.14)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.filter = `hue-rotate(${Math.floor(simTime * 0.05) % 360}deg) saturate(1.9) contrast(1.05)`;
+    } else {
+      ctx.filter = "none";
+      ctx.clearRect(0, 0, W, H);
+    }
 
     drawCraters(ctx);
 
@@ -2292,6 +2412,7 @@
 
     drawAtmosphere();
     drawMeteors(ctx);
+    ctx.filter = "none";
   }
 
   function drawAtmosphere() {
@@ -2562,6 +2683,21 @@
     togAudioBtn.classList.toggle("active", audioEnabled);
     Sound.setEnabled(audioEnabled);
     if (audioEnabled) showToast("🔊 Paisaje sonoro generativo activado");
+  });
+
+  const togDreamBtn = document.getElementById("togDream");
+  togDreamBtn.addEventListener("click", () => {
+    options.dreamMode = !options.dreamMode;
+    togDreamBtn.classList.toggle("active", options.dreamMode);
+    document.getElementById("poemLayer").classList.toggle("visible", options.dreamMode);
+    Sound.setDream(options.dreamMode);
+    if (options.dreamMode) {
+      poemTimer = 0;
+      showToast("🌀 El terrario empieza a soñar en voz alta");
+    } else {
+      document.getElementById("poemText").classList.remove("in");
+      showToast("El sueño se disuelve");
+    }
   });
 
   document.getElementById("rangeFood").addEventListener("input", (e) => {

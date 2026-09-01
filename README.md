@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v4.0: Estaciones Vivas)
+# Terrario Digital — Ecosistema Vivo & Evolución (v5.0: Modo Onírico)
 
 Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — un único `index.html`.
 
@@ -33,6 +33,13 @@ Un simulador de vida artificial y selección natural que corre por completo en e
 - **Flora dependiente del clima**: la regeneración de comida y bayas se dispara en Primavera/Verano y se reduce drásticamente en Invierno, forzando migraciones y competencia por recursos escasos.
 - **Clima ambiental**: pétalos rosados flotan en Primavera, hojas ocres caen en Otoño y una nevada cubre la escena en Invierno — cada partícula con deriva de viento y rotación propia.
 - **Paisaje sonoro estacional**: el audio generativo se oscurece y desafina levemente en Invierno y se aclara en Verano, sumándose a las variaciones por hora del día.
+
+## 🌀 Modo Onírico — Arte Generativo & Poesía Visual
+
+- **Botón `🌀 Modo Onírico`**: transforma el terrario en una pieza de arte generativo psicodélico. El lienzo deja de limpiarse por completo cada fotograma y en su lugar se desvanece lentamente, dejando estelas de color tras cada criatura, meteorito y partícula en movimiento.
+- **Deriva cromática**: un filtro de rotación de matiz (`hue-rotate`) gira continuamente sobre toda la escena, sumado a saturación y contraste realzados, para que el ecosistema entero mute de paleta en tiempo real.
+- **Poesía visual generativa**: cada pocos segundos aparece, con una transición suave, un verso construido a partir del estado vivo del ecosistema (población, generación, especie dominante, estación, hora del día, nacimientos y cacerías) — un poema que nunca se repite igual dos veces.
+- **Eco sonoro onírico**: al activarse, el paisaje sonoro generativo gana un bucle de delay/retroalimentación que hace flotar cada acorde, disolviéndose de nuevo en silencio limpio al desactivarlo.
 
 ## 🛠️ Herramientas & Controles Interactivos
 
