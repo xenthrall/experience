@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v5.0: Modo Onírico)
+# Terrario Digital — Ecosistema Vivo & Evolución (v6.0: Memoria del Terrario)
 
 Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — un único `index.html`.
 
@@ -40,6 +40,13 @@ Un simulador de vida artificial y selección natural que corre por completo en e
 - **Deriva cromática**: un filtro de rotación de matiz (`hue-rotate`) gira continuamente sobre toda la escena, sumado a saturación y contraste realzados, para que el ecosistema entero mute de paleta en tiempo real.
 - **Poesía visual generativa**: cada pocos segundos aparece, con una transición suave, un verso construido a partir del estado vivo del ecosistema (población, generación, especie dominante, estación, hora del día, nacimientos y cacerías) — un poema que nunca se repite igual dos veces.
 - **Eco sonoro onírico**: al activarse, el paisaje sonoro generativo gana un bucle de delay/retroalimentación que hace flotar cada acorde, disolviéndose de nuevo en silencio limpio al desactivarlo.
+
+## 💀 Memoria del Terrario — Persistencia entre Visitas
+
+- **El suelo recuerda**: cada vez que una criatura muere (hambre, sed, vejez o caza), su ubicación, especie y generación quedan grabadas en la memoria del terrario (`localStorage`), sin backend ni servidor — pura persistencia del navegador.
+- **Luciérnagas de la memoria**: durante el atardecer y la noche, puntos de luz tenues y parpadeantes aparecen exactamente donde murió cada criatura, coloreados según su especie y con brillo proporcional a su generación — los linajes más evolucionados dejan una marca más intensa.
+- **Constelaciones de los caídos**: las muertes más recientes se conectan entre sí con líneas fantasmales, dibujando una constelación efímera que cambia con cada nueva pérdida.
+- **Memoria que sobrevive al `Reiniciar`**: pulsar "Reiniciar" reinicia la simulación, pero no borra la memoria — las almas de generaciones anteriores (incluso de visitas anteriores, en días distintos) siguen ahí, acumulándose. Al volver a abrir la página, un mensaje te recuerda cuántas almas habitan ya el terrario.
 
 ## 🛠️ Herramientas & Controles Interactivos
 

@@ -635,6 +635,7 @@
       <dt>Generación máx.</dt><dd id="stGen">0</dd>
       <dt>Nacimientos totales</dt><dd id="stBirths">0</dd>
       <dt>Cazas exitosas</dt><dd id="stKills">0</dd>
+      <dt>💀 Almas recordadas</dt><dd id="stMemory">0</dd>
     </dl>
 
     <hr class="divider">
@@ -838,6 +839,8 @@
       cap: 35
     }
   };
+  const SPECIES_BY_ID = {};
+  Object.values(SPECIES).forEach((sp) => { SPECIES_BY_ID[sp.id] = sp; });
 
   // Estado del Terrario
   let creatures = [];
@@ -919,6 +922,34 @@
   let mutationZones = [];
   let meteorCooldown = rand(1400, 3200);
   let audioEnabled = false;
+
+  // ==========================================
+  // MEMORIA DEL TERRARIO (persiste entre reinicios y entre visitas)
+  // ==========================================
+  const DEATH_LEDGER_KEY = "terrario_death_ledger_v1";
+  const MAX_LEDGER = 500;
+  let deathLedger = [];
+
+  function loadDeathLedger() {
+    try {
+      const raw = localStorage.getItem(DEATH_LEDGER_KEY);
+      deathLedger = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      deathLedger = [];
+    }
+  }
+
+  function saveDeathLedger() {
+    try {
+      localStorage.setItem(DEATH_LEDGER_KEY, JSON.stringify(deathLedger));
+    } catch (e) { /* almacenamiento no disponible: la memoria vive solo esta sesión */ }
+  }
+
+  function recordDeath(c) {
+    deathLedger.push({ xf: c.x / W, yf: c.y / H, species: c.speciesId, gen: c.gen, t: Date.now() });
+    if (deathLedger.length > MAX_LEDGER) deathLedger.shift();
+    saveDeathLedger();
+  }
 
   // ==========================================
   // SPATIAL HASH GRID (Para 60 FPS con cientos de entidades)
@@ -1675,6 +1706,7 @@
               Sound.thud();
               this.setEmote("🐺", 60);
               spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 8);
+              recordDeath(prey);
               removeCreature(prey);
             }
           }
@@ -1724,6 +1756,7 @@
             Sound.thud();
             this.setEmote("👑", 70);
             spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 12);
+            recordDeath(prey);
             removeCreature(prey);
           }
         }
@@ -2228,6 +2261,7 @@
       if (c.energy <= 0 || c.water <= 0 || c.age > c.maxAge || c.health <= 0) {
         spawnCorpse(c.x, c.y, c.speciesId, c.radius() * 6);
         particles.push({ x: c.x, y: c.y, r: 6, alpha: 0.8, color: "#888888" });
+        recordDeath(c);
         removeCreature(c);
       }
     }
@@ -2450,11 +2484,50 @@
     ctx.fillRect(0, 0, W, H);
     ctx.restore();
 
+    const memoryAlpha = { "Amanecer": 0.3, "Día": 0, "Atardecer": 0.35, "Noche": 1 }[label] || 0;
+    if (memoryAlpha > 0) drawMemorialSky(memoryAlpha);
+
     document.getElementById("todIcon").textContent = icon;
     document.getElementById("todLabel").textContent = label;
     document.getElementById("seasonIcon").textContent = curSeason.icon;
     document.getElementById("seasonLabel").textContent = curSeason.name;
     Sound.updateAtmosphere(label, rainActive > 0, curSeason.name);
+  }
+
+  // ==========================================
+  // MEMORIA DEL TERRARIO: luciérnagas que marcan dónde murió cada criatura
+  // ==========================================
+  function drawMemorialSky(alpha) {
+    if (deathLedger.length === 0) return;
+    ctx.save();
+    for (let i = 0; i < deathLedger.length; i++) {
+      const d = deathLedger[i];
+      const x = d.xf * W, y = d.yf * H;
+      const twinkle = 0.5 + 0.5 * Math.sin(simTime * 0.0015 + i * 1.73);
+      const spec = SPECIES_BY_ID[d.species];
+      const col = spec ? spec.swatch : "#cfd8e8";
+      ctx.globalAlpha = alpha * (0.2 + 0.55 * twinkle) * Math.min(1, 0.35 + d.gen * 0.06);
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.3 + Math.min(3, d.gen * 0.25), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Constelación tenue entre las últimas almas recordadas
+    const recent = deathLedger.slice(-14);
+    if (recent.length > 1) {
+      ctx.globalAlpha = alpha * 0.28;
+      ctx.strokeStyle = "rgba(230, 235, 255, 0.9)";
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      for (let i = 0; i < recent.length; i++) {
+        const d = recent[i];
+        const x = d.xf * W, y = d.yf * H;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   // ==========================================
@@ -2513,6 +2586,7 @@
     document.getElementById("stGen").textContent = maxGen;
     document.getElementById("stBirths").textContent = births;
     document.getElementById("stKills").textContent = totalKills;
+    document.getElementById("stMemory").textContent = deathLedger.length;
 
     const secs = Math.floor(realElapsedMs / 1000);
     const m = Math.floor(secs / 60), s2 = secs % 60;
@@ -2745,7 +2819,11 @@
   });
 
   resize();
+  loadDeathLedger();
   seedWorld();
+  if (deathLedger.length > 0) {
+    setTimeout(() => showToast(`🕯️ El terrario recuerda ${deathLedger.length} almas de visitas anteriores`), 1200);
+  }
   requestAnimationFrame(frame);
 })();
 </script>
