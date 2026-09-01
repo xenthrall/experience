@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v3.0: Eventos Cósmicos)
+# Terrario Digital — Ecosistema Vivo & Evolución (v4.0: Estaciones Vivas)
 
 Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — un único `index.html`.
 
@@ -25,6 +25,14 @@ Un simulador de vida artificial y selección natural que corre por completo en e
 - **Lluvias de Meteoritos**: caen periódicamente del cielo (o se invocan a demanda con el botón `☄️ Meteoritos`), dejando una estela ardiente antes de impactar.
 - **Cráteres & Zonas de Mutación**: cada impacto forma un cráter que fertiliza el suelo y una zona de radiación cósmica pulsante que muta genes al azar (velocidad, sentidos, tamaño, sigilo, agresividad) de cualquier criatura que la atraviese, otorgándole además un destello de vigor y una estela de partículas.
 - **Audio Generativo Vivo**: activa `🔊 Audio Vivo` para escuchar un paisaje sonoro ambiental (Web Audio API) que muta su acorde y brillo según la hora del día, sopla más fuerte con la lluvia, y reacciona en tiempo real a nacimientos, cacerías e impactos de meteoritos.
+
+## 🍂 Ciclo de Estaciones
+
+- **Un año, cuatro estaciones**: Primavera, Verano, Otoño e Invierno se suceden lentamente (mucho más despacio que el ciclo día/noche) con transición cromática suave (*crossfade*) entre cada una, visible en el tinte del terrario y en la insignia junto al reloj.
+- **Metabolismo estacional**: el Invierno acelera el desgaste energético de todas las criaturas (más difícil sobrevivir), mientras la Primavera lo suaviza.
+- **Flora dependiente del clima**: la regeneración de comida y bayas se dispara en Primavera/Verano y se reduce drásticamente en Invierno, forzando migraciones y competencia por recursos escasos.
+- **Clima ambiental**: pétalos rosados flotan en Primavera, hojas ocres caen en Otoño y una nevada cubre la escena en Invierno — cada partícula con deriva de viento y rotación propia.
+- **Paisaje sonoro estacional**: el audio generativo se oscurece y desafina levemente en Invierno y se aclara en Verano, sumándose a las variaciones por hora del día.
 
 ## 🛠️ Herramientas & Controles Interactivos
 

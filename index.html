@@ -567,10 +567,13 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v3.0 — Eventos Cósmicos</span>
+    <span class="eyebrow-label">Ecosistema Vivo v4.0 — Estaciones Vivas</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon" id="seasonIcon">🌸</span>
+      <span id="seasonLabel">Primavera</span>
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span id="timeElapsed">0:00</span>
     </span>
@@ -811,6 +814,19 @@
   let dayTime = 0.25; // 0=Amanecer, 0.25=Mediodía, 0.5=Atardecer, 0.75=Noche
   let rainActive = 0; // Temporizador de lluvia
 
+  // Ciclo de estaciones: un "año" avanza mucho más lento que un día
+  const SEASONS = [
+    { name: "Primavera", icon: "🌸", tint: "rgba(140, 220, 130, 0.08)", metabolism: 0.88, foodMult: 1.6, weather: "petal", weatherColor: "#ffb3d9" },
+    { name: "Verano", icon: "☀️", tint: "rgba(255, 205, 80, 0.06)", metabolism: 1.00, foodMult: 1.1, weather: null, weatherColor: null },
+    { name: "Otoño", icon: "🍂", tint: "rgba(196, 120, 45, 0.14)", metabolism: 1.08, foodMult: 0.65, weather: "leaf", weatherColor: "#c9762e" },
+    { name: "Invierno", icon: "❄️", tint: "rgba(178, 210, 235, 0.24)", metabolism: 1.55, foodMult: 0.22, weather: "snow", weatherColor: "#eef6ff" }
+  ];
+  let seasonTime = 0; // 0..1 = un año completo (4 estaciones)
+  let seasonIdx = 0;
+  let seasonProgress = 0;
+  let seasonMetabolismMult = 1;
+  let skyParticles = []; // Nieve, hojas y pétalos ambientales
+
   let selectedCreature = null;
 
   // Eventos cósmicos: lluvias de meteoritos, cráteres y zonas de mutación
@@ -967,17 +983,23 @@
         master.gain.cancelScheduledValues(t);
         master.gain.setTargetAtTime(on ? 0.55 : 0, t, 0.8);
       },
-      updateAtmosphere(label, raining) {
+      updateAtmosphere(label, raining, seasonName) {
         if (!ctx) return;
         windGain.gain.setTargetAtTime(raining ? 0.10 : 0.02, ctx.currentTime, 1.5);
-        if (label === lastLabel) return;
-        lastLabel = label;
-        const freqs = CHORD[label] || CHORD["Día"];
-        const cutoff = CUTOFF[label] || 1200;
+        const seasonBrightness = { "Primavera": 1.15, "Verano": 1.3, "Otoño": 0.85, "Invierno": 0.55 }[seasonName] || 1;
+        const seasonDetune = { "Primavera": 0, "Verano": 0, "Otoño": -4, "Invierno": -9 }[seasonName] || 0;
         const t = ctx.currentTime;
+        if (label !== lastLabel) {
+          lastLabel = label;
+          const freqs = CHORD[label] || CHORD["Día"];
+          padOscs.forEach((o, i) => {
+            o.frequency.setTargetAtTime(freqs[i] || freqs[freqs.length - 1], t, 4);
+          });
+        }
+        const cutoff = (CUTOFF[label] || 1200) * seasonBrightness;
         filter.frequency.setTargetAtTime(cutoff, t, 4);
         padOscs.forEach((o, i) => {
-          o.frequency.setTargetAtTime(freqs[i] || freqs[freqs.length - 1], t, 4);
+          o.detune.setTargetAtTime((i - 1.5) * 3 + seasonDetune, t, 6);
         });
       },
       pluck() { ping(880 + Math.random() * 220, 0.5, "sine", 0.09); },
@@ -1300,7 +1322,7 @@
       // Desgaste metabólico
       const baseMetabolism = (0.035 * this.genes.size + 0.05 * this.genes.speed);
       const sprintCost = this.isSprinting ? 2.2 / this.genes.staminaEfficiency : 1.0;
-      this.energy -= baseMetabolism * sprintCost * dt;
+      this.energy -= baseMetabolism * sprintCost * dt * seasonMetabolismMult;
       this.water -= 0.035 * dt;
 
       // Resistencia
@@ -1996,6 +2018,8 @@
     craters = [];
     mutationZones = [];
     meteorCooldown = rand(1400, 3200);
+    skyParticles = [];
+    seasonTime = 0;
     births = 0;
     totalKills = 0;
     maxGen = 0;
@@ -2028,6 +2052,15 @@
       dayTime = document.getElementById("rangeTod").value / 100;
     }
 
+    // Avance del ciclo anual (mucho más lento que el ciclo día/noche)
+    seasonTime = (seasonTime + 0.000016 * dt) % 1.0;
+    const seasonPos = seasonTime * 4;
+    seasonIdx = Math.floor(seasonPos) % 4;
+    seasonProgress = seasonPos - Math.floor(seasonPos);
+    const seasonA = SEASONS[seasonIdx], seasonB = SEASONS[(seasonIdx + 1) % 4];
+    seasonMetabolismMult = seasonA.metabolism + (seasonB.metabolism - seasonA.metabolism) * seasonProgress;
+    const seasonFoodMult = seasonA.foodMult + (seasonB.foodMult - seasonA.foodMult) * seasonProgress;
+
     if (rainActive > 0) {
       rainActive -= dt;
       if (Math.random() < 0.3 * dt) spawnFood(rand(0, W), rand(0, H));
@@ -2042,15 +2075,40 @@
       }
     }
 
-    const foodChance = foodRate * 0.08 * dt;
+    const foodChance = foodRate * 0.08 * dt * seasonFoodMult;
     if (Math.random() < foodChance) {
       spawnFood(rand(0, W), rand(0, H));
     }
 
     for (let b of bushes) {
-      if (b.berries < b.maxBerries && Math.random() < 0.003 * dt * (foodRate + (rainActive > 0 ? 2 : 0))) {
+      if (b.berries < b.maxBerries && Math.random() < 0.003 * dt * seasonFoodMult * (foodRate + (rainActive > 0 ? 2 : 0))) {
         b.berries++;
       }
+    }
+
+    // Clima ambiental estacional: nieve, hojas caídas o pétalos a la deriva
+    if (seasonA.weather && skyParticles.length < 70 && Math.random() < 0.9 * dt) {
+      skyParticles.push({
+        type: seasonA.weather,
+        x: rand(-20, W + 20),
+        y: -10,
+        r: seasonA.weather === "snow" ? rand(1.5, 3) : rand(2.5, 4.5),
+        vy: seasonA.weather === "snow" ? rand(0.25, 0.5) : rand(0.45, 0.85),
+        sway: rand(0.3, 1.0),
+        swayPhase: rand(0, Math.PI * 2),
+        rot: rand(0, Math.PI * 2),
+        rotSpeed: rand(-1, 1),
+        alpha: rand(0.5, 0.9),
+        color: seasonA.weatherColor
+      });
+    }
+    for (let i = skyParticles.length - 1; i >= 0; i--) {
+      const sp = skyParticles[i];
+      sp.swayPhase += dt * 0.05;
+      sp.x += Math.sin(sp.swayPhase) * sp.sway;
+      sp.y += sp.vy * dt;
+      sp.rot += sp.rotSpeed * dt * 0.03;
+      if (sp.y > H + 10 || (!seasonA.weather && sp.type !== seasonB.weather)) skyParticles.splice(i, 1);
     }
 
     creatureGrid.clear();
@@ -2216,6 +2274,22 @@
       ctx.restore();
     }
 
+    for (let sp of skyParticles) {
+      ctx.save();
+      ctx.translate(sp.x, sp.y);
+      ctx.rotate(sp.rot);
+      ctx.fillStyle = sp.color;
+      ctx.globalAlpha = sp.alpha;
+      ctx.beginPath();
+      if (sp.type === "snow") {
+        ctx.arc(0, 0, sp.r, 0, Math.PI * 2);
+      } else {
+        ctx.ellipse(0, 0, sp.r, sp.r * 0.55, 0, 0, Math.PI * 2);
+      }
+      ctx.fill();
+      ctx.restore();
+    }
+
     drawAtmosphere();
     drawMeteors(ctx);
   }
@@ -2243,9 +2317,23 @@
       ctx.fillRect(0, 0, W, H);
     }
 
+    // Tinte estacional: crossfade suave entre la estación actual y la siguiente
+    const curSeason = SEASONS[seasonIdx];
+    const nextSeason = SEASONS[(seasonIdx + 1) % 4];
+    ctx.save();
+    ctx.globalAlpha = 1 - seasonProgress;
+    ctx.fillStyle = curSeason.tint;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = seasonProgress;
+    ctx.fillStyle = nextSeason.tint;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
     document.getElementById("todIcon").textContent = icon;
     document.getElementById("todLabel").textContent = label;
-    Sound.updateAtmosphere(label, rainActive > 0);
+    document.getElementById("seasonIcon").textContent = curSeason.icon;
+    document.getElementById("seasonLabel").textContent = curSeason.name;
+    Sound.updateAtmosphere(label, rainActive > 0, curSeason.name);
   }
 
   // ==========================================
