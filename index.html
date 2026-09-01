@@ -3,54 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Terrario Digital</title>
-<meta name="description" content="Un ecosistema de vida artificial: herbívoros y carnívoros nacen, mutan, cazan, huyen y evolucionan en vivo ante tus ojos.">
+<title>Terrario Digital — Ecosistema Vivo & Evolución</title>
+<meta name="description" content="Simulador de vida artificial y evolución: 6 especies interconectadas, instintos de supervivencia, caza en manada, pastoreo, biomas vivos y ciclo día/noche.">
 <meta name="theme-color" content="#eef0e6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0b1310" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,500&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
 <style>
   :root {
     color-scheme: light dark;
-    --bg: #eef0e6;
-    --bg-deep: #dde2d2;
-    --panel: rgba(255,255,255,0.6);
-    --panel-solid: #f6f5ee;
-    --ink: #1a2420;
-    --ink-dim: #4b5850;
-    --line: rgba(26,36,32,0.16);
-    --accent: #2f6f5e;
-    --accent-ink: #f4faf6;
-    --track: rgba(26,36,32,0.14);
-    --shadow: rgba(20,30,24,0.18);
+    --bg: #e8ebe1;
+    --bg-deep: #d5dcce;
+    --panel: rgba(255, 255, 255, 0.75);
+    --panel-solid: #f4f6ef;
+    --ink: #16221c;
+    --ink-dim: #4d5e54;
+    --line: rgba(22, 34, 28, 0.15);
+    --accent: #236955;
+    --accent-ink: #f0faf5;
+    --track: rgba(22, 34, 28, 0.12);
+    --shadow: rgba(18, 28, 22, 0.18);
+    --water: #388fb0;
+    --grass: #488046;
+    --herb-agile: #2ca06d;
+    --herb-mega: #758e38;
+    --carn-pack: #d24e38;
+    --carn-apex: #8e2b88;
+    --scavenger: #4a5c82;
+    --pollinator: #d8a018;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0b1310;
-      --bg-deep: #060a08;
-      --panel: rgba(17,27,23,0.6);
-      --panel-solid: #131f1a;
-      --ink: #e7efe6;
-      --ink-dim: #9db3a8;
-      --line: rgba(231,239,230,0.14);
-      --accent: #52e0ba;
-      --accent-ink: #06140f;
-      --track: rgba(231,239,230,0.14);
-      --shadow: rgba(0,0,0,0.5);
+      --bg: #09100d;
+      --bg-deep: #040806;
+      --panel: rgba(14, 24, 19, 0.78);
+      --panel-solid: #101c16;
+      --ink: #e6efe7;
+      --ink-dim: #90a89b;
+      --line: rgba(230, 239, 231, 0.13);
+      --accent: #4ae0b5;
+      --accent-ink: #04140f;
+      --track: rgba(230, 239, 231, 0.14);
+      --shadow: rgba(0, 0, 0, 0.55);
+      --water: #26728f;
+      --grass: #306030;
+      --herb-agile: #44db97;
+      --herb-mega: #a2c44f;
+      --carn-pack: #ff5e45;
+      --carn-apex: #cf55c7;
+      --scavenger: #7b95cc;
+      --pollinator: #ffd043;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0b1310;
-    --bg-deep: #060a08;
-    --panel: rgba(17,27,23,0.6);
-    --panel-solid: #131f1a;
-    --ink: #e7efe6;
-    --ink-dim: #9db3a8;
-    --line: rgba(231,239,230,0.14);
-    --accent: #52e0ba;
-    --accent-ink: #06140f;
-    --track: rgba(231,239,230,0.14);
-    --shadow: rgba(0,0,0,0.5);
+    --bg: #09100d;
+    --bg-deep: #040806;
+    --panel: rgba(14, 24, 19, 0.78);
+    --panel-solid: #101c16;
+    --ink: #e6efe7;
+    --ink-dim: #90a89b;
+    --line: rgba(230, 239, 231, 0.13);
+    --accent: #4ae0b5;
+    --accent-ink: #04140f;
+    --track: rgba(230, 239, 231, 0.14);
+    --shadow: rgba(0, 0, 0, 0.55);
+    --water: #26728f;
+    --grass: #306030;
+    --herb-agile: #44db97;
+    --herb-mega: #a2c44f;
+    --carn-pack: #ff5e45;
+    --carn-apex: #cf55c7;
+    --scavenger: #7b95cc;
+    --pollinator: #ffd043;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -58,83 +82,78 @@
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Libre Franklin", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow: hidden;
     height: 100vh;
     width: 100vw;
     touch-action: none;
   }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition-duration: 0.01ms !important; }
-  }
 
   #stage {
     position: fixed;
     inset: 0;
-    background:
-      radial-gradient(120% 90% at 22% 18%, color-mix(in srgb, var(--bg) 88%, var(--accent) 12%), var(--bg) 55%, var(--bg-deep) 100%);
+    transition: background 0.8s ease;
   }
-  #stage::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    box-shadow: inset 0 0 18vw var(--bg-deep);
-    opacity: 0.55;
-  }
+
   canvas {
     position: fixed;
     inset: 0;
     display: block;
-    cursor: crosshair;
+    cursor: default;
     touch-action: none;
   }
 
+  /* PANEL PRINCIPAL */
   .panel {
     position: fixed;
-    top: calc(22px + env(safe-area-inset-top, 0px));
-    left: calc(22px + env(safe-area-inset-left, 0px));
-    width: 272px;
-    max-height: calc(100vh - 44px - env(safe-area-inset-top, 0px));
+    top: calc(18px + env(safe-area-inset-top, 0px));
+    left: calc(18px + env(safe-area-inset-left, 0px));
+    width: 310px;
+    max-height: calc(100vh - 36px - env(safe-area-inset-top, 0px));
     overflow-y: auto;
     background: var(--panel);
-    backdrop-filter: blur(14px) saturate(1.1);
-    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    box-shadow: 0 18px 40px -18px var(--shadow);
-    padding: 18px 18px 16px;
+    border-radius: 12px;
+    box-shadow: 0 20px 45px -15px var(--shadow);
+    padding: 16px 18px 16px;
     touch-action: pan-y;
     user-select: none;
+    z-index: 20;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   }
   .panel::before, .panel::after {
     content: "";
     position: absolute;
-    width: 9px;
-    height: 9px;
+    width: 10px;
+    height: 10px;
     border-color: var(--accent);
     opacity: 0.85;
+    pointer-events: none;
   }
-  .panel::before { top: -1px; left: -1px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
-  .panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+  .panel::before { top: -1px; left: -1px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); border-top-left-radius: 12px; }
+  .panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); border-bottom-right-radius: 12px; }
 
   .eyebrow {
     display: flex;
     align-items: center;
     gap: 8px;
     font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--accent);
   }
   .eyebrow-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .eyebrow-clock { flex: none; font-variant-numeric: tabular-nums; }
+  .eyebrow-clock { flex: none; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; }
+  .eyebrow-clock .tod-icon { font-size: 12px; }
+
   .toggle {
     display: none;
     flex: none;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     align-items: center;
     justify-content: center;
     border: 1px solid var(--line);
@@ -144,82 +163,105 @@
     color: var(--ink);
     cursor: pointer;
   }
-  .toggle .chevron { display: inline-block; font-size: 13px; line-height: 1; transition: transform 0.18s ease; }
+  .toggle .chevron { display: inline-block; font-size: 14px; line-height: 1; transition: transform 0.2s ease; }
   .toggle[aria-expanded="false"] .chevron { transform: rotate(-90deg); }
 
   h1 {
     font-family: "Fraunces", Georgia, serif;
     font-weight: 600;
     font-style: italic;
-    font-size: 22px;
+    font-size: 21px;
     line-height: 1.15;
     margin: 4px 0 2px;
-    text-wrap: balance;
+    letter-spacing: -0.01em;
   }
   .sub {
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--ink-dim);
-    margin: 0 0 4px;
+    margin: 0 0 6px;
     line-height: 1.4;
   }
 
   .divider {
     border: none;
     border-top: 1px solid var(--line);
-    margin: 12px 0;
+    margin: 10px 0;
   }
 
+  /* POPULATION CHART CANVAS */
+  .chart-container {
+    width: 100%;
+    height: 48px;
+    margin: 6px 0 8px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.06);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+  }
+  #popChart {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* STATS GRID */
   .stats {
     display: grid;
     grid-template-columns: 1fr auto;
-    row-gap: 6px;
+    row-gap: 5px;
     column-gap: 10px;
     font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 12px;
+    font-size: 11px;
     margin: 0;
   }
-  .stats dt { color: var(--ink-dim); }
+  .stats dt { color: var(--ink-dim); display: flex; align-items: center; gap: 5px; }
   .stats dd {
     margin: 0;
     text-align: right;
     font-variant-numeric: tabular-nums;
-    font-weight: 500;
+    font-weight: 600;
   }
 
+  /* SPECIES LEGEND */
   .legend {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    font-size: 11.5px;
+    gap: 5px;
+    font-size: 11px;
     color: var(--ink-dim);
   }
-  .legend .row { display: flex; align-items: center; gap: 8px; }
-  .swatch { width: 10px; height: 10px; flex: none; }
-  .swatch.herb { border-radius: 50%; background: hsl(150 55% 46%); }
-  .swatch.carn { background: hsl(10 72% 55%); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
-  .swatch.food { border-radius: 50%; background: hsl(42 85% 58%); }
+  .legend .row { display: flex; align-items: center; gap: 7px; }
+  .swatch { width: 10px; height: 10px; flex: none; border-radius: 2px; }
+  .swatch.herb-agile { border-radius: 50%; background: var(--herb-agile); }
+  .swatch.herb-mega { border-radius: 3px; background: var(--herb-mega); }
+  .swatch.carn-pack { background: var(--carn-pack); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .swatch.carn-apex { background: var(--carn-apex); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+  .swatch.scavenger { border-radius: 50%; background: var(--scavenger); }
+  .swatch.pollinator { border-radius: 50%; background: var(--pollinator); box-shadow: 0 0 6px var(--pollinator); }
+  .swatch.food { border-radius: 50%; background: hsl(42, 90%, 55%); }
 
-  .field { margin-top: 12px; }
+  /* SLIDERS & CONTROLS */
+  .field { margin-top: 10px; }
   .field label {
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--ink-dim);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    font-family: "JetBrains Mono", monospace;
   }
   .field label span.val {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
     color: var(--ink);
-    letter-spacing: 0;
-    text-transform: none;
+    font-weight: 600;
   }
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 3px;
+    height: 4px;
     background: var(--track);
     border-radius: 2px;
     outline: none;
@@ -227,8 +269,8 @@
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--accent);
     border: 2px solid var(--panel-solid);
@@ -236,8 +278,8 @@
     cursor: pointer;
   }
   input[type="range"]::-moz-range-thumb {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--accent);
     border: none;
@@ -245,22 +287,27 @@
     cursor: pointer;
   }
 
-  .btnrow { display: flex; gap: 8px; margin-top: 14px; }
+  /* BUTTONS */
+  .btnrow { display: flex; gap: 6px; margin-top: 10px; }
   button {
     font-family: "Libre Franklin", sans-serif;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 11.5px;
     letter-spacing: 0.02em;
-    padding: 9px 10px;
+    padding: 7px 9px;
     border-radius: 6px;
     border: 1px solid var(--line);
-    background: transparent;
+    background: rgba(0,0,0,0.03);
     color: var(--ink);
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
     flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
-  button:hover { border-color: var(--accent); }
+  button:hover { border-color: var(--accent); background: rgba(0,0,0,0.06); }
   button:active { transform: scale(0.97); }
   button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   button.primary {
@@ -268,36 +315,246 @@
     color: var(--accent-ink);
     border-color: var(--accent);
   }
-
-  .hint {
-    margin-top: 12px;
-    margin-bottom: 0;
-    font-size: 11px;
-    color: var(--ink-dim);
-    line-height: 1.45;
-    font-style: italic;
-    font-family: "Fraunces", serif;
+  button.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
   }
 
-  .panel::-webkit-scrollbar { width: 8px; }
-  .panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  /* CHECKBOXES & TOGGLES */
+  .toggles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .toggle-btn {
+    font-size: 10.5px;
+    padding: 6px 6px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .toggle-btn.active {
+    background: rgba(35, 105, 85, 0.18);
+    border-color: var(--accent);
+    color: var(--ink);
+    font-weight: 600;
+  }
 
-  @media (max-width: 640px) {
+  /* TOOLBAR DE SPAWN INFERIOR */
+  .toolbar {
+    position: fixed;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    box-shadow: 0 16px 36px -12px var(--shadow);
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 25;
+    max-width: calc(100vw - 36px);
+    overflow-x: auto;
+  }
+  .tool-item {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    font-weight: 500;
+  }
+  .tool-item:hover {
+    background: rgba(0,0,0,0.06);
+  }
+  .tool-item.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-weight: 600;
+    box-shadow: 0 2px 8px -2px var(--shadow);
+  }
+
+  /* INSPECTOR CARD FLOTANTE */
+  .inspector {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    right: calc(18px + env(safe-area-inset-right, 0px));
+    width: 290px;
+    background: var(--panel);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 20px 45px -15px var(--shadow);
+    padding: 14px 16px;
+    z-index: 20;
+    display: none;
+    animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .inspector.open { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .insp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .insp-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 16px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .insp-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--ink-dim);
+    padding: 2px 6px;
+    flex: none;
+  }
+  .insp-close:hover { color: var(--ink); }
+
+  .insp-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .insp-state {
+    font-size: 12px;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding: 6px 8px;
+    background: rgba(0,0,0,0.04);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+
+  .meter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10.5px;
+    margin-bottom: 4px;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .meter-bar {
+    width: 130px;
+    height: 6px;
+    background: var(--track);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.15s ease;
+  }
+
+  .insp-genes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    font-size: 10px;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--ink-dim);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+  }
+  .insp-genes span { color: var(--ink); font-weight: 600; }
+
+  .insp-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  /* TOAST BANNER */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--panel-solid);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 11.5px;
+    font-weight: 500;
+    box-shadow: 0 10px 25px -8px var(--shadow);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* SCROLLBAR */
+  .panel::-webkit-scrollbar { width: 6px; }
+  .panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+  @media (max-width: 768px) {
     .panel {
-      left: calc(12px + env(safe-area-inset-left, 0px));
-      right: calc(12px + env(safe-area-inset-right, 0px));
-      top: calc(12px + env(safe-area-inset-top, 0px));
+      left: calc(10px + env(safe-area-inset-left, 0px));
+      right: calc(10px + env(safe-area-inset-right, 0px));
+      top: calc(10px + env(safe-area-inset-top, 0px));
       width: auto;
-      max-height: calc(100vh - 24px - env(safe-area-inset-top, 0px));
-      padding: 14px 16px 14px;
+      max-height: calc(100vh - 20px - env(safe-area-inset-top, 0px));
+      padding: 12px 14px;
     }
     .toggle { display: inline-flex; }
     .panel-body { display: none; }
-    .panel.expanded .panel-body { display: block; max-height: 60vh; overflow-y: auto; }
-    .sub { margin-bottom: 0; }
-    button { min-height: 44px; font-size: 13px; }
-    input[type="range"]::-webkit-slider-thumb { width: 18px; height: 18px; }
-    input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; }
+    .panel.expanded .panel-body { display: block; max-height: 55vh; overflow-y: auto; }
+    .toolbar {
+      bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      padding: 4px 6px;
+    }
+    .inspector {
+      right: 10px;
+      left: 10px;
+      width: auto;
+      bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+    }
   }
 </style>
 </head>
@@ -306,600 +563,1637 @@
 <div id="stage"></div>
 <canvas id="c"></canvas>
 
+<!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Terrario N.º 07</span>
-    <span class="eyebrow-clock" id="clock">0:00</span>
+    <span class="eyebrow-label">Ecosistema Vivo v2.0</span>
+    <span class="eyebrow-clock" id="clock">
+      <span class="tod-icon" id="todIcon">☀️</span>
+      <span id="todLabel">Día</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span id="timeElapsed">0:00</span>
+    </span>
     <button class="toggle" id="panelToggle" type="button" aria-expanded="false" aria-controls="panelBody" aria-label="Mostrar panel">
       <span class="chevron" aria-hidden="true">⌄</span>
     </button>
   </div>
   <h1>Terrario Digital</h1>
-  <p class="sub">Un ecosistema autoevolutivo. Cada criatura hereda, muta y compite &mdash; observa la selección natural en vivo.</p>
+  <p class="sub">Vida artificial, instintos de supervivencia y selección natural en tiempo real.</p>
 
   <div class="panel-body" id="panelBody">
-    <hr class="divider">
+    <div class="chart-container" title="Poblaciones en el tiempo">
+      <canvas id="popChart"></canvas>
+    </div>
 
     <dl class="stats">
-      <dt>Herbívoros</dt><dd id="stHerb">0</dd>
-      <dt>Carnívoros</dt><dd id="stCarn">0</dd>
-      <dt>Comida</dt><dd id="stFood">0</dd>
+      <dt><span class="swatch herb-agile"></span>Ciervos Ágiles</dt><dd id="stHerbAgile">0</dd>
+      <dt><span class="swatch herb-mega"></span>Titanes Acorazados</dt><dd id="stHerbMega">0</dd>
+      <dt><span class="swatch carn-pack"></span>Cazadores de Manada</dt><dd id="stCarnPack">0</dd>
+      <dt><span class="swatch carn-apex"></span>Depredadores Apex</dt><dd id="stCarnApex">0</dd>
+      <dt><span class="swatch scavenger"></span>Carroñeros</dt><dd id="stScavenger">0</dd>
+      <dt><span class="swatch pollinator"></span>Polinizadores</dt><dd id="stPollinator">0</dd>
+      <dt><span class="swatch food"></span>Plantas & Arbustos</dt><dd id="stFood">0</dd>
       <dt>Generación máx.</dt><dd id="stGen">0</dd>
-      <dt>Nacimientos</dt><dd id="stBirths">0</dd>
-      <dt>Vel. media (herb.)</dt><dd id="stSpeed">&mdash;</dd>
+      <dt>Nacimientos totales</dt><dd id="stBirths">0</dd>
+      <dt>Cazas exitosas</dt><dd id="stKills">0</dd>
     </dl>
 
     <hr class="divider">
 
-    <div class="legend">
-      <div class="row"><span class="swatch herb"></span>Herbívoro &mdash; busca comida y huye de depredadores</div>
-      <div class="row"><span class="swatch carn"></span>Carnívoro &mdash; caza herbívoros</div>
-      <div class="row"><span class="swatch food"></span>Comida &mdash; toca o arrastra el dedo para sembrar</div>
-    </div>
-
     <div class="field">
-      <label>Tasa de alimento <span class="val" id="lblFood">50%</span></label>
+      <label>Regeneración de Flora <span class="val" id="lblFood">50%</span></label>
       <input type="range" id="rangeFood" min="0" max="100" value="50">
     </div>
     <div class="field">
-      <label>Velocidad simulación <span class="val" id="lblSpeed">1.0×</span></label>
+      <label>Velocidad Simulación <span class="val" id="lblSpeed">1.0×</span></label>
       <input type="range" id="rangeSpeed" min="30" max="300" value="100">
+    </div>
+    <div class="field">
+      <label>Hora del Día <span class="val" id="lblTod">Auto</span></label>
+      <input type="range" id="rangeTod" min="0" max="100" value="25">
+    </div>
+
+    <div class="toggles-grid">
+      <button class="toggle-btn active" id="togVision">👁️ Visión</button>
+      <button class="toggle-btn active" id="togEmotes">💭 Emociones</button>
+      <button class="toggle-btn" id="togBars">📊 Barras HP</button>
+      <button class="toggle-btn active" id="togDayNight">🌙 Ciclo Auto</button>
     </div>
 
     <div class="btnrow">
       <button class="primary" id="btnPause">Pausar</button>
-      <button id="btnCarn">+ Carnívoro</button>
+      <button id="btnRain">🌧️ Lluvia Fértil</button>
+      <button id="btnReset">Reiniciar</button>
     </div>
-    <div class="btnrow">
-      <button id="btnReset">Reiniciar terrario</button>
-    </div>
-
-    <p class="hint">“La vida encuentra un camino” &mdash; los herbívoros huyen al detectar un depredador cerca, envejecen, crecen y cada generación hereda (con mutaciones) los rasgos de sus padres.</p>
   </div>
 </div>
+
+<!-- BARRA DE HERRAMIENTAS / SPAWN INFERIOR -->
+<div class="toolbar" id="toolbar">
+  <button class="tool-item active" data-tool="food">🌿 Sembrar Alimento</button>
+  <button class="tool-item" data-tool="herb_agile">🦌 Ciervo Ágil</button>
+  <button class="tool-item" data-tool="herb_mega">🦏 Titán</button>
+  <button class="tool-item" data-tool="carn_pack">🐺 Cazador</button>
+  <button class="tool-item" data-tool="carn_apex">🦖 Apex</button>
+  <button class="tool-item" data-tool="scavenger">🦅 Carroñero</button>
+  <button class="tool-item" data-tool="pollinator">✨ Polinizador</button>
+  <button class="tool-item" data-tool="water">💧 Oasis</button>
+</div>
+
+<!-- TARJETA INSPECTOR DE CRIATURA -->
+<div class="inspector" id="inspector">
+  <div class="insp-header">
+    <h3 class="insp-title" id="inspName">Criatura #0</h3>
+    <button class="insp-close" id="inspClose" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="insp-badge" id="inspBadge" style="background:#2ca06d22; color:#2ca06d;">Especie</div>
+  <div class="insp-state" id="inspState">🌿 Pastando</div>
+
+  <div class="meter-row"><span>Energía</span><div class="meter-bar"><div class="meter-fill" id="inspEnergy" style="background:#e5a823; width:80%;"></div></div></div>
+  <div class="meter-row"><span>Hidratación</span><div class="meter-bar"><div class="meter-fill" id="inspWater" style="background:#388fb0; width:90%;"></div></div></div>
+  <div class="meter-row"><span>Resistencia</span><div class="meter-bar"><div class="meter-fill" id="inspStamina" style="background:#2ca06d; width:100%;"></div></div></div>
+  <div class="meter-row"><span>Salud</span><div class="meter-bar"><div class="meter-fill" id="inspHealth" style="background:#d24e38; width:100%;"></div></div></div>
+
+  <div class="insp-genes">
+    <div>Velocidad: <span id="inspGeneSpeed">1.2</span></div>
+    <div>Sentido: <span id="inspGeneSense">110px</span></div>
+    <div>Tamaño: <span id="inspGeneSize">5.0</span></div>
+    <div>Sigilo: <span id="inspGeneStealth">70%</span></div>
+    <div>Generación: <span id="inspGen">1</span></div>
+    <div>Descendencia: <span id="inspKids">0</span></div>
+    <div>Presas cazadas: <span id="inspKills">0</span></div>
+    <div>Edad: <span id="inspAge">120s</span></div>
+  </div>
+
+  <div class="insp-actions">
+    <button class="primary" id="btnFollowCam">🎯 Centrar</button>
+    <button id="btnFeedSelected">🍖 Alimentar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">Mensaje</div>
 
 <script>
 (function () {
   "use strict";
-  var canvas = document.getElementById("c");
-  var ctx = canvas.getContext("2d");
-  var W = window.innerWidth, H = window.innerHeight;
+
+  // ==========================================
+  // CONFIGURACIÓN & VARIABLES PRINCIPALES
+  // ==========================================
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const popCanvas = document.getElementById("popChart");
+  const popCtx = popCanvas.getContext("2d");
+
+  let W = window.innerWidth, H = window.innerHeight;
 
   function resize() {
     W = window.innerWidth; H = window.innerHeight;
-    var dpr = window.devicePixelRatio || 1;
+    const dpr = window.devicePixelRatio || 1;
     canvas.width = W * dpr; canvas.height = H * dpr;
     canvas.style.width = W + "px"; canvas.style.height = H + "px";
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const r = popCanvas.getBoundingClientRect();
+    popCanvas.width = r.width * dpr; popCanvas.height = r.height * dpr;
+    popCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   window.addEventListener("resize", resize);
-  resize();
 
-  var accentColor = "#2f6f5e";
-  function refreshAccent() {
-    try {
-      var v = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
-      if (v) accentColor = v;
-    } catch (err) { /* ignore */ }
+  // Utilidades matemáticas
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+  const spread = (r) => (Math.random() * 2 - 1) * r;
+  const distSq = (x1, y1, x2, y2) => (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+  const angleDiff = (target, current) => Math.atan2(Math.sin(target - current), Math.cos(target - current));
+
+  // Opciones de visualización
+  const options = {
+    showVision: true,
+    showEmotes: true,
+    showBars: false,
+    autoDayNight: true,
+    activeTool: "food"
+  };
+
+  // Especies soportadas
+  const SPECIES = {
+    HERB_AGILE: {
+      id: "herb_agile",
+      name: "Ciervo Ágil",
+      swatch: "#2ca06d",
+      baseSpeed: 1.6,
+      baseSense: 120,
+      baseSize: 4.5,
+      maxAge: 3200,
+      reproAge: 220,
+      reproFrac: 0.75,
+      cap: 70
+    },
+    HERB_MEGA: {
+      id: "herb_mega",
+      name: "Titán Acorazado",
+      swatch: "#758e38",
+      baseSpeed: 0.75,
+      baseSense: 90,
+      baseSize: 11.0,
+      maxAge: 5200,
+      reproAge: 400,
+      reproFrac: 0.82,
+      cap: 22
+    },
+    CARN_PACK: {
+      id: "carn_pack",
+      name: "Cazador de Manada",
+      swatch: "#d24e38",
+      baseSpeed: 1.75,
+      baseSense: 145,
+      baseSize: 6.2,
+      maxAge: 3400,
+      reproAge: 320,
+      reproFrac: 0.80,
+      cap: 28
+    },
+    CARN_APEX: {
+      id: "carn_apex",
+      name: "Depredador Apex",
+      swatch: "#8e2b88",
+      baseSpeed: 1.45,
+      baseSense: 165,
+      baseSize: 14.0,
+      maxAge: 6000,
+      reproAge: 600,
+      reproFrac: 0.85,
+      cap: 8
+    },
+    SCAVENGER: {
+      id: "scavenger",
+      name: "Carroñero",
+      swatch: "#4a5c82",
+      baseSpeed: 1.3,
+      baseSense: 220,
+      baseSize: 4.0,
+      maxAge: 4000,
+      reproAge: 300,
+      reproFrac: 0.75,
+      cap: 25
+    },
+    POLLINATOR: {
+      id: "pollinator",
+      name: "Polinizador",
+      swatch: "#d8a018",
+      baseSpeed: 1.1,
+      baseSense: 70,
+      baseSize: 2.2,
+      maxAge: 2600,
+      reproAge: 180,
+      reproFrac: 0.70,
+      cap: 35
+    }
+  };
+
+  // Estado del Terrario
+  let creatures = [];
+  let plants = [];
+  let bushes = [];
+  let waterBodies = [];
+  let carcasses = [];
+  let particles = [];
+  let alarmWaves = [];
+  let popHistory = [];
+
+  let births = 0, totalKills = 0, maxGen = 0, nextCreatureId = 1;
+  let running = true, foodRate = 0.5, speedMult = 1.0;
+  let simTime = 0, realElapsedMs = 0, frameCounter = 0, lastTs = null;
+  let dayTime = 0.25; // 0=Amanecer, 0.25=Mediodía, 0.5=Atardecer, 0.75=Noche
+  let rainActive = 0; // Temporizador de lluvia
+
+  let selectedCreature = null;
+
+  // ==========================================
+  // SPATIAL HASH GRID (Para 60 FPS con cientos de entidades)
+  // ==========================================
+  class SpatialGrid {
+    constructor(cellSize = 90) {
+      this.cellSize = cellSize;
+      this.cols = Math.ceil(W / cellSize) + 2;
+      this.rows = Math.ceil(H / cellSize) + 2;
+      this.cells = new Map();
+    }
+    clear() {
+      this.cells.clear();
+    }
+    insert(item) {
+      const cx = Math.floor(item.x / this.cellSize);
+      const cy = Math.floor(item.y / this.cellSize);
+      const key = `${cx},${cy}`;
+      if (!this.cells.has(key)) this.cells.set(key, []);
+      this.cells.get(key).push(item);
+    }
+    queryRadius(x, y, radius, filterFn) {
+      const minX = Math.floor((x - radius) / this.cellSize);
+      const maxX = Math.floor((x + radius) / this.cellSize);
+      const minY = Math.floor((y - radius) / this.cellSize);
+      const maxY = Math.floor((y + radius) / this.cellSize);
+      const r2 = radius * radius;
+      const res = [];
+      for (let cy = minY; cy <= maxY; cy++) {
+        for (let cx = minX; cx <= maxX; cx++) {
+          const key = `${cx},${cy}`;
+          const list = this.cells.get(key);
+          if (!list) continue;
+          for (let i = 0; i < list.length; i++) {
+            const it = list[i];
+            if (distSq(it.x, it.y, x, y) <= r2) {
+              if (!filterFn || filterFn(it)) res.push(it);
+            }
+          }
+        }
+      }
+      return res;
+    }
+    nearest(x, y, radius, filterFn) {
+      const items = this.queryRadius(x, y, radius, filterFn);
+      let best = null, bestD2 = Infinity;
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        const d2 = distSq(it.x, it.y, x, y);
+        if (d2 < bestD2) {
+          bestD2 = d2;
+          best = it;
+        }
+      }
+      return best;
+    }
   }
-  refreshAccent();
-  if (window.matchMedia) {
-    var mql = window.matchMedia("(prefers-color-scheme: dark)");
-    if (mql.addEventListener) mql.addEventListener("change", refreshAccent);
-    else if (mql.addListener) mql.addListener(refreshAccent);
+
+  const creatureGrid = new SpatialGrid(90);
+  const plantGrid = new SpatialGrid(80);
+
+  // ==========================================
+  // CLASE CRIATURA (Inteligencia, Instinto y Genética)
+  // ==========================================
+  class Creature {
+    constructor(x, y, speciesId, genes, gen = 0) {
+      this.id = nextCreatureId++;
+      this.x = x;
+      this.y = y;
+      this.speciesId = speciesId;
+      this.spec = SPECIES[speciesId.toUpperCase()] || SPECIES.HERB_AGILE;
+      this.genes = genes || this.defaultGenes();
+      this.gen = gen;
+
+      this.heading = rand(0, Math.PI * 2);
+      this.targetHeading = this.heading;
+      this.vx = 0;
+      this.vy = 0;
+
+      // Necesidades fisiológicas
+      this.maxEnergy = 70 + this.genes.size * 6;
+      this.energy = this.maxEnergy * 0.7;
+      this.maxWater = 80;
+      this.water = this.maxWater * 0.8;
+      this.maxStamina = 100;
+      this.stamina = this.maxStamina;
+      this.health = 100;
+
+      this.age = 0;
+      this.maxAge = this.spec.maxAge + this.genes.size * 90 + rand(-300, 300);
+      this.state = "WANDER"; // WANDER, GRAZE, DRINK, STALK, CHASE, FLEE, COURT, SLEEP, SCAVENGE, DEFEND
+      this.stateTimer = 0;
+      this.isSprinting = false;
+      this.isInBush = false;
+
+      this.kids = 0;
+      this.kills = 0;
+      this.seed = rand(0, 1000);
+      this.emote = "";
+      this.emoteTimer = 0;
+      this.attackCooldown = 0;
+      this.target = null;
+    }
+
+    defaultGenes() {
+      return {
+        speed: this.spec.baseSpeed * rand(0.85, 1.15),
+        sense: this.spec.baseSense * rand(0.85, 1.15),
+        size: this.spec.baseSize * rand(0.85, 1.15),
+        stealth: rand(0.4, 0.9),
+        aggression: rand(0.3, 0.9),
+        staminaEfficiency: rand(0.8, 1.2),
+        hueOffset: rand(-15, 15)
+      };
+    }
+
+    mutateGenes() {
+      const g = this.genes;
+      return {
+        speed: clamp(g.speed * (1 + spread(0.14)), 0.5, 3.2),
+        sense: clamp(g.sense * (1 + spread(0.14)), 45, 260),
+        size: clamp(g.size * (1 + spread(0.12)), 1.8, 18),
+        stealth: clamp(g.stealth * (1 + spread(0.12)), 0.2, 0.98),
+        aggression: clamp(g.aggression * (1 + spread(0.12)), 0.1, 1.0),
+        staminaEfficiency: clamp(g.staminaEfficiency * (1 + spread(0.12)), 0.5, 1.8),
+        hueOffset: clamp(g.hueOffset + spread(6), -35, 35)
+      };
+    }
+
+    growth() {
+      const maturation = this.spec.reproAge * 0.8;
+      return Math.min(1, 0.4 + 0.6 * Math.min(1, this.age / maturation));
+    }
+
+    radius() {
+      return this.genes.size * this.growth();
+    }
+
+    setEmote(emoji, duration = 60) {
+      if (!options.showEmotes) return;
+      this.emote = emoji;
+      this.emoteTimer = duration;
+    }
+
+    steerToward(tx, ty, dt, turnSpeed, speedScale) {
+      const targetHeading = Math.atan2(ty - this.y, tx - this.x);
+      this.heading += angleDiff(targetHeading, this.heading) * Math.min(1, turnSpeed * dt);
+      const spd = this.genes.speed * speedScale * (this.isSprinting ? 1.45 : 1.0);
+      this.x += Math.cos(this.heading) * spd * dt;
+      this.y += Math.sin(this.heading) * spd * dt;
+    }
+
+    steerAway(px, py, dt, turnSpeed, speedScale) {
+      const targetHeading = Math.atan2(this.y - py, this.x - px);
+      this.heading += angleDiff(targetHeading, this.heading) * Math.min(1, turnSpeed * dt);
+      const spd = this.genes.speed * speedScale * (this.isSprinting ? 1.55 : 1.0);
+      this.x += Math.cos(this.heading) * spd * dt;
+      this.y += Math.sin(this.heading) * spd * dt;
+    }
+
+    wander(dt) {
+      this.heading += spread(0.25) * dt;
+      const spd = this.genes.speed * 0.45 * dt;
+      this.x += Math.cos(this.heading) * spd;
+      this.y += Math.sin(this.heading) * spd;
+    }
+
+    wrap() {
+      const margin = 20;
+      if (this.x < -margin) this.x = W + margin;
+      else if (this.x > W + margin) this.x = -margin;
+      if (this.y < -margin) this.y = H + margin;
+      else if (this.y > H + margin) this.y = -margin;
+    }
+
+    checkBushCover() {
+      this.isInBush = false;
+      for (let i = 0; i < bushes.length; i++) {
+        const b = bushes[i];
+        if (distSq(this.x, this.y, b.x, b.y) < b.radius * b.radius) {
+          this.isInBush = true;
+          break;
+        }
+      }
+    }
+
+    update(dt) {
+      this.age += dt;
+      this.stateTimer += dt;
+      if (this.emoteTimer > 0) this.emoteTimer -= dt;
+      if (this.attackCooldown > 0) this.attackCooldown -= dt;
+
+      this.checkBushCover();
+
+      // Desgaste metabólico
+      const baseMetabolism = (0.035 * this.genes.size + 0.05 * this.genes.speed);
+      const sprintCost = this.isSprinting ? 2.2 / this.genes.staminaEfficiency : 1.0;
+      this.energy -= baseMetabolism * sprintCost * dt;
+      this.water -= 0.035 * dt;
+
+      // Resistencia
+      if (this.isSprinting) {
+        this.stamina = Math.max(0, this.stamina - 0.45 * dt);
+        if (this.stamina <= 0) this.isSprinting = false;
+      } else {
+        this.stamina = Math.min(this.maxStamina, this.stamina + 0.25 * dt);
+      }
+
+      // Ciclo nocturno
+      const isNight = dayTime > 0.65 && dayTime < 0.95;
+      if (isNight && this.energy > this.maxEnergy * 0.35 && this.water > 25 && this.state === "WANDER") {
+        this.state = "SLEEP";
+        this.setEmote("💤", 120);
+      }
+
+      if (this.state === "SLEEP") {
+        if (!isNight || this.energy < this.maxEnergy * 0.25 || this.water < 15) {
+          this.state = "WANDER";
+        } else {
+          this.stamina = Math.min(this.maxStamina, this.stamina + 0.5 * dt);
+          this.wrap();
+          return;
+        }
+      }
+
+      // Comportamiento por especie
+      switch (this.speciesId) {
+        case "herb_agile":
+          this.updateHerbAgile(dt);
+          break;
+        case "herb_mega":
+          this.updateHerbMega(dt);
+          break;
+        case "carn_pack":
+          this.updateCarnPack(dt);
+          break;
+        case "carn_apex":
+          this.updateCarnApex(dt);
+          break;
+        case "scavenger":
+          this.updateScavenger(dt);
+          break;
+        case "pollinator":
+          this.updatePollinator(dt);
+          break;
+      }
+
+      this.wrap();
+      this.checkReproduction();
+    }
+
+    updateHerbAgile(dt) {
+      const senseR = this.genes.sense;
+      const predator = creatureGrid.nearest(this.x, this.y, senseR, (c) => {
+        if (c.speciesId !== "carn_pack" && c.speciesId !== "carn_apex") return false;
+        if (c.isInBush && distSq(this.x, this.y, c.x, c.y) > 40 * 40) return false;
+        return true;
+      });
+
+      if (predator) {
+        this.state = "FLEE";
+        this.isSprinting = this.stamina > 15;
+        this.steerAway(predator.x, predator.y, dt, 0.22, 1.2);
+        this.setEmote("❗", 40);
+
+        if (Math.random() < 0.08 * dt) {
+          alarmWaves.push({ x: this.x, y: this.y, r: 5, maxR: 130, alpha: 0.9 });
+          const friends = creatureGrid.queryRadius(this.x, this.y, 120, (c) => c.speciesId === "herb_agile" && c !== this);
+          for (let f of friends) {
+            if (f.state !== "FLEE") {
+              f.state = "FLEE";
+              f.setEmote("⚠️", 50);
+              f.steerAway(predator.x, predator.y, dt, 0.18, 1.1);
+            }
+          }
+        }
+        return;
+      }
+
+      this.isSprinting = false;
+
+      if (this.water < 35) {
+        const pond = this.findNearestWater();
+        if (pond) {
+          this.state = "DRINK";
+          this.steerToward(pond.x, pond.y, dt, 0.14, 0.9);
+          if (distSq(this.x, this.y, pond.x, pond.y) < (pond.radius + 10) * (pond.radius + 10)) {
+            this.water = Math.min(this.maxWater, this.water + 0.8 * dt);
+            this.setEmote("💧", 20);
+          }
+          return;
+        }
+      }
+
+      if (this.energy < this.maxEnergy * 0.78) {
+        const nearestFood = plantGrid.nearest(this.x, this.y, senseR);
+        if (nearestFood) {
+          this.state = "GRAZE";
+          this.steerToward(nearestFood.x, nearestFood.y, dt, 0.16, 1.0);
+          if (distSq(this.x, this.y, nearestFood.x, nearestFood.y) < Math.pow(this.radius() + 5, 2)) {
+            this.energy = Math.min(this.maxEnergy, this.energy + nearestFood.nutrition);
+            const pIdx = plants.indexOf(nearestFood);
+            if (pIdx >= 0) plants.splice(pIdx, 1);
+            this.setEmote("🌿", 30);
+          }
+          return;
+        }
+      }
+
+      const herd = creatureGrid.queryRadius(this.x, this.y, 80, (c) => c.speciesId === "herb_agile" && c !== this);
+      if (herd.length > 0) {
+        let avgX = 0, avgY = 0, avgH = 0;
+        for (let h of herd) {
+          avgX += h.x; avgY += h.y; avgH += h.heading;
+          if (distSq(this.x, this.y, h.x, h.y) < 22 * 22) {
+            this.steerAway(h.x, h.y, dt, 0.1, 0.6);
+          }
+        }
+        avgX /= herd.length; avgY /= herd.length; avgH /= herd.length;
+        this.steerToward(avgX, avgY, dt, 0.05, 0.7);
+        this.heading += angleDiff(avgH, this.heading) * 0.04 * dt;
+        this.state = "WANDER";
+        return;
+      }
+
+      this.state = "WANDER";
+      this.wander(dt);
+    }
+
+    updateHerbMega(dt) {
+      const threat = creatureGrid.nearest(this.x, this.y, 50, (c) => c.speciesId === "carn_pack" || c.speciesId === "carn_apex");
+      if (threat && distSq(this.x, this.y, threat.x, threat.y) < 35 * 35) {
+        this.state = "DEFEND";
+        this.setEmote("🛡️", 40);
+        if (this.attackCooldown <= 0) {
+          threat.health -= 25;
+          threat.setEmote("💥", 30);
+          this.attackCooldown = 40;
+          particles.push({ x: threat.x, y: threat.y, r: 6, alpha: 1, color: "#d24e38" });
+        }
+      }
+
+      if (this.water < 30) {
+        const pond = this.findNearestWater();
+        if (pond) {
+          this.state = "DRINK";
+          this.steerToward(pond.x, pond.y, dt, 0.08, 0.7);
+          if (distSq(this.x, this.y, pond.x, pond.y) < (pond.radius + 18) * (pond.radius + 18)) {
+            this.water = Math.min(this.maxWater, this.water + 0.9 * dt);
+          }
+          return;
+        }
+      }
+
+      if (this.energy < this.maxEnergy * 0.85) {
+        const bush = this.findNearestBush();
+        if (bush && bush.berries > 0) {
+          this.state = "GRAZE";
+          this.steerToward(bush.x, bush.y, dt, 0.08, 0.8);
+          if (distSq(this.x, this.y, bush.x, bush.y) < (bush.radius + 12) * (bush.radius + 12)) {
+            this.energy = Math.min(this.maxEnergy, this.energy + 28);
+            bush.berries = Math.max(0, bush.berries - 1);
+            this.setEmote("🍃", 35);
+          }
+          return;
+        }
+        const food = plantGrid.nearest(this.x, this.y, this.genes.sense);
+        if (food) {
+          this.state = "GRAZE";
+          this.steerToward(food.x, food.y, dt, 0.08, 0.8);
+          if (distSq(this.x, this.y, food.x, food.y) < Math.pow(this.radius() + 6, 2)) {
+            this.energy = Math.min(this.maxEnergy, this.energy + food.nutrition * 1.5);
+            const pIdx = plants.indexOf(food);
+            if (pIdx >= 0) plants.splice(pIdx, 1);
+          }
+          return;
+        }
+      }
+
+      this.state = "WANDER";
+      this.wander(dt);
+    }
+
+    updateCarnPack(dt) {
+      this.isSprinting = false;
+
+      if (this.energy > this.maxEnergy * 0.88) {
+        this.state = "REST";
+        this.setEmote("🍖", 30);
+        this.wander(dt * 0.5);
+        return;
+      }
+
+      if (this.water < 25) {
+        const pond = this.findNearestWater();
+        if (pond) {
+          this.state = "DRINK";
+          this.steerToward(pond.x, pond.y, dt, 0.12, 0.8);
+          if (distSq(this.x, this.y, pond.x, pond.y) < (pond.radius + 12) * (pond.radius + 12)) {
+            this.water = Math.min(this.maxWater, this.water + 0.8 * dt);
+          }
+          return;
+        }
+      }
+
+      const corpse = this.findNearestCarcass();
+      if (corpse && corpse.meat > 0) {
+        this.state = "SCAVENGE";
+        this.steerToward(corpse.x, corpse.y, dt, 0.15, 1.0);
+        if (distSq(this.x, this.y, corpse.x, corpse.y) < 18 * 18) {
+          const bite = Math.min(corpse.meat, 0.6 * dt * 25);
+          corpse.meat -= bite;
+          this.energy = Math.min(this.maxEnergy, this.energy + bite);
+          this.setEmote("🥩", 20);
+        }
+        return;
+      }
+
+      const prey = creatureGrid.nearest(this.x, this.y, this.genes.sense, (c) => {
+        if (c.speciesId !== "herb_agile" && c.speciesId !== "herb_mega") return false;
+        if (c.isInBush && distSq(this.x, this.y, c.x, c.y) > 35 * 35) return false;
+        return true;
+      });
+
+      if (prey) {
+        const d = Math.sqrt(distSq(this.x, this.y, prey.x, prey.y));
+
+        if (d > 75) {
+          this.state = "STALK";
+          this.steerToward(prey.x, prey.y, dt, 0.12, 0.65);
+          this.setEmote("🎯", 30);
+        } else {
+          this.state = "CHASE";
+          this.isSprinting = this.stamina > 10;
+          this.steerToward(prey.x, prey.y, dt, 0.22, 1.25);
+          this.setEmote("⚡", 25);
+
+          if (d < this.radius() + prey.radius() + 4) {
+            prey.health -= 45 * dt * 0.15;
+            if (prey.health <= 0) {
+              this.energy = Math.min(this.maxEnergy, this.energy + prey.energy * 0.6 + 30);
+              this.kills++;
+              totalKills++;
+              this.setEmote("🐺", 60);
+              spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 8);
+              removeCreature(prey);
+            }
+          }
+        }
+        return;
+      }
+
+      this.state = "WANDER";
+      this.wander(dt);
+    }
+
+    updateCarnApex(dt) {
+      this.isSprinting = false;
+
+      if (this.energy > this.maxEnergy * 0.9) {
+        this.state = "REST";
+        this.wander(dt * 0.4);
+        return;
+      }
+
+      if (Math.random() < 0.005 * dt) {
+        this.setEmote("🦖", 80);
+        alarmWaves.push({ x: this.x, y: this.y, r: 8, maxR: 220, alpha: 1.0, color: "#8e2b88" });
+        const nearby = creatureGrid.queryRadius(this.x, this.y, 200, (c) => c !== this && c.speciesId !== "carn_apex");
+        for (let c of nearby) {
+          c.setEmote("😱", 60);
+          c.steerAway(this.x, this.y, dt, 0.25, 1.4);
+        }
+      }
+
+      const prey = creatureGrid.nearest(this.x, this.y, this.genes.sense, (c) => {
+        return c !== this && (c.speciesId === "herb_mega" || c.speciesId === "herb_agile" || c.speciesId === "carn_pack");
+      });
+
+      if (prey) {
+        this.state = "CHASE";
+        this.isSprinting = this.stamina > 20;
+        this.steerToward(prey.x, prey.y, dt, 0.15, 1.15);
+
+        const d = Math.sqrt(distSq(this.x, this.y, prey.x, prey.y));
+        if (d < this.radius() + prey.radius() + 6) {
+          prey.health -= 70 * dt * 0.15;
+          if (prey.health <= 0) {
+            this.energy = Math.min(this.maxEnergy, this.energy + 70);
+            this.kills++;
+            totalKills++;
+            this.setEmote("👑", 70);
+            spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 12);
+            removeCreature(prey);
+          }
+        }
+        return;
+      }
+
+      this.state = "WANDER";
+      this.wander(dt);
+    }
+
+    updateScavenger(dt) {
+      const corpse = this.findNearestCarcass();
+      if (corpse && corpse.meat > 0) {
+        this.state = "SCAVENGE";
+        this.steerToward(corpse.x, corpse.y, dt, 0.18, 1.1);
+        if (distSq(this.x, this.y, corpse.x, corpse.y) < 14 * 14) {
+          const bite = Math.min(corpse.meat, 0.4 * dt * 20);
+          corpse.meat -= bite;
+          this.energy = Math.min(this.maxEnergy, this.energy + bite * 1.2);
+          this.setEmote("🦅", 25);
+        }
+        return;
+      }
+
+      this.state = "WANDER";
+      this.heading += 0.04 * dt;
+      this.x += Math.cos(this.heading) * this.genes.speed * dt;
+      this.y += Math.sin(this.heading) * this.genes.speed * dt;
+    }
+
+    updatePollinator(dt) {
+      this.heading += spread(0.5) * dt;
+      this.x += Math.cos(this.heading) * this.genes.speed * 0.8 * dt;
+      this.y += Math.sin(this.heading) * this.genes.speed * 0.8 * dt;
+
+      const bush = this.findNearestBush();
+      if (bush && distSq(this.x, this.y, bush.x, bush.y) < (bush.radius + 15) * (bush.radius + 15)) {
+        if (bush.berries < bush.maxBerries && Math.random() < 0.04 * dt) {
+          bush.berries++;
+          this.energy = Math.min(this.maxEnergy, this.energy + 8);
+          this.setEmote("✨", 25);
+        }
+      }
+
+      if (Math.random() < 0.012 * dt && plants.length < 180) {
+        spawnFood(this.x + spread(15), this.y + spread(15));
+      }
+    }
+
+    checkReproduction() {
+      if (creatures.filter(c => c.speciesId === this.speciesId).length >= this.spec.cap) return;
+      if (this.age < this.spec.reproAge) return;
+      if (this.energy < this.maxEnergy * this.spec.reproFrac) return;
+      if (this.water < 30) return;
+
+      const childGenes = this.mutateGenes();
+      const child = new Creature(
+        this.x + spread(12),
+        this.y + spread(12),
+        this.speciesId,
+        childGenes,
+        this.gen + 1
+      );
+      child.energy = this.energy * 0.45;
+      this.energy *= 0.55;
+      this.kids++;
+      births++;
+      if (child.gen > maxGen) maxGen = child.gen;
+
+      creatures.push(child);
+      this.setEmote("❤️", 60);
+      particles.push({ x: this.x, y: this.y, r: 8, alpha: 1, color: "#ff6b8b" });
+    }
+
+    findNearestWater() {
+      let best = null, bestD2 = Infinity;
+      for (let p of waterBodies) {
+        const d2 = distSq(this.x, this.y, p.x, p.y);
+        if (d2 < bestD2) { bestD2 = d2; best = p; }
+      }
+      return best;
+    }
+
+    findNearestBush() {
+      let best = null, bestD2 = Infinity;
+      for (let b of bushes) {
+        const d2 = distSq(this.x, this.y, b.x, b.y);
+        if (d2 < bestD2) { bestD2 = d2; best = b; }
+      }
+      return best;
+    }
+
+    findNearestCarcass() {
+      let best = null, bestD2 = Infinity;
+      for (let c of carcasses) {
+        if (c.meat <= 0) continue;
+        const d2 = distSq(this.x, this.y, c.x, c.y);
+        if (d2 < bestD2) { bestD2 = d2; best = c; }
+      }
+      return best;
+    }
+
+    draw(ctx) {
+      const r = this.radius();
+      const energyFrac = clamp(this.energy / this.maxEnergy, 0, 1);
+      const isNight = dayTime > 0.65 && dayTime < 0.95;
+
+      ctx.save();
+      ctx.translate(this.x, this.y);
+
+      ctx.beginPath();
+      ctx.ellipse(0, r * 0.4, r * 1.1, r * 0.5, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+      ctx.fill();
+
+      if (this.isInBush) ctx.globalAlpha = 0.5;
+
+      ctx.rotate(this.heading);
+
+      switch (this.speciesId) {
+        case "herb_agile": {
+          const legPhase = Math.sin(simTime * 0.025 * this.genes.speed + this.seed);
+          ctx.strokeStyle = "#1b4d37";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.4, -r * 0.7); ctx.lineTo(-r * 0.4 + legPhase * 4, -r * 1.1);
+          ctx.moveTo(-r * 0.4, r * 0.7); ctx.lineTo(-r * 0.4 - legPhase * 4, r * 1.1);
+          ctx.moveTo(r * 0.4, -r * 0.7); ctx.lineTo(r * 0.4 - legPhase * 4, -r * 1.1);
+          ctx.moveTo(r * 0.4, r * 0.7); ctx.lineTo(r * 0.4 + legPhase * 4, r * 1.1);
+          ctx.stroke();
+
+          ctx.fillStyle = `hsl(${145 + this.genes.hueOffset}, 62%, ${38 + energyFrac * 16}%)`;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * 1.25, r * 0.75, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0,0,0,0.3)";
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+
+          ctx.fillStyle = "#8dcfa5";
+          ctx.beginPath();
+          ctx.ellipse(r * 0.6, -r * 0.6, r * 0.35, r * 0.15, -0.4, 0, Math.PI * 2);
+          ctx.ellipse(r * 0.6, r * 0.6, r * 0.35, r * 0.15, 0.4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#112211";
+          ctx.beginPath();
+          ctx.arc(r * 0.7, -r * 0.3, Math.max(1, r * 0.18), 0, Math.PI * 2);
+          ctx.arc(r * 0.7, r * 0.3, Math.max(1, r * 0.18), 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case "herb_mega": {
+          const wag = Math.sin(simTime * 0.008 + this.seed) * 0.3;
+          ctx.strokeStyle = "#4d5e23";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.9, 0);
+          ctx.lineTo(-r * 1.6, wag * 8);
+          ctx.stroke();
+          ctx.fillStyle = "#2c3b12";
+          ctx.beginPath();
+          ctx.arc(-r * 1.6, wag * 8, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = `hsl(${85 + this.genes.hueOffset}, 45%, ${32 + energyFrac * 14}%)`;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * 1.15, r * 0.95, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0,0,0,0.4)";
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+
+          ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+          ctx.beginPath();
+          ctx.arc(-r * 0.3, 0, r * 0.45, 0, Math.PI * 2);
+          ctx.arc(r * 0.3, 0, r * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case "carn_pack": {
+          const tailWag = Math.sin(simTime * 0.03 * this.genes.speed + this.seed) * 0.6;
+          ctx.fillStyle = "#8a2416";
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.9, 0);
+          ctx.lineTo(-r * 1.8, tailWag * 6);
+          ctx.lineTo(-r * 1.7, tailWag * 6 - 3);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = `hsl(${12 + this.genes.hueOffset}, 75%, ${42 + energyFrac * 16}%)`;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * 1.35, r * 0.65, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0,0,0,0.35)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillStyle = "#4a0f07";
+          ctx.beginPath();
+          ctx.moveTo(r * 0.2, -r * 0.55); ctx.lineTo(r * 0.5, -r * 1.1); ctx.lineTo(r * 0.7, -r * 0.45);
+          ctx.moveTo(r * 0.2, r * 0.55); ctx.lineTo(r * 0.5, r * 1.1); ctx.lineTo(r * 0.7, r * 0.45);
+          ctx.fill();
+
+          ctx.fillStyle = isNight ? "#ffeb3b" : "#1a0503";
+          ctx.beginPath();
+          ctx.arc(r * 0.8, -r * 0.25, Math.max(1, r * 0.16), 0, Math.PI * 2);
+          ctx.arc(r * 0.8, r * 0.25, Math.max(1, r * 0.16), 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case "carn_apex": {
+          const jawPhase = Math.sin(simTime * 0.015 + this.seed) * 0.2;
+          ctx.fillStyle = "#481044";
+          for (let i = -3; i <= 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * r * 0.28, -r * 0.55);
+            ctx.lineTo(i * r * 0.28, -r * 1.1);
+            ctx.lineTo(i * r * 0.28 + 4, -r * 0.55);
+            ctx.fill();
+          }
+
+          ctx.fillStyle = `hsl(${295 + this.genes.hueOffset}, 60%, ${28 + energyFrac * 16}%)`;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * 1.3, r * 0.8, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0,0,0,0.5)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = "#ff2a55";
+          ctx.beginPath();
+          ctx.arc(r * 0.9, 0, r * 0.35 + jawPhase * 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#00ffff";
+          ctx.beginPath();
+          ctx.arc(r * 0.75, -r * 0.35, Math.max(1.5, r * 0.15), 0, Math.PI * 2);
+          ctx.arc(r * 0.75, r * 0.35, Math.max(1.5, r * 0.15), 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case "scavenger": {
+          const wingPhase = Math.sin(simTime * 0.025 + this.seed);
+          ctx.fillStyle = "#33415c";
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-r * 0.5, -r * 2.2 + wingPhase * 4);
+          ctx.lineTo(r * 0.6, 0);
+          ctx.lineTo(-r * 0.5, r * 2.2 - wingPhase * 4);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = "#1e293b";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * 1.1, r * 0.45, 0, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case "pollinator": {
+          const flutter = Math.sin(simTime * 0.05 + this.seed);
+          ctx.fillStyle = "rgba(255, 220, 80, 0.4)";
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 2.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+          ctx.beginPath();
+          ctx.ellipse(0, -r * 1.2, r * 0.8, r * 0.4 + flutter * 0.2, 0.3, 0, Math.PI * 2);
+          ctx.ellipse(0, r * 1.2, r * 0.8, r * 0.4 - flutter * 0.2, -0.3, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#ffd54f";
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+      }
+
+      ctx.restore();
+
+      if (options.showVision && (this === selectedCreature || this.speciesId === "carn_apex" || this.state === "CHASE")) {
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.genes.sense, this.heading - 0.7, this.heading + 0.7);
+        ctx.lineTo(this.x, this.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      if (options.showEmotes && this.emote && this.emoteTimer > 0) {
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(this.emote, this.x, this.y - r - 8);
+      }
+
+      if (options.showBars || this === selectedCreature) {
+        const barW = Math.max(20, r * 2.5);
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(this.x - barW / 2, this.y - r - 6, barW, 3);
+        ctx.fillStyle = "#4ae0b5";
+        ctx.fillRect(this.x - barW / 2, this.y - r - 6, barW * energyFrac, 3);
+      }
+
+      if (this === selectedCreature) {
+        ctx.strokeStyle = "#4ae0b5";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, r + 7, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
   }
 
-  var FOOD_MAX = 140, HERB_MAX = 90, CARN_MAX = 30;
-  var HERB_REPRO_AGE = 180, CARN_REPRO_AGE = 260;
-  var HERB_REPRO_FRAC = 0.78, CARN_REPRO_FRAC = 0.8;
+  // ==========================================
+  // AMBIENTE, BIOMAS Y VEGETACIÓN DINÁMICA
+  // ==========================================
+  function initBiomes() {
+    waterBodies = [];
+    bushes = [];
 
-  var food = [], herbs = [], carns = [], pops = [], ambient = [];
-  var births = 0, maxGen = 0;
-  var running = true, foodRate = 0.5, speedMult = 1.0;
-  var simTime = 0, realElapsedMs = 0, frameCounter = 0, lastTs = null;
+    const numPonds = W > 800 ? 3 : 2;
+    for (let i = 0; i < numPonds; i++) {
+      waterBodies.push({
+        x: rand(W * 0.15, W * 0.85),
+        y: rand(H * 0.15, H * 0.85),
+        radius: rand(45, 80),
+        seed: rand(0, 1000)
+      });
+    }
 
-  function rand(a, b) { return a + Math.random() * (b - a); }
-  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
-  function spread(r) { return (Math.random() * 2 - 1) * r; }
-  function angleDiff(target, current) { return Math.atan2(Math.sin(target - current), Math.cos(target - current)); }
-
-  function maxEnergyOf(genes) { return 60 + genes.size * 6; }
-
-  function newGenes() {
-    return { speed: rand(0.7, 1.9), sense: rand(55, 140), size: rand(3, 8) };
-  }
-  function mutate(g) {
-    return {
-      speed: clamp(g.speed * (1 + spread(0.15)), 0.6, 2.4),
-      sense: clamp(g.sense * (1 + spread(0.15)), 40, 170),
-      size: clamp(g.size * (1 + spread(0.15)), 2.5, 11)
-    };
-  }
-
-  function makeCreature(x, y, genes, gen, kind) {
-    var me = maxEnergyOf(genes);
-    return {
-      x: x, y: y, heading: rand(0, Math.PI * 2),
-      genes: genes, gen: gen, kind: kind,
-      energy: me * 0.55, maxEnergy: me,
-      age: 0, maxAge: (kind === "herb" ? 2200 : 2000) + genes.size * 80 + rand(-300, 300),
-      state: "alive", dyingT: 0, seed: rand(0, 1000)
-    };
-  }
-
-  function growthOf(e) {
-    var span = e.kind === "carn" ? 220 : 150;
-    return Math.min(1, 0.45 + 0.55 * Math.min(1, e.age / span));
-  }
-  function radiusOf(e) {
-    var base = e.kind === "herb" ? (3 + e.genes.size * 0.55) : (5 + e.genes.size * 0.55);
-    return base * growthOf(e);
-  }
-
-  function addFood(x, y) {
-    if (food.length >= FOOD_MAX) return;
-    food.push({ x: clamp(x, 0, W), y: clamp(y, 0, H), seed: rand(0, 1000) });
-  }
-  function spawnFoodCluster(x, y, n) {
-    for (var i = 0; i < n; i++) addFood(x + rand(-24, 24), y + rand(-24, 24));
-  }
-
-  function spawnPop(x, y, hue) {
-    pops.push({ x: x, y: y, r: 1.5, alpha: 0.85, hue: hue });
-  }
-
-  function addCarnivore() {
-    if (carns.length >= CARN_MAX) return;
-    carns.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "carn"));
-  }
-
-  function initAmbient() {
-    ambient = [];
-    for (var i = 0; i < 26; i++) {
-      ambient.push({
-        x: rand(0, W), y: rand(0, H),
-        vx: rand(-0.06, 0.06), vy: rand(-0.1, -0.02),
-        r: rand(0.6, 1.6), a: rand(0.08, 0.25), seed: rand(0, 1000)
+    const numBushes = Math.floor(W * H / 45000);
+    for (let i = 0; i < numBushes; i++) {
+      bushes.push({
+        x: rand(30, W - 30),
+        y: rand(30, H - 30),
+        radius: rand(24, 42),
+        berries: Math.floor(rand(2, 6)),
+        maxBerries: 8,
+        seed: rand(0, 1000)
       });
     }
   }
 
-  function seed() {
-    food = []; herbs = []; carns = []; pops = [];
-    births = 0; maxGen = 0;
-    simTime = 0; realElapsedMs = 0; frameCounter = 0; lastTs = null;
-    for (var i = 0; i < 55; i++) addFood(rand(0, W), rand(0, H));
-    for (var h = 0; h < 30; h++) herbs.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "herb"));
-    for (var c = 0; c < 6; c++) carns.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "carn"));
-    initAmbient();
+  function spawnFood(x, y) {
+    if (plants.length >= 220) return;
+    plants.push({
+      x: clamp(x, 10, W - 10),
+      y: clamp(y, 10, H - 10),
+      nutrition: rand(25, 45),
+      seed: rand(0, 1000),
+      grow: 0.1
+    });
   }
 
-  function steerToward(e, tx, ty, dt, turnRate, speedScale) {
-    var targetHeading = Math.atan2(ty - e.y, tx - e.x);
-    e.heading += angleDiff(targetHeading, e.heading) * Math.min(1, turnRate * dt);
-    e.x += Math.cos(e.heading) * e.genes.speed * speedScale * dt;
-    e.y += Math.sin(e.heading) * e.genes.speed * speedScale * dt;
-  }
-  function steerAway(e, px, py, dt, turnRate, speedScale) {
-    var targetHeading = Math.atan2(e.y - py, e.x - px);
-    e.heading += angleDiff(targetHeading, e.heading) * Math.min(1, turnRate * dt);
-    e.x += Math.cos(e.heading) * e.genes.speed * speedScale * dt;
-    e.y += Math.sin(e.heading) * e.genes.speed * speedScale * dt;
-  }
-  function wander(e, dt) {
-    e.heading += spread(0.3) * dt;
-    e.x += Math.cos(e.heading) * e.genes.speed * 0.4 * dt;
-    e.y += Math.sin(e.heading) * e.genes.speed * 0.4 * dt;
-  }
-  function wrap(e) {
-    if (e.x < 0) e.x += W; else if (e.x > W) e.x -= W;
-    if (e.y < 0) e.y += H; else if (e.y > H) e.y -= H;
+  function spawnCorpse(x, y, speciesId, meatAmount) {
+    carcasses.push({
+      x: x,
+      y: y,
+      speciesId: speciesId,
+      meat: meatAmount,
+      maxMeat: meatAmount,
+      decay: 0,
+      bones: false
+    });
   }
 
-  function nearest(list, x, y, maxDist, skipDying) {
-    var best = -1, bestD = maxDist * maxDist;
-    for (var i = 0; i < list.length; i++) {
-      var it = list[i];
-      if (skipDying && it.state === "dying") continue;
-      var dx = it.x - x, dy = it.y - y;
-      var d = dx * dx + dy * dy;
-      if (d < bestD) { bestD = d; best = i; }
-    }
-    return best;
-  }
-
-  function tryReproduce(list, e, reproFrac, reproAge, cap) {
-    if (list.length >= cap) return;
-    if (e.age < reproAge) return;
-    if (e.energy < reproFrac * e.maxEnergy) return;
-    var childGenes = mutate(e.genes);
-    var child = makeCreature(e.x + rand(-10, 10), e.y + rand(-10, 10), childGenes, e.gen + 1, e.kind);
-    child.energy = e.energy * 0.5;
-    e.energy *= 0.5;
-    list.push(child);
-    births++;
-    if (child.gen > maxGen) maxGen = child.gen;
-  }
-
-  function updateHerbs(dt) {
-    for (var i = herbs.length - 1; i >= 0; i--) {
-      var e = herbs[i];
-
-      if (e.state === "dying") {
-        e.dyingT += 0.03 * dt;
-        if (e.dyingT >= 1) {
-          herbs.splice(i, 1);
-          spawnFoodCluster(e.x, e.y, e.genes.size > 6 ? 2 : 1);
-        }
-        continue;
-      }
-
-      var predatorIdx = nearest(carns, e.x, e.y, e.genes.sense * 1.15, true);
-      var fleeing = predatorIdx >= 0;
-      var foodIdx = -1;
-
-      if (fleeing) {
-        steerAway(e, carns[predatorIdx].x, carns[predatorIdx].y, dt, 0.22, 1.15);
-      } else {
-        foodIdx = nearest(food, e.x, e.y, e.genes.sense);
-        if (foodIdx >= 0) steerToward(e, food[foodIdx].x, food[foodIdx].y, dt, 0.14, 1);
-        else wander(e, dt);
-      }
-      wrap(e);
-
-      var cost = (0.06 * e.genes.size + 0.08 * e.genes.speed) * dt * (fleeing ? 1.25 : 1);
-      e.energy -= cost;
-      e.age += dt;
-
-      if (!fleeing && foodIdx >= 0) {
-        var f = food[foodIdx];
-        var dx = f.x - e.x, dy = f.y - e.y;
-        if (dx * dx + dy * dy < Math.pow(radiusOf(e) + 3, 2)) {
-          food.splice(foodIdx, 1);
-          e.energy = Math.min(e.maxEnergy, e.energy + 35);
-        }
-      }
-
-      if (e.energy <= 0 || e.age > e.maxAge) { e.state = "dying"; e.dyingT = 0; continue; }
-      if (!fleeing) tryReproduce(herbs, e, HERB_REPRO_FRAC, HERB_REPRO_AGE, HERB_MAX);
+  function removeCreature(c) {
+    const idx = creatures.indexOf(c);
+    if (idx >= 0) {
+      if (selectedCreature === c) selectedCreature = null;
+      creatures.splice(idx, 1);
     }
   }
 
-  function updateCarns(dt) {
-    for (var i = carns.length - 1; i >= 0; i--) {
-      var e = carns[i];
+  // ==========================================
+  // REINICIO Y POBLACIÓN INICIAL
+  // ==========================================
+  function seedWorld() {
+    creatures = [];
+    plants = [];
+    carcasses = [];
+    particles = [];
+    alarmWaves = [];
+    popHistory = [];
+    births = 0;
+    totalKills = 0;
+    maxGen = 0;
+    simTime = 0;
+    realElapsedMs = 0;
+    selectedCreature = null;
 
-      if (e.state === "dying") {
-        e.dyingT += 0.03 * dt;
-        if (e.dyingT >= 1) carns.splice(i, 1);
-        continue;
-      }
+    initBiomes();
 
-      var hi = nearest(herbs, e.x, e.y, e.genes.sense);
-      if (hi >= 0) steerToward(e, herbs[hi].x, herbs[hi].y, dt, 0.16, 1);
-      else wander(e, dt);
-      wrap(e);
+    for (let i = 0; i < 60; i++) spawnFood(rand(0, W), rand(0, H));
 
-      var cost = (0.09 * e.genes.size + 0.11 * e.genes.speed) * dt;
-      e.energy -= cost;
-      e.age += dt;
+    for (let i = 0; i < 28; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "herb_agile", null, 0));
+    for (let i = 0; i < 6; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "herb_mega", null, 0));
+    for (let i = 0; i < 7; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "carn_pack", null, 0));
+    for (let i = 0; i < 2; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "carn_apex", null, 0));
+    for (let i = 0; i < 6; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "scavenger", null, 0));
+    for (let i = 0; i < 8; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "pollinator", null, 0));
 
-      if (hi >= 0) {
-        var prey = herbs[hi];
-        var dx = prey.x - e.x, dy = prey.y - e.y;
-        if (dx * dx + dy * dy < Math.pow(radiusOf(e) + radiusOf(prey) * 0.6, 2)) {
-          e.energy = Math.min(e.maxEnergy, e.energy + prey.energy * 0.55);
-          spawnPop(prey.x, prey.y, hueFromSpeed(prey.genes.speed, 108, 172));
-          herbs.splice(hi, 1);
-        }
-      }
-
-      if (e.energy <= 0 || e.age > e.maxAge) { e.state = "dying"; e.dyingT = 0; continue; }
-      tryReproduce(carns, e, CARN_REPRO_FRAC, CARN_REPRO_AGE, CARN_MAX);
-    }
+    showToast("Terrario reiniciado con éxito");
   }
 
-  function updatePops(dt) {
-    for (var i = pops.length - 1; i >= 0; i--) {
-      var p = pops[i];
-      p.r += 1.1 * dt;
-      p.alpha -= 0.05 * dt;
-      if (p.alpha <= 0) pops.splice(i, 1);
-    }
-  }
-
-  function updateAmbient(dt) {
-    for (var i = 0; i < ambient.length; i++) {
-      var p = ambient[i];
-      p.x += p.vx * dt; p.y += p.vy * dt;
-      if (p.x < -5) p.x = W + 5; else if (p.x > W + 5) p.x = -5;
-      if (p.y < -5) p.y = H + 5; else if (p.y > H + 5) p.y = -5;
-    }
-  }
-
-  function maybeSpawnFood(dt) {
-    if (food.length >= FOOD_MAX) return;
-    var chance = foodRate * 0.06 * dt;
-    if (Math.random() < chance) {
-      if (Math.random() < 0.4) spawnFoodCluster(rand(0, W), rand(0, H), Math.floor(rand(3, 6)));
-      else addFood(rand(0, W), rand(0, H));
-    }
-  }
-
+  // ==========================================
+  // BUCLE DE ACTUALIZACIÓN (SIMULACIÓN FÍSICA)
+  // ==========================================
   function tick(dt) {
-    maybeSpawnFood(dt);
-    updateHerbs(dt);
-    updateCarns(dt);
-    updatePops(dt);
-    updateAmbient(dt);
-  }
-
-  function hueFromSpeed(speed, lo, hi) {
-    var t = clamp((speed - 0.6) / (2.2 - 0.6), 0, 1);
-    return lo + t * (hi - lo);
-  }
-
-  function drawFin(x, y, len, wag) {
-    ctx.beginPath();
-    ctx.ellipse(x, y + wag * len * 0.35, len * 0.5, len * 0.22, wag * 0.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  function drawAmbient() {
-    ctx.fillStyle = accentColor;
-    for (var i = 0; i < ambient.length; i++) {
-      var p = ambient[i];
-      ctx.globalAlpha = p.a * (0.6 + 0.4 * Math.sin(simTime * 0.001 + p.seed));
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function drawFood() {
-    for (var i = 0; i < food.length; i++) {
-      var f = food[i];
-      var sway = Math.sin(simTime * 0.003 + f.seed) * 1.3;
-      var pulse = 1 + Math.sin(simTime * 0.006 + f.seed) * 0.12;
-      ctx.save();
-      ctx.translate(f.x + sway, f.y);
-      ctx.strokeStyle = "hsla(120, 45%, 40%, 0.5)";
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-3, -4 - pulse, -1, -7); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(3, -4 - pulse, 1, -7); ctx.stroke();
-      ctx.beginPath();
-      ctx.fillStyle = "hsla(42, 85%, 58%, 0.95)";
-      ctx.arc(0, 0, 2.4 * pulse, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  function drawHerbs() {
-    for (var i = 0; i < herbs.length; i++) {
-      var e = herbs[i];
-      var energyFrac = clamp(e.energy / e.maxEnergy, 0, 1);
-      var r = radiusOf(e) * (1 + Math.sin(simTime * 0.004 + e.seed) * 0.05);
-      var hue = hueFromSpeed(e.genes.speed, 108, 172);
-      var sat = 34 + energyFrac * 24;
-      var light = 30 + energyFrac * 18;
-      var alpha = e.state === "dying" ? Math.max(0, 1 - e.dyingT) : 1;
-      var finPhase = Math.sin(simTime * 0.02 * Math.max(0.4, e.genes.speed) + e.seed);
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(e.x, e.y);
-      ctx.rotate(e.heading);
-
-      ctx.fillStyle = "hsla(" + hue + ", " + (sat - 8) + "%, " + (light - 8) + "%, 0.9)";
-      drawFin(-r * 0.15, r * 0.7, r * 1.1, finPhase);
-      drawFin(-r * 0.15, -r * 0.7, r * 1.1, -finPhase);
-
-      ctx.beginPath();
-      ctx.ellipse(0, 0, r * 1.05, r * 0.9, 0, 0, Math.PI * 2);
-      ctx.fillStyle = "hsl(" + hue + ", " + sat + "%, " + light + "%)";
-      ctx.fill();
-      ctx.lineWidth = 0.8;
-      ctx.strokeStyle = "rgba(0,0,0,0.28)";
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.ellipse(-r * 0.25, -r * 0.32, r * 0.42, r * 0.26, -0.5, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255,255,255,0.28)";
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(10,14,12,0.85)";
-      ctx.beginPath(); ctx.arc(r * 0.55, -r * 0.3, Math.max(0.8, r * 0.14), 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(r * 0.55, r * 0.3, Math.max(0.8, r * 0.14), 0, Math.PI * 2); ctx.fill();
-
-      ctx.restore();
-    }
-  }
-
-  function drawCarns() {
-    for (var i = 0; i < carns.length; i++) {
-      var e = carns[i];
-      var energyFrac = clamp(e.energy / e.maxEnergy, 0, 1);
-      var baseR = radiusOf(e);
-      var hue = hueFromSpeed(e.genes.speed, 2, 28);
-      var sat = 50 + energyFrac * 22;
-      var light = 38 + energyFrac * 14;
-      var alpha = e.state === "dying" ? Math.max(0, 1 - e.dyingT) : 1;
-      var stretch = 1 + Math.min(0.35, e.genes.speed * 0.12);
-      var tailWag = Math.sin(simTime * 0.018 * Math.max(0.5, e.genes.speed) + e.seed) * 0.5;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(e.x, e.y);
-      ctx.rotate(e.heading);
-
-      ctx.fillStyle = "hsl(" + hue + ", " + sat + "%, " + (light - 12) + "%)";
-      ctx.beginPath();
-      ctx.moveTo(-baseR * stretch * 0.9, 0);
-      ctx.lineTo(-baseR * stretch * 1.7, baseR * 0.55 + tailWag * baseR * 0.6);
-      ctx.lineTo(-baseR * stretch * 1.7, -baseR * 0.55 + tailWag * baseR * 0.6);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.ellipse(0, 0, baseR * stretch, baseR * 0.6, 0, 0, Math.PI * 2);
-      ctx.fillStyle = "hsl(" + hue + ", " + sat + "%, " + light + "%)";
-      ctx.fill();
-      ctx.lineWidth = 0.9;
-      ctx.strokeStyle = "rgba(0,0,0,0.32)";
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(-baseR * 0.1, -baseR * 0.48);
-      ctx.lineTo(baseR * 0.22, -baseR * 1.05);
-      ctx.lineTo(baseR * 0.5, -baseR * 0.42);
-      ctx.closePath();
-      ctx.fillStyle = "hsl(" + hue + ", " + sat + "%, " + (light - 16) + "%)";
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.ellipse(baseR * 0.1, -baseR * 0.22, baseR * 0.34, baseR * 0.16, -0.4, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255,255,255,0.22)";
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(8,6,6,0.9)";
-      ctx.beginPath(); ctx.arc(baseR * 0.62, -baseR * 0.12, Math.max(0.9, baseR * 0.13), 0, Math.PI * 2); ctx.fill();
-
-      ctx.restore();
-    }
-  }
-
-  function drawPops() {
-    for (var i = 0; i < pops.length; i++) {
-      var p = pops[i];
-      ctx.beginPath();
-      ctx.strokeStyle = "hsla(" + p.hue + ", 70%, 55%, " + Math.max(0, p.alpha) + ")";
-      ctx.lineWidth = 1.4;
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    drawAmbient();
-    drawFood();
-    drawHerbs();
-    drawCarns();
-    drawPops();
-  }
-
-  var stHerb = document.getElementById("stHerb");
-  var stCarn = document.getElementById("stCarn");
-  var stFood = document.getElementById("stFood");
-  var stGen = document.getElementById("stGen");
-  var stBirths = document.getElementById("stBirths");
-  var stSpeed = document.getElementById("stSpeed");
-  var clockEl = document.getElementById("clock");
-
-  function aliveCount(list) {
-    var c = 0;
-    for (var i = 0; i < list.length; i++) if (list[i].state !== "dying") c++;
-    return c;
-  }
-
-  function updateStats() {
-    var aliveHerbs = aliveCount(herbs);
-    stHerb.textContent = aliveHerbs;
-    stCarn.textContent = aliveCount(carns);
-    stFood.textContent = food.length;
-    stGen.textContent = maxGen;
-    stBirths.textContent = births;
-    if (aliveHerbs) {
-      var s = 0, n = 0;
-      for (var i = 0; i < herbs.length; i++) {
-        if (herbs[i].state === "dying") continue;
-        s += herbs[i].genes.speed; n++;
-      }
-      stSpeed.textContent = n ? (s / n).toFixed(2) : "—";
+    if (options.autoDayNight) {
+      dayTime = (dayTime + 0.00015 * dt) % 1.0;
+      document.getElementById("rangeTod").value = Math.floor(dayTime * 100);
     } else {
-      stSpeed.textContent = "—";
+      dayTime = document.getElementById("rangeTod").value / 100;
     }
-    var secs = Math.floor(realElapsedMs / 1000);
-    var m = Math.floor(secs / 60), s2 = secs % 60;
-    clockEl.textContent = m + ":" + (s2 < 10 ? "0" : "") + s2;
+
+    if (rainActive > 0) {
+      rainActive -= dt;
+      if (Math.random() < 0.3 * dt) spawnFood(rand(0, W), rand(0, H));
+      for (let i = 0; i < 3; i++) {
+        particles.push({
+          x: rand(0, W),
+          y: rand(0, H),
+          r: 1.5,
+          alpha: 0.6,
+          color: "#70c2e6"
+        });
+      }
+    }
+
+    const foodChance = foodRate * 0.08 * dt;
+    if (Math.random() < foodChance) {
+      spawnFood(rand(0, W), rand(0, H));
+    }
+
+    for (let b of bushes) {
+      if (b.berries < b.maxBerries && Math.random() < 0.003 * dt * (foodRate + (rainActive > 0 ? 2 : 0))) {
+        b.berries++;
+      }
+    }
+
+    creatureGrid.clear();
+    for (let c of creatures) creatureGrid.insert(c);
+
+    plantGrid.clear();
+    for (let p of plants) plantGrid.insert(p);
+
+    for (let i = creatures.length - 1; i >= 0; i--) {
+      const c = creatures[i];
+      c.update(dt);
+
+      if (c.energy <= 0 || c.water <= 0 || c.age > c.maxAge || c.health <= 0) {
+        spawnCorpse(c.x, c.y, c.speciesId, c.radius() * 6);
+        particles.push({ x: c.x, y: c.y, r: 6, alpha: 0.8, color: "#888888" });
+        removeCreature(c);
+      }
+    }
+
+    for (let i = carcasses.length - 1; i >= 0; i--) {
+      const c = carcasses[i];
+      c.decay += 0.02 * dt;
+      if (c.meat <= 0 && !c.bones) {
+        c.bones = true;
+      }
+      if (c.decay >= 100 || (c.bones && c.decay >= 40)) {
+        spawnFood(c.x, c.y);
+        spawnFood(c.x + 8, c.y - 6);
+        carcasses.splice(i, 1);
+      }
+    }
+
+    for (let i = alarmWaves.length - 1; i >= 0; i--) {
+      const w = alarmWaves[i];
+      w.r += 2.5 * dt;
+      w.alpha -= 0.025 * dt;
+      if (w.alpha <= 0 || w.r >= w.maxR) alarmWaves.splice(i, 1);
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.alpha -= 0.03 * dt;
+      if (p.alpha <= 0) particles.splice(i, 1);
+    }
   }
 
+  // ==========================================
+  // RENDERIZADO DEL MUNDO
+  // ==========================================
+  function drawWorld() {
+    ctx.clearRect(0, 0, W, H);
+
+    for (let pond of waterBodies) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(pond.x, pond.y, pond.radius, 0, Math.PI * 2);
+      const grad = ctx.createRadialGradient(pond.x, pond.y, 4, pond.x, pond.y, pond.radius);
+      grad.addColorStop(0, "rgba(56, 143, 176, 0.65)");
+      grad.addColorStop(0.85, "rgba(38, 114, 143, 0.75)");
+      grad.addColorStop(1, "rgba(22, 70, 89, 0.85)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      const wave = Math.sin(simTime * 0.003 + pond.seed) * 3;
+      ctx.beginPath();
+      ctx.arc(pond.x, pond.y, pond.radius * 0.6 + wave, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    for (let b of bushes) {
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, b.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(48, 96, 48, 0.35)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(35, 75, 35, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      for (let i = 0; i < b.berries; i++) {
+        const ang = (i / b.maxBerries) * Math.PI * 2 + b.seed;
+        const dist = b.radius * 0.55;
+        ctx.beginPath();
+        ctx.arc(Math.cos(ang) * dist, Math.sin(ang) * dist, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff4060";
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    for (let c of carcasses) {
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      if (c.bones) {
+        ctx.strokeStyle = "rgba(230, 230, 220, 0.7)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-6, -4); ctx.lineTo(6, 4);
+        ctx.moveTo(-6, 4); ctx.lineTo(6, -4);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = "rgba(160, 50, 40, 0.85)";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 7, 4.5, 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    for (let p of plants) {
+      const sway = Math.sin(simTime * 0.004 + p.seed) * 1.5;
+      ctx.save();
+      ctx.translate(p.x + sway, p.y);
+      ctx.strokeStyle = "rgba(70, 140, 60, 0.6)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-2, -5, 0, -8); ctx.stroke();
+      ctx.beginPath();
+      ctx.fillStyle = "hsl(42, 90%, 55%)";
+      ctx.arc(0, -8, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    for (let w of alarmWaves) {
+      ctx.save();
+      ctx.strokeStyle = w.color ? `rgba(142, 43, 136, ${w.alpha})` : `rgba(220, 60, 60, ${w.alpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    for (let c of creatures) {
+      c.draw(ctx);
+    }
+
+    for (let p of particles) {
+      ctx.save();
+      ctx.fillStyle = p.color || "#ffffff";
+      ctx.globalAlpha = p.alpha;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    drawAtmosphere();
+  }
+
+  function drawAtmosphere() {
+    let tint = "transparent";
+    let icon = "☀️", label = "Día";
+
+    if (dayTime < 0.15) {
+      tint = "rgba(255, 160, 80, 0.12)";
+      icon = "🌅"; label = "Amanecer";
+    } else if (dayTime < 0.45) {
+      tint = "transparent";
+      icon = "☀️"; label = "Día";
+    } else if (dayTime < 0.65) {
+      tint = "rgba(220, 100, 50, 0.18)";
+      icon = "🌇"; label = "Atardecer";
+    } else {
+      tint = "rgba(6, 12, 24, 0.45)";
+      icon = "🌙"; label = "Noche";
+    }
+
+    if (tint !== "transparent") {
+      ctx.fillStyle = tint;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    document.getElementById("todIcon").textContent = icon;
+    document.getElementById("todLabel").textContent = label;
+  }
+
+  // ==========================================
+  // GRÁFICO HISTÓRICO DE POBLACIÓN
+  // ==========================================
+  function updatePopChart() {
+    const pw = popCanvas.width, ph = popCanvas.height;
+    popCtx.clearRect(0, 0, pw, ph);
+
+    let counts = { herb_agile: 0, herb_mega: 0, carn_pack: 0, carn_apex: 0, food: plants.length };
+    for (let c of creatures) {
+      if (counts[c.speciesId] !== undefined) counts[c.speciesId]++;
+    }
+
+    popHistory.push(counts);
+    if (popHistory.length > 80) popHistory.shift();
+
+    const maxCount = 80;
+    const stepX = pw / (popHistory.length - 1 || 1);
+
+    const drawLine = (key, color) => {
+      popCtx.strokeStyle = color;
+      popCtx.lineWidth = 1.5;
+      popCtx.beginPath();
+      for (let i = 0; i < popHistory.length; i++) {
+        const x = i * stepX;
+        const y = ph - (popHistory[i][key] / maxCount) * ph;
+        if (i === 0) popCtx.moveTo(x, y);
+        else popCtx.lineTo(x, y);
+      }
+      popCtx.stroke();
+    };
+
+    drawLine("herb_agile", "#2ca06d");
+    drawLine("herb_mega", "#758e38");
+    drawLine("carn_pack", "#d24e38");
+    drawLine("carn_apex", "#8e2b88");
+  }
+
+  // ==========================================
+  // PANEL DE ESTADÍSTICAS & INSPECTOR
+  // ==========================================
+  function updateUI() {
+    let counts = { herb_agile: 0, herb_mega: 0, carn_pack: 0, carn_apex: 0, scavenger: 0, pollinator: 0 };
+    for (let c of creatures) {
+      if (counts[c.speciesId] !== undefined) counts[c.speciesId]++;
+    }
+
+    document.getElementById("stHerbAgile").textContent = counts.herb_agile;
+    document.getElementById("stHerbMega").textContent = counts.herb_mega;
+    document.getElementById("stCarnPack").textContent = counts.carn_pack;
+    document.getElementById("stCarnApex").textContent = counts.carn_apex;
+    document.getElementById("stScavenger").textContent = counts.scavenger;
+    document.getElementById("stPollinator").textContent = counts.pollinator;
+    document.getElementById("stFood").textContent = plants.length;
+    document.getElementById("stGen").textContent = maxGen;
+    document.getElementById("stBirths").textContent = births;
+    document.getElementById("stKills").textContent = totalKills;
+
+    const secs = Math.floor(realElapsedMs / 1000);
+    const m = Math.floor(secs / 60), s2 = secs % 60;
+    document.getElementById("timeElapsed").textContent = m + ":" + (s2 < 10 ? "0" : "") + s2;
+
+    const insp = document.getElementById("inspector");
+    if (selectedCreature) {
+      insp.classList.add("open");
+      const c = selectedCreature;
+      document.getElementById("inspName").textContent = `${c.spec.name} #${c.id}`;
+      document.getElementById("inspBadge").textContent = `Gen ${c.gen} • ${c.speciesId.toUpperCase()}`;
+      document.getElementById("inspBadge").style.color = c.spec.swatch;
+      document.getElementById("inspBadge").style.background = c.spec.swatch + "22";
+
+      const stateTexts = {
+        WANDER: "🧭 Explorando entorno",
+        GRAZE: "🌿 Pastando alimento",
+        DRINK: "💧 Bebiendo agua fresca",
+        STALK: "🎯 Acechando sigilosamente",
+        CHASE: "⚡ Acometiendo presa",
+        FLEE: "⚠️ Huyendo en pánico",
+        COURT: "❤️ Cortejando pareja",
+        SLEEP: "💤 Durmiendo / Descansando",
+        SCAVENGE: "🥩 Consumiendo carroña",
+        DEFEND: "🛡️ Defendiéndose activamente"
+      };
+      document.getElementById("inspState").textContent = stateTexts[c.state] || c.state;
+
+      document.getElementById("inspEnergy").style.width = Math.floor((c.energy / c.maxEnergy) * 100) + "%";
+      document.getElementById("inspWater").style.width = Math.floor((c.water / c.maxWater) * 100) + "%";
+      document.getElementById("inspStamina").style.width = Math.floor((c.stamina / c.maxStamina) * 100) + "%";
+      document.getElementById("inspHealth").style.width = Math.floor(c.health) + "%";
+
+      document.getElementById("inspGeneSpeed").textContent = c.genes.speed.toFixed(2);
+      document.getElementById("inspGeneSense").textContent = Math.floor(c.genes.sense) + "px";
+      document.getElementById("inspGeneSize").textContent = c.genes.size.toFixed(1);
+      document.getElementById("inspGeneStealth").textContent = Math.floor(c.genes.stealth * 100) + "%";
+      document.getElementById("inspGen").textContent = c.gen;
+      document.getElementById("inspKids").textContent = c.kids;
+      document.getElementById("inspKills").textContent = c.kills;
+      document.getElementById("inspAge").textContent = Math.floor(c.age / 60) + "s";
+    } else {
+      insp.classList.remove("open");
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2400);
+  }
+
+  // ==========================================
+  // BUCLE DE ANIMACIÓN PRINCIPAL
+  // ==========================================
   function frame(ts) {
     requestAnimationFrame(frame);
     if (lastTs === null) lastTs = ts;
-    var deltaMs = ts - lastTs;
+    let deltaMs = ts - lastTs;
     lastTs = ts;
     if (deltaMs > 250) deltaMs = 250;
 
     if (running) {
-      var dt = (deltaMs / 16.6667) * speedMult;
+      const dt = (deltaMs / 16.6667) * speedMult;
       tick(dt);
       simTime += deltaMs * speedMult;
       realElapsedMs += deltaMs;
     }
-    draw();
+
+    drawWorld();
+
     frameCounter++;
-    if (frameCounter % 10 === 0) updateStats();
+    if (frameCounter % 8 === 0) {
+      updateUI();
+      updatePopChart();
+    }
   }
 
-  var panelEl = document.getElementById("panel");
-  var panelToggle = document.getElementById("panelToggle");
-  panelToggle.addEventListener("click", function () {
-    var expanded = panelEl.classList.toggle("expanded");
-    panelToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  // ==========================================
+  // INTERACCIÓN Y CONTROLES
+  // ==========================================
+  const toolButtons = document.querySelectorAll(".tool-item");
+  toolButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      toolButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      options.activeTool = btn.dataset.tool;
+    });
   });
 
-  var btnPause = document.getElementById("btnPause");
-  btnPause.addEventListener("click", function () {
-    running = !running;
-    btnPause.textContent = running ? "Pausar" : "Reanudar";
-  });
-  document.getElementById("btnReset").addEventListener("click", function () {
-    seed();
-    running = true;
-    btnPause.textContent = "Pausar";
-    updateStats();
-  });
-  document.getElementById("btnCarn").addEventListener("click", addCarnivore);
+  let pointerActive = false, lastSpawnTs = 0;
 
-  var rangeFood = document.getElementById("rangeFood");
-  var lblFood = document.getElementById("lblFood");
-  rangeFood.addEventListener("input", function () {
-    foodRate = rangeFood.value / 100;
-    lblFood.textContent = rangeFood.value + "%";
-  });
+  function handlePointer(ev) {
+    const x = ev.clientX, y = ev.clientY;
 
-  var rangeSpeed = document.getElementById("rangeSpeed");
-  var lblSpeed = document.getElementById("lblSpeed");
-  rangeSpeed.addEventListener("input", function () {
-    speedMult = rangeSpeed.value / 100;
-    lblSpeed.textContent = speedMult.toFixed(1) + "×";
-  });
-
-  var pointerActive = false, lastFeedTs = 0;
-  canvas.addEventListener("pointerdown", function (ev) {
-    pointerActive = true;
-    spawnFoodCluster(ev.clientX, ev.clientY, Math.floor(rand(6, 10)));
-    lastFeedTs = performance.now();
-    try { canvas.setPointerCapture(ev.pointerId); } catch (err) { /* ignore */ }
-  });
-  canvas.addEventListener("pointermove", function (ev) {
-    if (!pointerActive) return;
-    var now = performance.now();
-    if (now - lastFeedTs > 90) {
-      spawnFoodCluster(ev.clientX, ev.clientY, Math.floor(rand(1, 3)));
-      lastFeedTs = now;
+    const clickedCreature = creatureGrid.nearest(x, y, 25);
+    if (clickedCreature && !pointerActive) {
+      selectedCreature = clickedCreature;
+      updateUI();
+      return;
     }
+
+    const now = performance.now();
+    if (now - lastSpawnTs < 90) return;
+    lastSpawnTs = now;
+
+    switch (options.activeTool) {
+      case "food":
+        for (let i = 0; i < 3; i++) spawnFood(x + spread(20), y + spread(20));
+        break;
+      case "herb_agile":
+        creatures.push(new Creature(x, y, "herb_agile"));
+        break;
+      case "herb_mega":
+        creatures.push(new Creature(x, y, "herb_mega"));
+        break;
+      case "carn_pack":
+        creatures.push(new Creature(x, y, "carn_pack"));
+        break;
+      case "carn_apex":
+        creatures.push(new Creature(x, y, "carn_apex"));
+        break;
+      case "scavenger":
+        creatures.push(new Creature(x, y, "scavenger"));
+        break;
+      case "pollinator":
+        creatures.push(new Creature(x, y, "pollinator"));
+        break;
+      case "water":
+        waterBodies.push({ x: x, y: y, radius: rand(45, 75), seed: rand(0, 1000) });
+        break;
+    }
+  }
+
+  canvas.addEventListener("pointerdown", (ev) => {
+    pointerActive = true;
+    handlePointer(ev);
+    try { canvas.setPointerCapture(ev.pointerId); } catch (e) {}
   });
-  function endPointer() { pointerActive = false; }
+  canvas.addEventListener("pointermove", (ev) => {
+    if (pointerActive && options.activeTool === "food") handlePointer(ev);
+  });
+  const endPointer = () => { pointerActive = false; };
   canvas.addEventListener("pointerup", endPointer);
   canvas.addEventListener("pointercancel", endPointer);
-  canvas.addEventListener("pointerleave", endPointer);
 
-  seed();
-  updateStats();
+  document.getElementById("btnPause").addEventListener("click", () => {
+    running = !running;
+    document.getElementById("btnPause").textContent = running ? "Pausar" : "Reanudar";
+  });
+
+  document.getElementById("btnReset").addEventListener("click", seedWorld);
+
+  document.getElementById("btnRain").addEventListener("click", () => {
+    rainActive = 400;
+    showToast("🌧️ Lluvia fértil iniciada — acelerando crecimiento");
+  });
+
+  document.getElementById("rangeFood").addEventListener("input", (e) => {
+    foodRate = e.target.value / 100;
+    document.getElementById("lblFood").textContent = e.target.value + "%";
+  });
+
+  document.getElementById("rangeSpeed").addEventListener("input", (e) => {
+    speedMult = e.target.value / 100;
+    document.getElementById("lblSpeed").textContent = speedMult.toFixed(1) + "×";
+  });
+
+  document.getElementById("rangeTod").addEventListener("input", (e) => {
+    dayTime = e.target.value / 100;
+    options.autoDayNight = false;
+    document.getElementById("togDayNight").classList.remove("active");
+  });
+
+  const setupToggle = (id, key) => {
+    const el = document.getElementById(id);
+    el.addEventListener("click", () => {
+      options[key] = !options[key];
+      el.classList.toggle("active", options[key]);
+    });
+  };
+  setupToggle("togVision", "showVision");
+  setupToggle("togEmotes", "showEmotes");
+  setupToggle("togBars", "showBars");
+  setupToggle("togDayNight", "autoDayNight");
+
+  document.getElementById("inspClose").addEventListener("click", () => { selectedCreature = null; updateUI(); });
+  document.getElementById("btnFeedSelected").addEventListener("click", () => {
+    if (selectedCreature) {
+      selectedCreature.energy = selectedCreature.maxEnergy;
+      selectedCreature.water = selectedCreature.maxWater;
+      selectedCreature.setEmote("✨🍖", 50);
+    }
+  });
+
+  const panelToggle = document.getElementById("panelToggle");
+  const panelEl = document.getElementById("panel");
+  panelToggle.addEventListener("click", () => {
+    const exp = panelEl.classList.toggle("expanded");
+    panelToggle.setAttribute("aria-expanded", exp ? "true" : "false");
+  });
+
+  resize();
+  seedWorld();
   requestAnimationFrame(frame);
 })();
 </script>
