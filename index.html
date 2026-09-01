@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terrario Digital</title>
+<meta name="description" content="Un ecosistema de vida artificial: herbívoros y carnívoros nacen, mutan, cazan y evolucionan en vivo ante tus ojos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,500&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #eef0e6;
+    --bg-deep: #dde2d2;
+    --panel: rgba(255,255,255,0.6);
+    --panel-solid: #f6f5ee;
+    --ink: #1a2420;
+    --ink-dim: #4b5850;
+    --line: rgba(26,36,32,0.16);
+    --accent: #2f6f5e;
+    --accent-ink: #f4faf6;
+    --track: rgba(26,36,32,0.14);
+    --shadow: rgba(20,30,24,0.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1310;
+      --bg-deep: #060a08;
+      --panel: rgba(17,27,23,0.6);
+      --panel-solid: #131f1a;
+      --ink: #e7efe6;
+      --ink-dim: #9db3a8;
+      --line: rgba(231,239,230,0.14);
+      --accent: #52e0ba;
+      --accent-ink: #06140f;
+      --track: rgba(231,239,230,0.14);
+      --shadow: rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1310;
+    --bg-deep: #060a08;
+    --panel: rgba(17,27,23,0.6);
+    --panel-solid: #131f1a;
+    --ink: #e7efe6;
+    --ink-dim: #9db3a8;
+    --line: rgba(231,239,230,0.14);
+    --accent: #52e0ba;
+    --accent-ink: #06140f;
+    --track: rgba(231,239,230,0.14);
+    --shadow: rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.01ms !important; }
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(120% 90% at 22% 18%, color-mix(in srgb, var(--bg) 88%, var(--accent) 12%), var(--bg) 55%, var(--bg-deep) 100%);
+  }
+  #stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 18vw var(--bg-deep);
+    opacity: 0.55;
+  }
+  canvas {
+    position: fixed;
+    inset: 0;
+    display: block;
+    cursor: crosshair;
+  }
+
+  .panel {
+    position: fixed;
+    top: 22px;
+    left: 22px;
+    width: 272px;
+    max-height: calc(100vh - 44px);
+    overflow-y: auto;
+    background: var(--panel);
+    backdrop-filter: blur(14px) saturate(1.1);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 18px 40px -18px var(--shadow);
+    padding: 18px 18px 16px;
+  }
+  .panel::before, .panel::after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-color: var(--accent);
+    opacity: 0.85;
+  }
+  .panel::before { top: -1px; left: -1px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+  .panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+
+  .eyebrow {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    justify-content: space-between;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.15;
+    margin: 4px 0 2px;
+    text-wrap: balance;
+  }
+  .sub {
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin: 0 0 14px;
+    line-height: 1.4;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 12px 0;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    row-gap: 6px;
+    column-gap: 10px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12px;
+    margin: 0;
+  }
+  .stats dt { color: var(--ink-dim); }
+  .stats dd {
+    margin: 0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+  }
+  .legend .row { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 10px; height: 10px; flex: none; }
+  .swatch.herb { border-radius: 50%; background: hsl(150 55% 46%); }
+  .swatch.carn { background: hsl(10 72% 55%); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .swatch.food { border-radius: 50%; background: hsl(42 85% 58%); }
+
+  .field { margin-top: 12px; }
+  .field label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+  .field label span.val {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    color: var(--ink);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--track);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--panel-solid);
+    box-shadow: 0 0 0 1px var(--accent);
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    box-shadow: 0 0 0 1px var(--accent);
+    cursor: pointer;
+  }
+
+  .btnrow { display: flex; gap: 8px; margin-top: 14px; }
+  button {
+    font-family: "Libre Franklin", sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 9px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    flex: 1;
+  }
+  button:hover { border-color: var(--accent); }
+  button:active { transform: scale(0.97); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+
+  .hint {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--ink-dim);
+    line-height: 1.45;
+    font-style: italic;
+    font-family: "Fraunces", serif;
+  }
+
+  .panel::-webkit-scrollbar { width: 8px; }
+  .panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+  @media (max-width: 520px) {
+    .panel { left: 12px; top: 12px; right: 12px; width: auto; max-height: 62vh; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+<canvas id="c"></canvas>
+
+<div class="panel">
+  <div class="eyebrow"><span>Terrario N.º 07</span><span id="clock">0:00</span></div>
+  <h1>Terrario Digital</h1>
+  <p class="sub">Un ecosistema autoevolutivo. Cada criatura hereda, muta y compite &mdash; observa la selección natural en vivo.</p>
+
+  <hr class="divider">
+
+  <dl class="stats">
+    <dt>Herbívoros</dt><dd id="stHerb">0</dd>
+    <dt>Carnívoros</dt><dd id="stCarn">0</dd>
+    <dt>Comida</dt><dd id="stFood">0</dd>
+    <dt>Generación máx.</dt><dd id="stGen">0</dd>
+    <dt>Nacimientos</dt><dd id="stBirths">0</dd>
+    <dt>Vel. media (herb.)</dt><dd id="stSpeed">&mdash;</dd>
+  </dl>
+
+  <hr class="divider">
+
+  <div class="legend">
+    <div class="row"><span class="swatch herb"></span>Herbívoro &mdash; busca comida</div>
+    <div class="row"><span class="swatch carn"></span>Carnívoro &mdash; caza herbívoros</div>
+    <div class="row"><span class="swatch food"></span>Comida &mdash; toca el terrario para soltar</div>
+  </div>
+
+  <div class="field">
+    <label>Tasa de alimento <span class="val" id="lblFood">50%</span></label>
+    <input type="range" id="rangeFood" min="0" max="100" value="50">
+  </div>
+  <div class="field">
+    <label>Velocidad simulación <span class="val" id="lblSpeed">1.0×</span></label>
+    <input type="range" id="rangeSpeed" min="30" max="300" value="100">
+  </div>
+
+  <div class="btnrow">
+    <button class="primary" id="btnPause">Pausar</button>
+    <button id="btnCarn">+ Carnívoro</button>
+  </div>
+  <div class="btnrow">
+    <button id="btnReset">Reiniciar terrario</button>
+  </div>
+
+  <p class="hint">“La vida encuentra un camino” &mdash; observa cómo los rasgos más veloces o robustos se propagan de generación en generación.</p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var canvas = document.getElementById("c");
+  var ctx = canvas.getContext("2d");
+  var W = window.innerWidth, H = window.innerHeight;
+
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  var FOOD_MAX = 140, HERB_MAX = 90, CARN_MAX = 30;
+  var HERB_REPRO_AGE = 180, CARN_REPRO_AGE = 260;
+  var HERB_REPRO_FRAC = 0.78, CARN_REPRO_FRAC = 0.8;
+
+  var food = [], herbs = [], carns = [];
+  var tickCount = 0, births = 0, maxGen = 0;
+  var running = true, foodRate = 0.5, speedMult = 1.0;
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function spread(r) { return (Math.random() * 2 - 1) * r; }
+
+  function maxEnergyOf(genes) { return 60 + genes.size * 6; }
+
+  function newGenes() {
+    return { speed: rand(0.7, 1.9), sense: rand(55, 140), size: rand(3, 8) };
+  }
+  function mutate(g) {
+    return {
+      speed: clamp(g.speed * (1 + spread(0.15)), 0.6, 2.4),
+      sense: clamp(g.sense * (1 + spread(0.15)), 40, 170),
+      size: clamp(g.size * (1 + spread(0.15)), 2.5, 11)
+    };
+  }
+
+  function makeCreature(x, y, genes, gen, kind) {
+    var me = maxEnergyOf(genes);
+    return {
+      x: x, y: y, heading: rand(0, Math.PI * 2),
+      genes: genes, gen: gen, kind: kind,
+      energy: me * 0.55, maxEnergy: me,
+      age: 0, maxAge: 2200 + genes.size * 80 + rand(-300, 300)
+    };
+  }
+
+  function addFood(x, y) {
+    if (food.length >= FOOD_MAX) return;
+    food.push({ x: clamp(x, 0, W), y: clamp(y, 0, H) });
+  }
+  function spawnFoodCluster(x, y, n) {
+    for (var i = 0; i < n; i++) addFood(x + rand(-24, 24), y + rand(-24, 24));
+  }
+
+  function addCarnivore() {
+    if (carns.length >= CARN_MAX) return;
+    carns.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "carn"));
+  }
+
+  function seed() {
+    food = []; herbs = []; carns = [];
+    tickCount = 0; births = 0; maxGen = 0;
+    for (var i = 0; i < 55; i++) addFood(rand(0, W), rand(0, H));
+    for (var h = 0; h < 30; h++) herbs.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "herb"));
+    for (var c = 0; c < 6; c++) carns.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "carn"));
+  }
+
+  function steerToward(e, tx, ty, dt) {
+    var dx = tx - e.x, dy = ty - e.y;
+    var targetHeading = Math.atan2(dy, dx);
+    var diff = Math.atan2(Math.sin(targetHeading - e.heading), Math.cos(targetHeading - e.heading));
+    e.heading += diff * Math.min(1, 0.14 * dt);
+    e.x += Math.cos(e.heading) * e.genes.speed * dt;
+    e.y += Math.sin(e.heading) * e.genes.speed * dt;
+  }
+  function wander(e, dt) {
+    e.heading += spread(0.3) * dt;
+    e.x += Math.cos(e.heading) * e.genes.speed * 0.4 * dt;
+    e.y += Math.sin(e.heading) * e.genes.speed * 0.4 * dt;
+  }
+  function wrap(e) {
+    if (e.x < 0) e.x += W; else if (e.x > W) e.x -= W;
+    if (e.y < 0) e.y += H; else if (e.y > H) e.y -= H;
+  }
+
+  function nearest(list, x, y, maxDist) {
+    var best = -1, bestD = maxDist * maxDist;
+    for (var i = 0; i < list.length; i++) {
+      var it = list[i];
+      var dx = it.x - x, dy = it.y - y;
+      var d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best;
+  }
+
+  function tryReproduce(list, e, reproFrac, reproAge, cap) {
+    if (list.length >= cap) return;
+    if (e.age < reproAge) return;
+    if (e.energy < reproFrac * e.maxEnergy) return;
+    var childGenes = mutate(e.genes);
+    var child = makeCreature(e.x + rand(-10, 10), e.y + rand(-10, 10), childGenes, e.gen + 1, e.kind);
+    child.energy = e.energy * 0.5;
+    e.energy *= 0.5;
+    list.push(child);
+    births++;
+    if (child.gen > maxGen) maxGen = child.gen;
+  }
+
+  function updateHerbs(dt) {
+    for (var i = herbs.length - 1; i >= 0; i--) {
+      var e = herbs[i];
+      var fi = nearest(food, e.x, e.y, e.genes.sense);
+      if (fi >= 0) steerToward(e, food[fi].x, food[fi].y, dt); else wander(e, dt);
+      wrap(e);
+
+      var cost = (0.06 * e.genes.size + 0.08 * e.genes.speed) * dt;
+      e.energy -= cost;
+      e.age += dt;
+
+      if (fi >= 0) {
+        var f = food[fi];
+        var dx = f.x - e.x, dy = f.y - e.y;
+        if (dx * dx + dy * dy < Math.pow(4 + e.genes.size * 0.5, 2)) {
+          food.splice(fi, 1);
+          e.energy = Math.min(e.maxEnergy, e.energy + 35);
+        }
+      }
+
+      if (e.energy <= 0 || e.age > e.maxAge) { herbs.splice(i, 1); continue; }
+      tryReproduce(herbs, e, HERB_REPRO_FRAC, HERB_REPRO_AGE, HERB_MAX);
+    }
+  }
+
+  function updateCarns(dt) {
+    for (var i = carns.length - 1; i >= 0; i--) {
+      var e = carns[i];
+      var hi = nearest(herbs, e.x, e.y, e.genes.sense);
+      if (hi >= 0) steerToward(e, herbs[hi].x, herbs[hi].y, dt); else wander(e, dt);
+      wrap(e);
+
+      var cost = (0.09 * e.genes.size + 0.11 * e.genes.speed) * dt;
+      e.energy -= cost;
+      e.age += dt;
+
+      if (hi >= 0) {
+        var prey = herbs[hi];
+        var dx = prey.x - e.x, dy = prey.y - e.y;
+        if (dx * dx + dy * dy < Math.pow(5 + e.genes.size * 0.5, 2)) {
+          e.energy = Math.min(e.maxEnergy, e.energy + prey.energy * 0.55);
+          herbs.splice(hi, 1);
+        }
+      }
+
+      if (e.energy <= 0 || e.age > e.maxAge) { carns.splice(i, 1); continue; }
+      tryReproduce(carns, e, CARN_REPRO_FRAC, CARN_REPRO_AGE, CARN_MAX);
+    }
+  }
+
+  function maybeSpawnFood(dt) {
+    if (food.length >= FOOD_MAX) return;
+    var chance = foodRate * 0.06 * dt;
+    if (Math.random() < chance) {
+      if (Math.random() < 0.4) spawnFoodCluster(rand(0, W), rand(0, H), Math.floor(rand(3, 6)));
+      else addFood(rand(0, W), rand(0, H));
+    }
+  }
+
+  function tick(dt) {
+    maybeSpawnFood(dt);
+    updateHerbs(dt);
+    updateCarns(dt);
+  }
+
+  function hueFromSpeed(speed, lo, hi) {
+    var t = clamp((speed - 0.6) / (2.2 - 0.6), 0, 1);
+    return lo + t * (hi - lo);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    for (var i = 0; i < food.length; i++) {
+      var f = food[i];
+      ctx.beginPath();
+      ctx.fillStyle = "hsla(42, 85%, 58%, 0.9)";
+      ctx.arc(f.x, f.y, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (var h = 0; h < herbs.length; h++) {
+      var he = herbs[h];
+      var r = 3 + he.genes.size * 0.55;
+      var hue = hueFromSpeed(he.genes.speed, 108, 172);
+      ctx.beginPath();
+      ctx.fillStyle = "hsl(" + hue + ", 58%, 47%)";
+      ctx.arc(he.x, he.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(0,0,0,0.3)";
+      ctx.stroke();
+    }
+
+    for (var c = 0; c < carns.length; c++) {
+      var ce = carns[c];
+      var r2 = 5 + ce.genes.size * 0.55;
+      var hue2 = hueFromSpeed(ce.genes.speed, 2, 28);
+      var a = ce.heading;
+      var p1x = ce.x + Math.cos(a) * r2 * 1.3, p1y = ce.y + Math.sin(a) * r2 * 1.3;
+      var p2x = ce.x + Math.cos(a + 2.5) * r2, p2y = ce.y + Math.sin(a + 2.5) * r2;
+      var p3x = ce.x + Math.cos(a - 2.5) * r2, p3y = ce.y + Math.sin(a - 2.5) * r2;
+      ctx.beginPath();
+      ctx.moveTo(p1x, p1y); ctx.lineTo(p2x, p2y); ctx.lineTo(p3x, p3y); ctx.closePath();
+      ctx.fillStyle = "hsl(" + hue2 + ", 70%, 54%)";
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(0,0,0,0.32)";
+      ctx.stroke();
+    }
+  }
+
+  var stHerb = document.getElementById("stHerb");
+  var stCarn = document.getElementById("stCarn");
+  var stFood = document.getElementById("stFood");
+  var stGen = document.getElementById("stGen");
+  var stBirths = document.getElementById("stBirths");
+  var stSpeed = document.getElementById("stSpeed");
+  var clockEl = document.getElementById("clock");
+
+  function updateStats() {
+    stHerb.textContent = herbs.length;
+    stCarn.textContent = carns.length;
+    stFood.textContent = food.length;
+    stGen.textContent = maxGen;
+    stBirths.textContent = births;
+    if (herbs.length) {
+      var s = 0;
+      for (var i = 0; i < herbs.length; i++) s += herbs[i].genes.speed;
+      stSpeed.textContent = (s / herbs.length).toFixed(2);
+    } else {
+      stSpeed.textContent = "—";
+    }
+    var secs = Math.floor(tickCount / 60);
+    var m = Math.floor(secs / 60), s2 = secs % 60;
+    clockEl.textContent = m + ":" + (s2 < 10 ? "0" : "") + s2;
+  }
+
+  function frame() {
+    requestAnimationFrame(frame);
+    if (running) {
+      tick(speedMult);
+      tickCount++;
+    }
+    draw();
+    if (tickCount % 12 === 0) updateStats();
+  }
+
+  var btnPause = document.getElementById("btnPause");
+  btnPause.addEventListener("click", function () {
+    running = !running;
+    btnPause.textContent = running ? "Pausar" : "Reanudar";
+  });
+  document.getElementById("btnReset").addEventListener("click", function () {
+    seed();
+    running = true;
+    btnPause.textContent = "Pausar";
+    updateStats();
+  });
+  document.getElementById("btnCarn").addEventListener("click", addCarnivore);
+
+  var rangeFood = document.getElementById("rangeFood");
+  var lblFood = document.getElementById("lblFood");
+  rangeFood.addEventListener("input", function () {
+    foodRate = rangeFood.value / 100;
+    lblFood.textContent = rangeFood.value + "%";
+  });
+
+  var rangeSpeed = document.getElementById("rangeSpeed");
+  var lblSpeed = document.getElementById("lblSpeed");
+  rangeSpeed.addEventListener("input", function () {
+    speedMult = rangeSpeed.value / 100;
+    lblSpeed.textContent = speedMult.toFixed(1) + "×";
+  });
+
+  canvas.addEventListener("pointerdown", function (ev) {
+    spawnFoodCluster(ev.clientX, ev.clientY, Math.floor(rand(6, 10)));
+  });
+
+  seed();
+  updateStats();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
