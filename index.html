@@ -2,9 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Terrario Digital</title>
-<meta name="description" content="Un ecosistema de vida artificial: herbívoros y carnívoros nacen, mutan, cazan y evolucionan en vivo ante tus ojos.">
+<meta name="description" content="Un ecosistema de vida artificial: herbívoros y carnívoros nacen, mutan, cazan, huyen y evolucionan en vivo ante tus ojos.">
+<meta name="theme-color" content="#eef0e6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1310" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,500&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
@@ -51,8 +53,8 @@
     --shadow: rgba(0,0,0,0.5);
   }
 
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; overscroll-behavior: none; }
   body {
     background: var(--bg);
     color: var(--ink);
@@ -60,6 +62,7 @@
     overflow: hidden;
     height: 100vh;
     width: 100vw;
+    touch-action: none;
   }
   @media (prefers-reduced-motion: reduce) {
     * { transition-duration: 0.01ms !important; }
@@ -84,14 +87,15 @@
     inset: 0;
     display: block;
     cursor: crosshair;
+    touch-action: none;
   }
 
   .panel {
     position: fixed;
-    top: 22px;
-    left: 22px;
+    top: calc(22px + env(safe-area-inset-top, 0px));
+    left: calc(22px + env(safe-area-inset-left, 0px));
     width: 272px;
-    max-height: calc(100vh - 44px);
+    max-height: calc(100vh - 44px - env(safe-area-inset-top, 0px));
     overflow-y: auto;
     background: var(--panel);
     backdrop-filter: blur(14px) saturate(1.1);
@@ -100,6 +104,8 @@
     border-radius: 10px;
     box-shadow: 0 18px 40px -18px var(--shadow);
     padding: 18px 18px 16px;
+    touch-action: pan-y;
+    user-select: none;
   }
   .panel::before, .panel::after {
     content: "";
@@ -113,14 +119,34 @@
   .panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
 
   .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-family: "JetBrains Mono", ui-monospace, monospace;
     font-size: 10.5px;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--accent);
-    display: flex;
-    justify-content: space-between;
   }
+  .eyebrow-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .eyebrow-clock { flex: none; font-variant-numeric: tabular-nums; }
+  .toggle {
+    display: none;
+    flex: none;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: transparent;
+    padding: 0;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .toggle .chevron { display: inline-block; font-size: 13px; line-height: 1; transition: transform 0.18s ease; }
+  .toggle[aria-expanded="false"] .chevron { transform: rotate(-90deg); }
+
   h1 {
     font-family: "Fraunces", Georgia, serif;
     font-weight: 600;
@@ -133,7 +159,7 @@
   .sub {
     font-size: 12px;
     color: var(--ink-dim);
-    margin: 0 0 14px;
+    margin: 0 0 4px;
     line-height: 1.4;
   }
 
@@ -197,6 +223,7 @@
     background: var(--track);
     border-radius: 2px;
     outline: none;
+    touch-action: pan-y;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -244,6 +271,7 @@
 
   .hint {
     margin-top: 12px;
+    margin-bottom: 0;
     font-size: 11px;
     color: var(--ink-dim);
     line-height: 1.45;
@@ -254,8 +282,22 @@
   .panel::-webkit-scrollbar { width: 8px; }
   .panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
 
-  @media (max-width: 520px) {
-    .panel { left: 12px; top: 12px; right: 12px; width: auto; max-height: 62vh; }
+  @media (max-width: 640px) {
+    .panel {
+      left: calc(12px + env(safe-area-inset-left, 0px));
+      right: calc(12px + env(safe-area-inset-right, 0px));
+      top: calc(12px + env(safe-area-inset-top, 0px));
+      width: auto;
+      max-height: calc(100vh - 24px - env(safe-area-inset-top, 0px));
+      padding: 14px 16px 14px;
+    }
+    .toggle { display: inline-flex; }
+    .panel-body { display: none; }
+    .panel.expanded .panel-body { display: block; max-height: 60vh; overflow-y: auto; }
+    .sub { margin-bottom: 0; }
+    button { min-height: 44px; font-size: 13px; }
+    input[type="range"]::-webkit-slider-thumb { width: 18px; height: 18px; }
+    input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; }
   }
 </style>
 </head>
@@ -264,48 +306,56 @@
 <div id="stage"></div>
 <canvas id="c"></canvas>
 
-<div class="panel">
-  <div class="eyebrow"><span>Terrario N.º 07</span><span id="clock">0:00</span></div>
+<div class="panel" id="panel">
+  <div class="eyebrow">
+    <span class="eyebrow-label">Terrario N.º 07</span>
+    <span class="eyebrow-clock" id="clock">0:00</span>
+    <button class="toggle" id="panelToggle" type="button" aria-expanded="false" aria-controls="panelBody" aria-label="Mostrar panel">
+      <span class="chevron" aria-hidden="true">⌄</span>
+    </button>
+  </div>
   <h1>Terrario Digital</h1>
   <p class="sub">Un ecosistema autoevolutivo. Cada criatura hereda, muta y compite &mdash; observa la selección natural en vivo.</p>
 
-  <hr class="divider">
+  <div class="panel-body" id="panelBody">
+    <hr class="divider">
 
-  <dl class="stats">
-    <dt>Herbívoros</dt><dd id="stHerb">0</dd>
-    <dt>Carnívoros</dt><dd id="stCarn">0</dd>
-    <dt>Comida</dt><dd id="stFood">0</dd>
-    <dt>Generación máx.</dt><dd id="stGen">0</dd>
-    <dt>Nacimientos</dt><dd id="stBirths">0</dd>
-    <dt>Vel. media (herb.)</dt><dd id="stSpeed">&mdash;</dd>
-  </dl>
+    <dl class="stats">
+      <dt>Herbívoros</dt><dd id="stHerb">0</dd>
+      <dt>Carnívoros</dt><dd id="stCarn">0</dd>
+      <dt>Comida</dt><dd id="stFood">0</dd>
+      <dt>Generación máx.</dt><dd id="stGen">0</dd>
+      <dt>Nacimientos</dt><dd id="stBirths">0</dd>
+      <dt>Vel. media (herb.)</dt><dd id="stSpeed">&mdash;</dd>
+    </dl>
 
-  <hr class="divider">
+    <hr class="divider">
 
-  <div class="legend">
-    <div class="row"><span class="swatch herb"></span>Herbívoro &mdash; busca comida</div>
-    <div class="row"><span class="swatch carn"></span>Carnívoro &mdash; caza herbívoros</div>
-    <div class="row"><span class="swatch food"></span>Comida &mdash; toca el terrario para soltar</div>
+    <div class="legend">
+      <div class="row"><span class="swatch herb"></span>Herbívoro &mdash; busca comida y huye de depredadores</div>
+      <div class="row"><span class="swatch carn"></span>Carnívoro &mdash; caza herbívoros</div>
+      <div class="row"><span class="swatch food"></span>Comida &mdash; toca o arrastra el dedo para sembrar</div>
+    </div>
+
+    <div class="field">
+      <label>Tasa de alimento <span class="val" id="lblFood">50%</span></label>
+      <input type="range" id="rangeFood" min="0" max="100" value="50">
+    </div>
+    <div class="field">
+      <label>Velocidad simulación <span class="val" id="lblSpeed">1.0×</span></label>
+      <input type="range" id="rangeSpeed" min="30" max="300" value="100">
+    </div>
+
+    <div class="btnrow">
+      <button class="primary" id="btnPause">Pausar</button>
+      <button id="btnCarn">+ Carnívoro</button>
+    </div>
+    <div class="btnrow">
+      <button id="btnReset">Reiniciar terrario</button>
+    </div>
+
+    <p class="hint">“La vida encuentra un camino” &mdash; los herbívoros huyen al detectar un depredador cerca, envejecen, crecen y cada generación hereda (con mutaciones) los rasgos de sus padres.</p>
   </div>
-
-  <div class="field">
-    <label>Tasa de alimento <span class="val" id="lblFood">50%</span></label>
-    <input type="range" id="rangeFood" min="0" max="100" value="50">
-  </div>
-  <div class="field">
-    <label>Velocidad simulación <span class="val" id="lblSpeed">1.0×</span></label>
-    <input type="range" id="rangeSpeed" min="30" max="300" value="100">
-  </div>
-
-  <div class="btnrow">
-    <button class="primary" id="btnPause">Pausar</button>
-    <button id="btnCarn">+ Carnívoro</button>
-  </div>
-  <div class="btnrow">
-    <button id="btnReset">Reiniciar terrario</button>
-  </div>
-
-  <p class="hint">“La vida encuentra un camino” &mdash; observa cómo los rasgos más veloces o robustos se propagan de generación en generación.</p>
 </div>
 
 <script>
@@ -325,17 +375,33 @@
   window.addEventListener("resize", resize);
   resize();
 
+  var accentColor = "#2f6f5e";
+  function refreshAccent() {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+      if (v) accentColor = v;
+    } catch (err) { /* ignore */ }
+  }
+  refreshAccent();
+  if (window.matchMedia) {
+    var mql = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mql.addEventListener) mql.addEventListener("change", refreshAccent);
+    else if (mql.addListener) mql.addListener(refreshAccent);
+  }
+
   var FOOD_MAX = 140, HERB_MAX = 90, CARN_MAX = 30;
   var HERB_REPRO_AGE = 180, CARN_REPRO_AGE = 260;
   var HERB_REPRO_FRAC = 0.78, CARN_REPRO_FRAC = 0.8;
 
-  var food = [], herbs = [], carns = [];
-  var tickCount = 0, births = 0, maxGen = 0;
+  var food = [], herbs = [], carns = [], pops = [], ambient = [];
+  var births = 0, maxGen = 0;
   var running = true, foodRate = 0.5, speedMult = 1.0;
+  var simTime = 0, realElapsedMs = 0, frameCounter = 0, lastTs = null;
 
   function rand(a, b) { return a + Math.random() * (b - a); }
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function spread(r) { return (Math.random() * 2 - 1) * r; }
+  function angleDiff(target, current) { return Math.atan2(Math.sin(target - current), Math.cos(target - current)); }
 
   function maxEnergyOf(genes) { return 60 + genes.size * 6; }
 
@@ -356,16 +422,30 @@
       x: x, y: y, heading: rand(0, Math.PI * 2),
       genes: genes, gen: gen, kind: kind,
       energy: me * 0.55, maxEnergy: me,
-      age: 0, maxAge: 2200 + genes.size * 80 + rand(-300, 300)
+      age: 0, maxAge: (kind === "herb" ? 2200 : 2000) + genes.size * 80 + rand(-300, 300),
+      state: "alive", dyingT: 0, seed: rand(0, 1000)
     };
+  }
+
+  function growthOf(e) {
+    var span = e.kind === "carn" ? 220 : 150;
+    return Math.min(1, 0.45 + 0.55 * Math.min(1, e.age / span));
+  }
+  function radiusOf(e) {
+    var base = e.kind === "herb" ? (3 + e.genes.size * 0.55) : (5 + e.genes.size * 0.55);
+    return base * growthOf(e);
   }
 
   function addFood(x, y) {
     if (food.length >= FOOD_MAX) return;
-    food.push({ x: clamp(x, 0, W), y: clamp(y, 0, H) });
+    food.push({ x: clamp(x, 0, W), y: clamp(y, 0, H), seed: rand(0, 1000) });
   }
   function spawnFoodCluster(x, y, n) {
     for (var i = 0; i < n; i++) addFood(x + rand(-24, 24), y + rand(-24, 24));
+  }
+
+  function spawnPop(x, y, hue) {
+    pops.push({ x: x, y: y, r: 1.5, alpha: 0.85, hue: hue });
   }
 
   function addCarnivore() {
@@ -373,21 +453,38 @@
     carns.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "carn"));
   }
 
+  function initAmbient() {
+    ambient = [];
+    for (var i = 0; i < 26; i++) {
+      ambient.push({
+        x: rand(0, W), y: rand(0, H),
+        vx: rand(-0.06, 0.06), vy: rand(-0.1, -0.02),
+        r: rand(0.6, 1.6), a: rand(0.08, 0.25), seed: rand(0, 1000)
+      });
+    }
+  }
+
   function seed() {
-    food = []; herbs = []; carns = [];
-    tickCount = 0; births = 0; maxGen = 0;
+    food = []; herbs = []; carns = []; pops = [];
+    births = 0; maxGen = 0;
+    simTime = 0; realElapsedMs = 0; frameCounter = 0; lastTs = null;
     for (var i = 0; i < 55; i++) addFood(rand(0, W), rand(0, H));
     for (var h = 0; h < 30; h++) herbs.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "herb"));
     for (var c = 0; c < 6; c++) carns.push(makeCreature(rand(0, W), rand(0, H), newGenes(), 0, "carn"));
+    initAmbient();
   }
 
-  function steerToward(e, tx, ty, dt) {
-    var dx = tx - e.x, dy = ty - e.y;
-    var targetHeading = Math.atan2(dy, dx);
-    var diff = Math.atan2(Math.sin(targetHeading - e.heading), Math.cos(targetHeading - e.heading));
-    e.heading += diff * Math.min(1, 0.14 * dt);
-    e.x += Math.cos(e.heading) * e.genes.speed * dt;
-    e.y += Math.sin(e.heading) * e.genes.speed * dt;
+  function steerToward(e, tx, ty, dt, turnRate, speedScale) {
+    var targetHeading = Math.atan2(ty - e.y, tx - e.x);
+    e.heading += angleDiff(targetHeading, e.heading) * Math.min(1, turnRate * dt);
+    e.x += Math.cos(e.heading) * e.genes.speed * speedScale * dt;
+    e.y += Math.sin(e.heading) * e.genes.speed * speedScale * dt;
+  }
+  function steerAway(e, px, py, dt, turnRate, speedScale) {
+    var targetHeading = Math.atan2(e.y - py, e.x - px);
+    e.heading += angleDiff(targetHeading, e.heading) * Math.min(1, turnRate * dt);
+    e.x += Math.cos(e.heading) * e.genes.speed * speedScale * dt;
+    e.y += Math.sin(e.heading) * e.genes.speed * speedScale * dt;
   }
   function wander(e, dt) {
     e.heading += spread(0.3) * dt;
@@ -399,10 +496,11 @@
     if (e.y < 0) e.y += H; else if (e.y > H) e.y -= H;
   }
 
-  function nearest(list, x, y, maxDist) {
+  function nearest(list, x, y, maxDist, skipDying) {
     var best = -1, bestD = maxDist * maxDist;
     for (var i = 0; i < list.length; i++) {
       var it = list[i];
+      if (skipDying && it.state === "dying") continue;
       var dx = it.x - x, dy = it.y - y;
       var d = dx * dx + dy * dy;
       if (d < bestD) { bestD = d; best = i; }
@@ -426,33 +524,60 @@
   function updateHerbs(dt) {
     for (var i = herbs.length - 1; i >= 0; i--) {
       var e = herbs[i];
-      var fi = nearest(food, e.x, e.y, e.genes.sense);
-      if (fi >= 0) steerToward(e, food[fi].x, food[fi].y, dt); else wander(e, dt);
+
+      if (e.state === "dying") {
+        e.dyingT += 0.03 * dt;
+        if (e.dyingT >= 1) {
+          herbs.splice(i, 1);
+          spawnFoodCluster(e.x, e.y, e.genes.size > 6 ? 2 : 1);
+        }
+        continue;
+      }
+
+      var predatorIdx = nearest(carns, e.x, e.y, e.genes.sense * 1.15, true);
+      var fleeing = predatorIdx >= 0;
+      var foodIdx = -1;
+
+      if (fleeing) {
+        steerAway(e, carns[predatorIdx].x, carns[predatorIdx].y, dt, 0.22, 1.15);
+      } else {
+        foodIdx = nearest(food, e.x, e.y, e.genes.sense);
+        if (foodIdx >= 0) steerToward(e, food[foodIdx].x, food[foodIdx].y, dt, 0.14, 1);
+        else wander(e, dt);
+      }
       wrap(e);
 
-      var cost = (0.06 * e.genes.size + 0.08 * e.genes.speed) * dt;
+      var cost = (0.06 * e.genes.size + 0.08 * e.genes.speed) * dt * (fleeing ? 1.25 : 1);
       e.energy -= cost;
       e.age += dt;
 
-      if (fi >= 0) {
-        var f = food[fi];
+      if (!fleeing && foodIdx >= 0) {
+        var f = food[foodIdx];
         var dx = f.x - e.x, dy = f.y - e.y;
-        if (dx * dx + dy * dy < Math.pow(4 + e.genes.size * 0.5, 2)) {
-          food.splice(fi, 1);
+        if (dx * dx + dy * dy < Math.pow(radiusOf(e) + 3, 2)) {
+          food.splice(foodIdx, 1);
           e.energy = Math.min(e.maxEnergy, e.energy + 35);
         }
       }
 
-      if (e.energy <= 0 || e.age > e.maxAge) { herbs.splice(i, 1); continue; }
-      tryReproduce(herbs, e, HERB_REPRO_FRAC, HERB_REPRO_AGE, HERB_MAX);
+      if (e.energy <= 0 || e.age > e.maxAge) { e.state = "dying"; e.dyingT = 0; continue; }
+      if (!fleeing) tryReproduce(herbs, e, HERB_REPRO_FRAC, HERB_REPRO_AGE, HERB_MAX);
     }
   }
 
   function updateCarns(dt) {
     for (var i = carns.length - 1; i >= 0; i--) {
       var e = carns[i];
+
+      if (e.state === "dying") {
+        e.dyingT += 0.03 * dt;
+        if (e.dyingT >= 1) carns.splice(i, 1);
+        continue;
+      }
+
       var hi = nearest(herbs, e.x, e.y, e.genes.sense);
-      if (hi >= 0) steerToward(e, herbs[hi].x, herbs[hi].y, dt); else wander(e, dt);
+      if (hi >= 0) steerToward(e, herbs[hi].x, herbs[hi].y, dt, 0.16, 1);
+      else wander(e, dt);
       wrap(e);
 
       var cost = (0.09 * e.genes.size + 0.11 * e.genes.speed) * dt;
@@ -462,14 +587,33 @@
       if (hi >= 0) {
         var prey = herbs[hi];
         var dx = prey.x - e.x, dy = prey.y - e.y;
-        if (dx * dx + dy * dy < Math.pow(5 + e.genes.size * 0.5, 2)) {
+        if (dx * dx + dy * dy < Math.pow(radiusOf(e) + radiusOf(prey) * 0.6, 2)) {
           e.energy = Math.min(e.maxEnergy, e.energy + prey.energy * 0.55);
+          spawnPop(prey.x, prey.y, hueFromSpeed(prey.genes.speed, 108, 172));
           herbs.splice(hi, 1);
         }
       }
 
-      if (e.energy <= 0 || e.age > e.maxAge) { carns.splice(i, 1); continue; }
+      if (e.energy <= 0 || e.age > e.maxAge) { e.state = "dying"; e.dyingT = 0; continue; }
       tryReproduce(carns, e, CARN_REPRO_FRAC, CARN_REPRO_AGE, CARN_MAX);
+    }
+  }
+
+  function updatePops(dt) {
+    for (var i = pops.length - 1; i >= 0; i--) {
+      var p = pops[i];
+      p.r += 1.1 * dt;
+      p.alpha -= 0.05 * dt;
+      if (p.alpha <= 0) pops.splice(i, 1);
+    }
+  }
+
+  function updateAmbient(dt) {
+    for (var i = 0; i < ambient.length; i++) {
+      var p = ambient[i];
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.x < -5) p.x = W + 5; else if (p.x > W + 5) p.x = -5;
+      if (p.y < -5) p.y = H + 5; else if (p.y > H + 5) p.y = -5;
     }
   }
 
@@ -486,6 +630,8 @@
     maybeSpawnFood(dt);
     updateHerbs(dt);
     updateCarns(dt);
+    updatePops(dt);
+    updateAmbient(dt);
   }
 
   function hueFromSpeed(speed, lo, hi) {
@@ -493,46 +639,155 @@
     return lo + t * (hi - lo);
   }
 
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
+  function drawFin(x, y, len, wag) {
+    ctx.beginPath();
+    ctx.ellipse(x, y + wag * len * 0.35, len * 0.5, len * 0.22, wag * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
+  function drawAmbient() {
+    ctx.fillStyle = accentColor;
+    for (var i = 0; i < ambient.length; i++) {
+      var p = ambient[i];
+      ctx.globalAlpha = p.a * (0.6 + 0.4 * Math.sin(simTime * 0.001 + p.seed));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawFood() {
     for (var i = 0; i < food.length; i++) {
       var f = food[i];
-      ctx.beginPath();
-      ctx.fillStyle = "hsla(42, 85%, 58%, 0.9)";
-      ctx.arc(f.x, f.y, 2.6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    for (var h = 0; h < herbs.length; h++) {
-      var he = herbs[h];
-      var r = 3 + he.genes.size * 0.55;
-      var hue = hueFromSpeed(he.genes.speed, 108, 172);
-      ctx.beginPath();
-      ctx.fillStyle = "hsl(" + hue + ", 58%, 47%)";
-      ctx.arc(he.x, he.y, r, 0, Math.PI * 2);
-      ctx.fill();
+      var sway = Math.sin(simTime * 0.003 + f.seed) * 1.3;
+      var pulse = 1 + Math.sin(simTime * 0.006 + f.seed) * 0.12;
+      ctx.save();
+      ctx.translate(f.x + sway, f.y);
+      ctx.strokeStyle = "hsla(120, 45%, 40%, 0.5)";
       ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-3, -4 - pulse, -1, -7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(3, -4 - pulse, 1, -7); ctx.stroke();
+      ctx.beginPath();
+      ctx.fillStyle = "hsla(42, 85%, 58%, 0.95)";
+      ctx.arc(0, 0, 2.4 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawHerbs() {
+    for (var i = 0; i < herbs.length; i++) {
+      var e = herbs[i];
+      var energyFrac = clamp(e.energy / e.maxEnergy, 0, 1);
+      var r = radiusOf(e) * (1 + Math.sin(simTime * 0.004 + e.seed) * 0.05);
+      var hue = hueFromSpeed(e.genes.speed, 108, 172);
+      var sat = 34 + energyFrac * 24;
+      var light = 30 + energyFrac * 18;
+      var alpha = e.state === "dying" ? Math.max(0, 1 - e.dyingT) : 1;
+      var finPhase = Math.sin(simTime * 0.02 * Math.max(0.4, e.genes.speed) + e.seed);
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(e.x, e.y);
+      ctx.rotate(e.heading);
+
+      ctx.fillStyle = "hsla(" + hue + ", " + (sat - 8) + "%, " + (light - 8) + "%, 0.9)";
+      drawFin(-r * 0.15, r * 0.7, r * 1.1, finPhase);
+      drawFin(-r * 0.15, -r * 0.7, r * 1.1, -finPhase);
+
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 1.05, r * 0.9, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "hsl(" + hue + ", " + sat + "%, " + light + "%)";
+      ctx.fill();
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(0,0,0,0.28)";
       ctx.stroke();
-    }
 
-    for (var c = 0; c < carns.length; c++) {
-      var ce = carns[c];
-      var r2 = 5 + ce.genes.size * 0.55;
-      var hue2 = hueFromSpeed(ce.genes.speed, 2, 28);
-      var a = ce.heading;
-      var p1x = ce.x + Math.cos(a) * r2 * 1.3, p1y = ce.y + Math.sin(a) * r2 * 1.3;
-      var p2x = ce.x + Math.cos(a + 2.5) * r2, p2y = ce.y + Math.sin(a + 2.5) * r2;
-      var p3x = ce.x + Math.cos(a - 2.5) * r2, p3y = ce.y + Math.sin(a - 2.5) * r2;
       ctx.beginPath();
-      ctx.moveTo(p1x, p1y); ctx.lineTo(p2x, p2y); ctx.lineTo(p3x, p3y); ctx.closePath();
-      ctx.fillStyle = "hsl(" + hue2 + ", 70%, 54%)";
+      ctx.ellipse(-r * 0.25, -r * 0.32, r * 0.42, r * 0.26, -0.5, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,0.28)";
       ctx.fill();
-      ctx.lineWidth = 1;
+
+      ctx.fillStyle = "rgba(10,14,12,0.85)";
+      ctx.beginPath(); ctx.arc(r * 0.55, -r * 0.3, Math.max(0.8, r * 0.14), 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(r * 0.55, r * 0.3, Math.max(0.8, r * 0.14), 0, Math.PI * 2); ctx.fill();
+
+      ctx.restore();
+    }
+  }
+
+  function drawCarns() {
+    for (var i = 0; i < carns.length; i++) {
+      var e = carns[i];
+      var energyFrac = clamp(e.energy / e.maxEnergy, 0, 1);
+      var baseR = radiusOf(e);
+      var hue = hueFromSpeed(e.genes.speed, 2, 28);
+      var sat = 50 + energyFrac * 22;
+      var light = 38 + energyFrac * 14;
+      var alpha = e.state === "dying" ? Math.max(0, 1 - e.dyingT) : 1;
+      var stretch = 1 + Math.min(0.35, e.genes.speed * 0.12);
+      var tailWag = Math.sin(simTime * 0.018 * Math.max(0.5, e.genes.speed) + e.seed) * 0.5;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(e.x, e.y);
+      ctx.rotate(e.heading);
+
+      ctx.fillStyle = "hsl(" + hue + ", " + sat + "%, " + (light - 12) + "%)";
+      ctx.beginPath();
+      ctx.moveTo(-baseR * stretch * 0.9, 0);
+      ctx.lineTo(-baseR * stretch * 1.7, baseR * 0.55 + tailWag * baseR * 0.6);
+      ctx.lineTo(-baseR * stretch * 1.7, -baseR * 0.55 + tailWag * baseR * 0.6);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(0, 0, baseR * stretch, baseR * 0.6, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "hsl(" + hue + ", " + sat + "%, " + light + "%)";
+      ctx.fill();
+      ctx.lineWidth = 0.9;
       ctx.strokeStyle = "rgba(0,0,0,0.32)";
       ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(-baseR * 0.1, -baseR * 0.48);
+      ctx.lineTo(baseR * 0.22, -baseR * 1.05);
+      ctx.lineTo(baseR * 0.5, -baseR * 0.42);
+      ctx.closePath();
+      ctx.fillStyle = "hsl(" + hue + ", " + sat + "%, " + (light - 16) + "%)";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(baseR * 0.1, -baseR * 0.22, baseR * 0.34, baseR * 0.16, -0.4, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,0.22)";
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(8,6,6,0.9)";
+      ctx.beginPath(); ctx.arc(baseR * 0.62, -baseR * 0.12, Math.max(0.9, baseR * 0.13), 0, Math.PI * 2); ctx.fill();
+
+      ctx.restore();
     }
+  }
+
+  function drawPops() {
+    for (var i = 0; i < pops.length; i++) {
+      var p = pops[i];
+      ctx.beginPath();
+      ctx.strokeStyle = "hsla(" + p.hue + ", 70%, 55%, " + Math.max(0, p.alpha) + ")";
+      ctx.lineWidth = 1.4;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    drawAmbient();
+    drawFood();
+    drawHerbs();
+    drawCarns();
+    drawPops();
   }
 
   var stHerb = document.getElementById("stHerb");
@@ -543,33 +798,58 @@
   var stSpeed = document.getElementById("stSpeed");
   var clockEl = document.getElementById("clock");
 
+  function aliveCount(list) {
+    var c = 0;
+    for (var i = 0; i < list.length; i++) if (list[i].state !== "dying") c++;
+    return c;
+  }
+
   function updateStats() {
-    stHerb.textContent = herbs.length;
-    stCarn.textContent = carns.length;
+    var aliveHerbs = aliveCount(herbs);
+    stHerb.textContent = aliveHerbs;
+    stCarn.textContent = aliveCount(carns);
     stFood.textContent = food.length;
     stGen.textContent = maxGen;
     stBirths.textContent = births;
-    if (herbs.length) {
-      var s = 0;
-      for (var i = 0; i < herbs.length; i++) s += herbs[i].genes.speed;
-      stSpeed.textContent = (s / herbs.length).toFixed(2);
+    if (aliveHerbs) {
+      var s = 0, n = 0;
+      for (var i = 0; i < herbs.length; i++) {
+        if (herbs[i].state === "dying") continue;
+        s += herbs[i].genes.speed; n++;
+      }
+      stSpeed.textContent = n ? (s / n).toFixed(2) : "—";
     } else {
       stSpeed.textContent = "—";
     }
-    var secs = Math.floor(tickCount / 60);
+    var secs = Math.floor(realElapsedMs / 1000);
     var m = Math.floor(secs / 60), s2 = secs % 60;
     clockEl.textContent = m + ":" + (s2 < 10 ? "0" : "") + s2;
   }
 
-  function frame() {
+  function frame(ts) {
     requestAnimationFrame(frame);
+    if (lastTs === null) lastTs = ts;
+    var deltaMs = ts - lastTs;
+    lastTs = ts;
+    if (deltaMs > 250) deltaMs = 250;
+
     if (running) {
-      tick(speedMult);
-      tickCount++;
+      var dt = (deltaMs / 16.6667) * speedMult;
+      tick(dt);
+      simTime += deltaMs * speedMult;
+      realElapsedMs += deltaMs;
     }
     draw();
-    if (tickCount % 12 === 0) updateStats();
+    frameCounter++;
+    if (frameCounter % 10 === 0) updateStats();
   }
+
+  var panelEl = document.getElementById("panel");
+  var panelToggle = document.getElementById("panelToggle");
+  panelToggle.addEventListener("click", function () {
+    var expanded = panelEl.classList.toggle("expanded");
+    panelToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  });
 
   var btnPause = document.getElementById("btnPause");
   btnPause.addEventListener("click", function () {
@@ -598,9 +878,25 @@
     lblSpeed.textContent = speedMult.toFixed(1) + "×";
   });
 
+  var pointerActive = false, lastFeedTs = 0;
   canvas.addEventListener("pointerdown", function (ev) {
+    pointerActive = true;
     spawnFoodCluster(ev.clientX, ev.clientY, Math.floor(rand(6, 10)));
+    lastFeedTs = performance.now();
+    try { canvas.setPointerCapture(ev.pointerId); } catch (err) { /* ignore */ }
   });
+  canvas.addEventListener("pointermove", function (ev) {
+    if (!pointerActive) return;
+    var now = performance.now();
+    if (now - lastFeedTs > 90) {
+      spawnFoodCluster(ev.clientX, ev.clientY, Math.floor(rand(1, 3)));
+      lastFeedTs = now;
+    }
+  });
+  function endPointer() { pointerActive = false; }
+  canvas.addEventListener("pointerup", endPointer);
+  canvas.addEventListener("pointercancel", endPointer);
+  canvas.addEventListener("pointerleave", endPointer);
 
   seed();
   updateStats();
