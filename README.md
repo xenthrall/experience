@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución
+# Terrario Digital — Ecosistema Vivo & Evolución (v3.0: Eventos Cósmicos)
 
 Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — un único `index.html`.
 
@@ -19,6 +19,12 @@ Un simulador de vida artificial y selección natural que corre por completo en e
 - **Ciclo Día / Noche**: Comportamientos nocturnos de sueño/hibernación, ojos brillantes en la oscuridad y bioluminiscencia.
 - **Cadáveres & Reciclaje de Nutrientes**: La descomposición de cadáveres genera nuevo suelo fértil con brotes de flores y frutos.
 - **Genética Hereditaria & Mutación**: Velocidad, sentidos, tamaño, sigilo, eficiencia de resistencia y pigmentación varían con la selección natural.
+
+## ☄️ Eventos Cósmicos & Mutación
+
+- **Lluvias de Meteoritos**: caen periódicamente del cielo (o se invocan a demanda con el botón `☄️ Meteoritos`), dejando una estela ardiente antes de impactar.
+- **Cráteres & Zonas de Mutación**: cada impacto forma un cráter que fertiliza el suelo y una zona de radiación cósmica pulsante que muta genes al azar (velocidad, sentidos, tamaño, sigilo, agresividad) de cualquier criatura que la atraviese, otorgándole además un destello de vigor y una estela de partículas.
+- **Audio Generativo Vivo**: activa `🔊 Audio Vivo` para escuchar un paisaje sonoro ambiental (Web Audio API) que muta su acorde y brillo según la hora del día, sopla más fuerte con la lluvia, y reacciona en tiempo real a nacimientos, cacerías e impactos de meteoritos.
 
 ## 🛠️ Herramientas & Controles Interactivos
 

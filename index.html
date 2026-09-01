@@ -288,7 +288,8 @@
   }
 
   /* BUTTONS */
-  .btnrow { display: flex; gap: 6px; margin-top: 10px; }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .btnrow button { flex: 1 1 calc(50% - 6px); min-width: 90px; }
   button {
     font-family: "Libre Franklin", sans-serif;
     font-weight: 600;
@@ -566,7 +567,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v2.0</span>
+    <span class="eyebrow-label">Ecosistema Vivo v3.0 — Eventos Cósmicos</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -618,11 +619,13 @@
       <button class="toggle-btn active" id="togEmotes">💭 Emociones</button>
       <button class="toggle-btn" id="togBars">📊 Barras HP</button>
       <button class="toggle-btn active" id="togDayNight">🌙 Ciclo Auto</button>
+      <button class="toggle-btn" id="togAudio">🔊 Audio Vivo</button>
     </div>
 
     <div class="btnrow">
       <button class="primary" id="btnPause">Pausar</button>
       <button id="btnRain">🌧️ Lluvia Fértil</button>
+      <button id="btnMeteor">☄️ Meteoritos</button>
       <button id="btnReset">Reiniciar</button>
     </div>
   </div>
@@ -810,6 +813,13 @@
 
   let selectedCreature = null;
 
+  // Eventos cósmicos: lluvias de meteoritos, cráteres y zonas de mutación
+  let meteors = [];
+  let craters = [];
+  let mutationZones = [];
+  let meteorCooldown = rand(1400, 3200);
+  let audioEnabled = false;
+
   // ==========================================
   // SPATIAL HASH GRID (Para 60 FPS con cientos de entidades)
   // ==========================================
@@ -869,6 +879,290 @@
 
   const creatureGrid = new SpatialGrid(90);
   const plantGrid = new SpatialGrid(80);
+
+  // ==========================================
+  // AUDIO GENERATIVO (Paisaje sonoro vivo y reactivo)
+  // ==========================================
+  const Sound = (function () {
+    let ctx = null, master = null, filter = null, padGain = null, windGain = null;
+    let padOscs = [];
+    let lastLabel = null;
+
+    const CHORD = {
+      "Amanecer": [130.81, 164.81, 196.00, 261.63],
+      "Día": [130.81, 164.81, 196.00, 293.66],
+      "Atardecer": [130.81, 155.56, 196.00, 261.63],
+      "Noche": [98.00, 116.54, 146.83, 196.00]
+    };
+    const CUTOFF = { "Amanecer": 1100, "Día": 1600, "Atardecer": 900, "Noche": 420 };
+
+    function build() {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      master = ctx.createGain();
+      master.gain.value = 0;
+      master.connect(ctx.destination);
+
+      filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = 1200;
+      filter.connect(master);
+
+      padGain = ctx.createGain();
+      padGain.gain.value = 0.5;
+      padGain.connect(filter);
+
+      CHORD["Día"].forEach((f, i) => {
+        const o = ctx.createOscillator();
+        o.type = i === 0 ? "sine" : (i % 2 === 0 ? "triangle" : "sine");
+        o.frequency.value = f;
+        o.detune.value = (i - 1.5) * 3;
+        const g = ctx.createGain();
+        g.gain.value = 0.18;
+        o.connect(g);
+        g.connect(padGain);
+        o.start();
+        padOscs.push(o);
+      });
+
+      const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const data = noiseBuf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const noiseSrc = ctx.createBufferSource();
+      noiseSrc.buffer = noiseBuf;
+      noiseSrc.loop = true;
+      const windFilter = ctx.createBiquadFilter();
+      windFilter.type = "bandpass";
+      windFilter.frequency.value = 500;
+      windFilter.Q.value = 0.6;
+      windGain = ctx.createGain();
+      windGain.gain.value = 0.02;
+      noiseSrc.connect(windFilter);
+      windFilter.connect(windGain);
+      windGain.connect(master);
+      noiseSrc.start();
+    }
+
+    function ping(freq, dur, type, vol, delay) {
+      if (!ctx) return;
+      const t0 = ctx.currentTime + (delay || 0);
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type || "sine";
+      o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g);
+      g.connect(master);
+      o.start(t0);
+      o.stop(t0 + dur + 0.05);
+    }
+
+    return {
+      setEnabled(on) {
+        if (on && !ctx) build();
+        if (!ctx) return;
+        if (ctx.state === "suspended") ctx.resume();
+        const t = ctx.currentTime;
+        master.gain.cancelScheduledValues(t);
+        master.gain.setTargetAtTime(on ? 0.55 : 0, t, 0.8);
+      },
+      updateAtmosphere(label, raining) {
+        if (!ctx) return;
+        windGain.gain.setTargetAtTime(raining ? 0.10 : 0.02, ctx.currentTime, 1.5);
+        if (label === lastLabel) return;
+        lastLabel = label;
+        const freqs = CHORD[label] || CHORD["Día"];
+        const cutoff = CUTOFF[label] || 1200;
+        const t = ctx.currentTime;
+        filter.frequency.setTargetAtTime(cutoff, t, 4);
+        padOscs.forEach((o, i) => {
+          o.frequency.setTargetAtTime(freqs[i] || freqs[freqs.length - 1], t, 4);
+        });
+      },
+      pluck() { ping(880 + Math.random() * 220, 0.5, "sine", 0.09); },
+      thud() { ping(90, 0.4, "sine", 0.16); },
+      boom() {
+        ping(60, 1.4, "sine", 0.28);
+        ping(45, 1.8, "triangle", 0.18, 0.05);
+      }
+    };
+  })();
+
+  // ==========================================
+  // EVENTOS CÓSMICOS (Lluvias de meteoritos y mutación)
+  // ==========================================
+  function spawnMeteorShower(count) {
+    count = count || Math.floor(rand(3, 7));
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    for (let i = 0; i < count; i++) {
+      meteors.push({
+        x: dir > 0 ? rand(-100, W * 0.5) : rand(W * 0.5, W + 100),
+        y: rand(-140, -20),
+        vx: dir * rand(1.6, 2.6),
+        vy: rand(3.2, 4.6),
+        trail: [],
+        delay: i * rand(6, 22)
+      });
+    }
+    showToast("☄️ Lluvia de meteoros aproximándose...");
+  }
+
+  function impactMeteor(m) {
+    const ix = clamp(m.x, 20, W - 20), iy = clamp(m.y, 20, H - 20);
+    for (let i = 0; i < 26; i++) {
+      const ang = rand(0, Math.PI * 2);
+      const spd = rand(1, 6);
+      particles.push({
+        x: ix, y: iy,
+        r: rand(1.5, 4),
+        alpha: 1,
+        color: i % 3 === 0 ? "#9be8ff" : (i % 3 === 1 ? "#ffd36b" : "#ff8a5c"),
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd
+      });
+    }
+    craters.push({ x: ix, y: iy, r: 0, maxR: rand(50, 90), life: 900 });
+    mutationZones.push({ x: ix, y: iy, radius: rand(70, 120), life: 1400, maxLife: 1400, seed: rand(0, 1000) });
+    alarmWaves.push({ x: ix, y: iy, r: 8, maxR: 260, alpha: 1.0, color: "#4ae0ff" });
+    Sound.boom();
+    showToast("☄️ ¡Impacto! Zona de mutación cósmica activa");
+  }
+
+  function cosmicMutate(c) {
+    if (c.cosmicMutatedAt && simTime - c.cosmicMutatedAt < 9000) return;
+    c.cosmicMutatedAt = simTime;
+    const wild = () => 1 + spread(0.4);
+    c.genes = {
+      speed: clamp(c.genes.speed * wild(), 0.5, 3.2),
+      sense: clamp(c.genes.sense * wild(), 45, 260),
+      size: clamp(c.genes.size * (1 + spread(0.2)), 1.8, 18),
+      stealth: clamp(c.genes.stealth * wild(), 0.2, 0.98),
+      aggression: clamp(c.genes.aggression * wild(), 0.1, 1.0),
+      staminaEfficiency: clamp(c.genes.staminaEfficiency * wild(), 0.5, 1.8),
+      hueOffset: clamp(c.genes.hueOffset + rand(-60, 60), -80, 80)
+    };
+    c.energy = Math.min(c.maxEnergy, c.energy + 25);
+    c.health = Math.min(100, c.health + 15);
+    c.setEmote("🌠", 90);
+    c.cosmicGlow = 140;
+  }
+
+  function updateCosmicEvents(dt) {
+    meteorCooldown -= dt;
+    if (meteorCooldown <= 0 && meteors.length === 0) {
+      spawnMeteorShower();
+      meteorCooldown = rand(2600, 5400);
+    }
+
+    for (let i = meteors.length - 1; i >= 0; i--) {
+      const m = meteors[i];
+      if (m.delay > 0) { m.delay -= dt; continue; }
+      m.x += m.vx * dt * 6;
+      m.y += m.vy * dt * 6;
+      m.trail.push({ x: m.x, y: m.y });
+      if (m.trail.length > 14) m.trail.shift();
+      if (m.y >= H - rand(10, 60)) {
+        impactMeteor(m);
+        meteors.splice(i, 1);
+      }
+    }
+
+    for (let i = craters.length - 1; i >= 0; i--) {
+      const cr = craters[i];
+      cr.life -= dt;
+      if (cr.r < cr.maxR) cr.r += (cr.maxR - cr.r) * 0.08 * dt;
+      if (cr.life <= 0) craters.splice(i, 1);
+    }
+
+    for (let i = mutationZones.length - 1; i >= 0; i--) {
+      const z = mutationZones[i];
+      z.life -= dt;
+      if (z.life <= 0) { mutationZones.splice(i, 1); continue; }
+      if (Math.random() < 0.02 * dt) spawnFood(z.x + spread(z.radius * 0.7), z.y + spread(z.radius * 0.7));
+      const near = creatureGrid.queryRadius(z.x, z.y, z.radius);
+      for (let c of near) cosmicMutate(c);
+    }
+
+    for (let c of creatures) {
+      if (c.cosmicGlow > 0) {
+        c.cosmicGlow -= dt;
+        if (Math.random() < 0.3 * dt) {
+          particles.push({ x: c.x + spread(6), y: c.y + spread(6), r: rand(1, 2.2), alpha: 0.9, color: "#c9a8ff" });
+        }
+      }
+    }
+  }
+
+  function drawCraters(ctx) {
+    for (let cr of craters) {
+      const fade = clamp(cr.life / 900, 0, 1);
+      ctx.save();
+      ctx.globalAlpha = 0.5 * fade;
+      const grad = ctx.createRadialGradient(cr.x, cr.y, 2, cr.x, cr.y, cr.r || 1);
+      grad.addColorStop(0, "rgba(20, 14, 10, 0.55)");
+      grad.addColorStop(0.7, "rgba(40, 26, 18, 0.35)");
+      grad.addColorStop(1, "rgba(40, 26, 18, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cr.x, cr.y, cr.r || 1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawMutationZones(ctx) {
+    for (let z of mutationZones) {
+      const fade = clamp(z.life / z.maxLife, 0, 1);
+      const pulse = 0.75 + Math.sin(simTime * 0.006 + z.seed) * 0.25;
+      ctx.save();
+      ctx.globalAlpha = 0.35 * fade;
+      const grad = ctx.createRadialGradient(z.x, z.y, 4, z.x, z.y, z.radius * pulse);
+      grad.addColorStop(0, "rgba(180, 140, 255, 0.45)");
+      grad.addColorStop(0.6, "rgba(120, 90, 220, 0.18)");
+      grad.addColorStop(1, "rgba(120, 90, 220, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, z.radius * pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.6 * fade;
+      ctx.strokeStyle = "rgba(201, 168, 255, 0.6)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, z.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+  }
+
+  function drawMeteors(ctx) {
+    for (let m of meteors) {
+      if (m.delay > 0) continue;
+      ctx.save();
+      for (let i = 0; i < m.trail.length; i++) {
+        const t = m.trail[i];
+        const a = (i / m.trail.length) * 0.7;
+        ctx.globalAlpha = a;
+        ctx.fillStyle = "#ffe8b0";
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 1.6 * (i / m.trail.length) + 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      const grad = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, 8);
+      grad.addColorStop(0, "#fffdf2");
+      grad.addColorStop(0.4, "#ffd88a");
+      grad.addColorStop(1, "rgba(255, 180, 80, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
 
   // ==========================================
   // CLASE CRIATURA (Inteligencia, Instinto y Genética)
@@ -1252,6 +1546,7 @@
               this.energy = Math.min(this.maxEnergy, this.energy + prey.energy * 0.6 + 30);
               this.kills++;
               totalKills++;
+              Sound.thud();
               this.setEmote("🐺", 60);
               spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 8);
               removeCreature(prey);
@@ -1300,6 +1595,7 @@
             this.energy = Math.min(this.maxEnergy, this.energy + 70);
             this.kills++;
             totalKills++;
+            Sound.thud();
             this.setEmote("👑", 70);
             spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 12);
             removeCreature(prey);
@@ -1369,6 +1665,7 @@
       this.energy *= 0.55;
       this.kids++;
       births++;
+      Sound.pluck();
       if (child.gen > maxGen) maxGen = child.gen;
 
       creatures.push(child);
@@ -1695,6 +1992,10 @@
     particles = [];
     alarmWaves = [];
     popHistory = [];
+    meteors = [];
+    craters = [];
+    mutationZones = [];
+    meteorCooldown = rand(1400, 3200);
     births = 0;
     totalKills = 0;
     maxGen = 0;
@@ -1791,9 +2092,17 @@
 
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
+      if (p.vx || p.vy) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vx *= 0.94;
+        p.vy *= 0.94;
+      }
       p.alpha -= 0.03 * dt;
       if (p.alpha <= 0) particles.splice(i, 1);
     }
+
+    updateCosmicEvents(dt);
   }
 
   // ==========================================
@@ -1801,6 +2110,8 @@
   // ==========================================
   function drawWorld() {
     ctx.clearRect(0, 0, W, H);
+
+    drawCraters(ctx);
 
     for (let pond of waterBodies) {
       ctx.save();
@@ -1889,6 +2200,8 @@
       ctx.restore();
     }
 
+    drawMutationZones(ctx);
+
     for (let c of creatures) {
       c.draw(ctx);
     }
@@ -1904,6 +2217,7 @@
     }
 
     drawAtmosphere();
+    drawMeteors(ctx);
   }
 
   function drawAtmosphere() {
@@ -1931,6 +2245,7 @@
 
     document.getElementById("todIcon").textContent = icon;
     document.getElementById("todLabel").textContent = label;
+    Sound.updateAtmosphere(label, rainActive > 0);
   }
 
   // ==========================================
@@ -2146,6 +2461,19 @@
   document.getElementById("btnRain").addEventListener("click", () => {
     rainActive = 400;
     showToast("🌧️ Lluvia fértil iniciada — acelerando crecimiento");
+  });
+
+  document.getElementById("btnMeteor").addEventListener("click", () => {
+    spawnMeteorShower();
+    meteorCooldown = rand(2600, 5400);
+  });
+
+  const togAudioBtn = document.getElementById("togAudio");
+  togAudioBtn.addEventListener("click", () => {
+    audioEnabled = !audioEnabled;
+    togAudioBtn.classList.toggle("active", audioEnabled);
+    Sound.setEnabled(audioEnabled);
+    if (audioEnabled) showToast("🔊 Paisaje sonoro generativo activado");
   });
 
   document.getElementById("rangeFood").addEventListener("input", (e) => {
