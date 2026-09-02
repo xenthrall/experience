@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v6.0: Memoria del Terrario)
+# Terrario Digital — Ecosistema Vivo & Evolución (v7.0: Crónicas del Terrario)
 
 Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — un único `index.html`.
 
@@ -47,6 +47,13 @@ Un simulador de vida artificial y selección natural que corre por completo en e
 - **Luciérnagas de la memoria**: durante el atardecer y la noche, puntos de luz tenues y parpadeantes aparecen exactamente donde murió cada criatura, coloreados según su especie y con brillo proporcional a su generación — los linajes más evolucionados dejan una marca más intensa.
 - **Constelaciones de los caídos**: las muertes más recientes se conectan entre sí con líneas fantasmales, dibujando una constelación efímera que cambia con cada nueva pérdida.
 - **Memoria que sobrevive al `Reiniciar`**: pulsar "Reiniciar" reinicia la simulación, pero no borra la memoria — las almas de generaciones anteriores (incluso de visitas anteriores, en días distintos) siguen ahí, acumulándose. Al volver a abrir la página, un mensaje te recuerda cuántas almas habitan ya el terrario.
+
+## 📜 Crónicas del Terrario — Mitología Generativa Persistente
+
+- **Botón `📜 Crónicas`**: abre un pergamino que narra, en prosa generada automáticamente, la historia de cada "era" que ha vivido el terrario.
+- **Cada `Reiniciar` sella una era**: al reiniciar la simulación, la era que termina queda archivada para siempre (en `localStorage`) con su duración, nacimientos, cacerías, generación máxima alcanzada, especie dominante, estación en curso, meteoritos caídos, mutaciones cósmicas provocadas y las especies que se extinguieron por completo.
+- **Extinciones anunciadas**: cuando una especie desaparece por completo del terrario, aparece un aviso inmediato (`☠️ Extinción: ...`) y ese evento queda registrado en la crónica de la era.
+- **Historia acumulativa entre visitas**: las crónicas de eras pasadas —incluso de sesiones anteriores, en otros días— se conservan y se muestran ordenadas de la más reciente a la más antigua, junto a un resumen de vidas totales nacidas y almas descansando en la memoria del suelo.
 
 ## 🛠️ Herramientas & Controles Interactivos
 

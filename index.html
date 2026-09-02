@@ -565,6 +565,93 @@
     transform: translateY(0);
   }
 
+  /* CRÓNICAS DEL TERRARIO */
+  .chronicle-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 8, 4, 0.55);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 24px;
+  }
+  .chronicle-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .chronicle-scroll {
+    position: relative;
+    max-width: 620px;
+    width: 100%;
+    max-height: 82vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #f6ecd4, #ede0bd);
+    color: #2c2210;
+    border-radius: 6px;
+    padding: 36px 32px 28px;
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(120, 95, 45, 0.35);
+    font-family: "Fraunces", serif;
+    transform: scale(0.96) translateY(10px);
+    transition: transform 0.35s ease;
+  }
+  .chronicle-overlay.open .chronicle-scroll { transform: scale(1) translateY(0); }
+  .chronicle-scroll h2 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .chronicle-intro {
+    font-style: italic;
+    opacity: 0.75;
+    font-size: 13px;
+    margin: 0 0 20px;
+    border-bottom: 1px dashed rgba(80, 60, 20, 0.35);
+    padding-bottom: 16px;
+  }
+  .chronicle-entry {
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed rgba(80, 60, 20, 0.25);
+    font-size: 14.5px;
+    line-height: 1.65;
+  }
+  .chronicle-entry:last-child { border-bottom: none; }
+  .chronicle-entry .era-title {
+    display: block;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7a5a1e;
+    margin-bottom: 6px;
+  }
+  .chronicle-empty {
+    font-style: italic;
+    opacity: 0.6;
+    font-size: 14px;
+  }
+  .chronicle-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    color: #6b5330;
+    cursor: pointer;
+    line-height: 1;
+    padding: 6px;
+  }
+  .chronicle-close:hover { color: #2c2210; }
+  .chronicle-scroll::-webkit-scrollbar { width: 8px; }
+  .chronicle-scroll::-webkit-scrollbar-thumb { background: rgba(120, 95, 45, 0.4); border-radius: 4px; }
+
   /* SCROLLBAR */
   .panel::-webkit-scrollbar { width: 6px; }
   .panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
@@ -667,6 +754,7 @@
       <button id="btnRain">🌧️ Lluvia Fértil</button>
       <button id="btnMeteor">☄️ Meteoritos</button>
       <button id="btnReset">Reiniciar</button>
+      <button id="btnChronicle">📜 Crónicas</button>
     </div>
   </div>
 </div>
@@ -718,6 +806,15 @@
 
 <div class="poem-layer" id="poemLayer">
   <p id="poemText"></p>
+</div>
+
+<div class="chronicle-overlay" id="chronicleOverlay">
+  <div class="chronicle-scroll">
+    <button class="chronicle-close" id="chronicleClose" aria-label="Cerrar crónicas">✕</button>
+    <h2>📜 Crónicas del Terrario</h2>
+    <p class="chronicle-intro" id="chronicleIntro"></p>
+    <div id="chronicleEntries"></div>
+  </div>
 </div>
 
 <script>
@@ -952,6 +1049,49 @@
   }
 
   // ==========================================
+  // CRÓNICAS DEL TERRARIO (bitácora mitológica persistente)
+  // ==========================================
+  const CHRONICLE_KEY = "terrario_chronicle_v1";
+  const MAX_CHRONICLE = 60;
+  let chronicle = [];
+  let meteorImpacts = 0;
+  let mutationsCount = 0;
+  let extinctions = [];
+  let prevSpeciesCounts = {};
+
+  function loadChronicle() {
+    try {
+      const raw = localStorage.getItem(CHRONICLE_KEY);
+      chronicle = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      chronicle = [];
+    }
+  }
+
+  function saveChronicle() {
+    try {
+      localStorage.setItem(CHRONICLE_KEY, JSON.stringify(chronicle));
+    } catch (e) { /* almacenamiento no disponible: la crónica vive solo esta sesión */ }
+  }
+
+  function archiveEra() {
+    if (births === 0 && totalKills === 0 && simTime < 1000) return; // nada digno de crónica aún
+    const snap = ecosystemSnapshot();
+    chronicle.push({
+      endedAt: Date.now(),
+      durationSec: Math.round(realElapsedMs / 1000),
+      births, kills: totalKills, maxGen,
+      dominant: snap.dominant,
+      season: snap.season,
+      meteorImpacts, mutations: mutationsCount,
+      extinctions: extinctions.slice(),
+      memorySize: deathLedger.length
+    });
+    if (chronicle.length > MAX_CHRONICLE) chronicle.shift();
+    saveChronicle();
+  }
+
+  // ==========================================
   // SPATIAL HASH GRID (Para 60 FPS con cientos de entidades)
   // ==========================================
   class SpatialGrid {
@@ -1182,6 +1322,7 @@
     craters.push({ x: ix, y: iy, r: 0, maxR: rand(50, 90), life: 900 });
     mutationZones.push({ x: ix, y: iy, radius: rand(70, 120), life: 1400, maxLife: 1400, seed: rand(0, 1000) });
     alarmWaves.push({ x: ix, y: iy, r: 8, maxR: 260, alpha: 1.0, color: "#4ae0ff" });
+    meteorImpacts++;
     Sound.boom();
     showToast("☄️ ¡Impacto! Zona de mutación cósmica activa");
   }
@@ -1203,6 +1344,7 @@
     c.health = Math.min(100, c.health + 15);
     c.setEmote("🌠", 90);
     c.cosmicGlow = 140;
+    mutationsCount++;
   }
 
   function updateCosmicEvents(dt) {
@@ -2145,6 +2287,12 @@
   // REINICIO Y POBLACIÓN INICIAL
   // ==========================================
   function seedWorld() {
+    archiveEra();
+    meteorImpacts = 0;
+    mutationsCount = 0;
+    extinctions = [];
+    prevSpeciesCounts = {};
+
     creatures = [];
     plants = [];
     carcasses = [];
@@ -2576,6 +2724,16 @@
       if (counts[c.speciesId] !== undefined) counts[c.speciesId]++;
     }
 
+    for (let id in counts) {
+      const before = prevSpeciesCounts[id];
+      if (before > 0 && counts[id] === 0) {
+        const spec = SPECIES_BY_ID[id];
+        extinctions.push({ species: id, gen: maxGen, at: Math.round(realElapsedMs / 1000) });
+        showToast(`☠️ Extinción: ${spec ? spec.name : id} ha desaparecido del terrario`);
+      }
+    }
+    prevSpeciesCounts = counts;
+
     document.getElementById("stHerbAgile").textContent = counts.herb_agile;
     document.getElementById("stHerbMega").textContent = counts.herb_mega;
     document.getElementById("stCarnPack").textContent = counts.carn_pack;
@@ -2631,6 +2789,47 @@
     } else {
       insp.classList.remove("open");
     }
+  }
+
+  function formatEraText(era, index, totalEras) {
+    const eraNumber = totalEras - index;
+    const dominant = era.dominant || "una especie olvidada";
+    const durMin = Math.floor(era.durationSec / 60);
+    const durTxt = durMin > 0 ? `${durMin} min` : `${era.durationSec}s`;
+    let text = `Duró ${durTxt}. Nacieron ${era.births} criaturas y se registraron ${era.kills} cacerías. `;
+    text += `${dominant} dominó el terrario bajo un cielo de ${era.season.toLowerCase()}. `;
+    text += `El linaje más antiguo alcanzó la generación ${era.maxGen}. `;
+    if (era.meteorImpacts > 0) {
+      text += `El cielo dejó caer ${era.meteorImpacts} meteorito${era.meteorImpacts === 1 ? "" : "s"}, mutando la carne de sus habitantes ${era.mutations} ${era.mutations === 1 ? "vez" : "veces"}. `;
+    }
+    if (era.extinctions && era.extinctions.length > 0) {
+      const names = era.extinctions.map((e) => (SPECIES_BY_ID[e.species] ? SPECIES_BY_ID[e.species].name : e.species));
+      text += `Se extinguieron para siempre: ${names.join(", ")}. `;
+    }
+    text += `${era.memorySize} almas quedaron grabadas en la memoria del suelo.`;
+    return `<span class="era-title">Era ${eraNumber}</span>${text}`;
+  }
+
+  function renderChronicle() {
+    const entriesEl = document.getElementById("chronicleEntries");
+    const introEl = document.getElementById("chronicleIntro");
+    const totalEras = chronicle.length;
+    const totalBirths = chronicle.reduce((a, e) => a + e.births, 0) + births;
+
+    introEl.textContent = totalEras > 0
+      ? `${totalEras} era${totalEras === 1 ? "" : "s"} registrada${totalEras === 1 ? "" : "s"}. ${totalBirths} vidas han nacido aquí en total, ${deathLedger.length} descansan bajo la tierra.`
+      : `Esta es la primera era del terrario. Aún no hay crónicas escritas — pulsa "Reiniciar" para sellar esta era en la historia.`;
+
+    if (totalEras === 0) {
+      entriesEl.innerHTML = `<p class="chronicle-empty">El pergamino está en blanco. Cuando pulses "Reiniciar", esta era quedará grabada para siempre.</p>`;
+      return;
+    }
+
+    let html = "";
+    for (let i = totalEras - 1; i >= 0; i--) {
+      html += `<div class="chronicle-entry">${formatEraText(chronicle[i], i, totalEras)}</div>`;
+    }
+    entriesEl.innerHTML = html;
   }
 
   function showToast(msg) {
@@ -2741,6 +2940,18 @@
 
   document.getElementById("btnReset").addEventListener("click", seedWorld);
 
+  const chronicleOverlay = document.getElementById("chronicleOverlay");
+  document.getElementById("btnChronicle").addEventListener("click", () => {
+    renderChronicle();
+    chronicleOverlay.classList.add("open");
+  });
+  document.getElementById("chronicleClose").addEventListener("click", () => {
+    chronicleOverlay.classList.remove("open");
+  });
+  chronicleOverlay.addEventListener("click", (e) => {
+    if (e.target === chronicleOverlay) chronicleOverlay.classList.remove("open");
+  });
+
   document.getElementById("btnRain").addEventListener("click", () => {
     rainActive = 400;
     showToast("🌧️ Lluvia fértil iniciada — acelerando crecimiento");
@@ -2820,6 +3031,7 @@
 
   resize();
   loadDeathLedger();
+  loadChronicle();
   seedWorld();
   if (deathLedger.length > 0) {
     setTimeout(() => showToast(`🕯️ El terrario recuerda ${deathLedger.length} almas de visitas anteriores`), 1200);
