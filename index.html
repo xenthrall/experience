@@ -19,7 +19,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v4.0 — Estaciones Vivas</span>
+    <span class="eyebrow-label">Ecosistema Vivo v4.1 — Genealogía Viva</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -129,6 +129,7 @@
   <div class="insp-actions">
     <button class="primary" id="btnFollowCam">🎯 Centrar</button>
     <button id="btnFeedSelected">🍖 Alimentar</button>
+    <button id="btnLineage">🌳 Linaje</button>
   </div>
 </div>
 
@@ -144,6 +145,15 @@
     <h2>📜 Crónicas del Terrario</h2>
     <p class="chronicle-intro" id="chronicleIntro"></p>
     <div id="chronicleEntries"></div>
+  </div>
+</div>
+
+<div class="lineage-overlay" id="lineageOverlay">
+  <div class="lineage-scroll">
+    <button class="lineage-close" id="lineageClose" aria-label="Cerrar linaje">✕</button>
+    <h2>🌳 Linaje de <span id="lineageName"></span></h2>
+    <p class="lineage-intro" id="lineageIntro"></p>
+    <div id="lineageChain"></div>
   </div>
 </div>
 

@@ -222,10 +222,11 @@
     } catch (e) { /* almacenamiento no disponible: la memoria vive solo esta sesión */ }
   }
 
-  function recordDeath(c) {
+  function recordDeath(c, cause) {
     deathLedger.push({ xf: c.x / W, yf: c.y / H, species: c.speciesId, gen: c.gen, t: Date.now() });
     if (deathLedger.length > MAX_LEDGER) deathLedger.shift();
     saveDeathLedger();
+    markLineageDeath(c, cause || "natural");
   }
 
   // ==========================================
@@ -252,6 +253,79 @@
     try {
       localStorage.setItem(CHRONICLE_KEY, JSON.stringify(chronicle));
     } catch (e) { /* almacenamiento no disponible: la crónica vive solo esta sesión */ }
+  }
+
+  // ==========================================
+  // GENEALOGÍA VIVA (árbol de linaje, vive mientras dure la sesión)
+  // ==========================================
+  const NAME_PREFIX = ["Ka", "Rho", "Tha", "Nyx", "Vel", "Or", "Ith", "Zar", "Mor", "Sil", "Ae", "Ux", "Fen", "Dra", "Quel", "Bry", "Es", "Ol", "Ura", "Vex", "Iz", "Aum", "Ny", "Sor"];
+  const NAME_SUFFIX = ["rin", "dor", "eth", "ux", "ara", "iel", "oth", "ynn", "al", "um", "ir", "esh", "ova", "yx", "en", "ash", "or", "ika", "une", "az"];
+  function generateCreatureName() {
+    return NAME_PREFIX[Math.floor(Math.random() * NAME_PREFIX.length)] + NAME_SUFFIX[Math.floor(Math.random() * NAME_SUFFIX.length)];
+  }
+
+  const LINEAGE_TRAITS = [
+    { key: "speed", label: "veloz", icon: "💨" },
+    { key: "sense", label: "perceptivo", icon: "👁️" },
+    { key: "size", label: "grande", icon: "📏" },
+    { key: "stealth", label: "sigiloso", icon: "🌑" },
+    { key: "aggression", label: "agresivo", icon: "⚔️" }
+  ];
+  function traitDrift(parentGenes, childGenes) {
+    if (!parentGenes) return null;
+    let best = null, bestPct = 0;
+    for (const t of LINEAGE_TRAITS) {
+      const base = parentGenes[t.key] || 0.001;
+      const pct = (childGenes[t.key] - base) / base;
+      if (Math.abs(pct) > Math.abs(bestPct)) { bestPct = pct; best = t; }
+    }
+    if (!best || Math.abs(bestPct) < 0.035) return null;
+    const dir = bestPct > 0 ? "más" : "menos";
+    return `${best.icon} ${dir} ${best.label} (${bestPct > 0 ? "+" : ""}${Math.round(bestPct * 100)}%)`;
+  }
+
+  let lineageArchive = {};
+
+  function registerLineage(c, parentId) {
+    lineageArchive[c.id] = {
+      id: c.id,
+      name: c.name,
+      speciesId: c.speciesId,
+      gen: c.gen,
+      parentId: parentId || null,
+      genes: { ...c.genes },
+      born: simTime,
+      alive: true,
+      deathTime: null,
+      cause: null,
+      kids: 0,
+      kills: 0
+    };
+  }
+
+  function markLineageDeath(c, cause) {
+    const rec = lineageArchive[c.id];
+    if (rec) {
+      rec.alive = false;
+      rec.deathTime = simTime;
+      rec.cause = cause;
+      rec.kids = c.kids;
+      rec.kills = c.kills;
+    }
+  }
+
+  function buildLineageChain(creatureId) {
+    const chain = [];
+    let currentId = creatureId;
+    let guard = 0;
+    while (currentId != null && guard < 60) {
+      const rec = lineageArchive[currentId];
+      if (!rec) break;
+      chain.push(rec);
+      currentId = rec.parentId;
+      guard++;
+    }
+    return chain.reverse();
   }
 
   function archiveEra() {
@@ -647,8 +721,10 @@
   // CLASE CRIATURA (Inteligencia, Instinto y Genética)
   // ==========================================
   class Creature {
-    constructor(x, y, speciesId, genes, gen = 0) {
+    constructor(x, y, speciesId, genes, gen = 0, parentId = null) {
       this.id = nextCreatureId++;
+      this.name = generateCreatureName();
+      this.parentId = parentId;
       this.x = x;
       this.y = y;
       this.speciesId = speciesId;
@@ -684,6 +760,8 @@
       this.emoteTimer = 0;
       this.attackCooldown = 0;
       this.target = null;
+
+      registerLineage(this, parentId);
     }
 
     defaultGenes() {
@@ -1028,7 +1106,7 @@
               Sound.thud();
               this.setEmote("🐺", 60);
               spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 8);
-              recordDeath(prey);
+              recordDeath(prey, "cazado en manada");
               removeCreature(prey);
             }
           }
@@ -1078,7 +1156,7 @@
             Sound.thud();
             this.setEmote("👑", 70);
             spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 12);
-            recordDeath(prey);
+            recordDeath(prey, "cazado por un apex");
             removeCreature(prey);
           }
         }
@@ -1140,7 +1218,8 @@
         this.y + spread(12),
         this.speciesId,
         childGenes,
-        this.gen + 1
+        this.gen + 1,
+        this.id
       );
       child.energy = this.energy * 0.45;
       this.energy *= 0.55;
@@ -1472,6 +1551,7 @@
     mutationsCount = 0;
     extinctions = [];
     prevSpeciesCounts = {};
+    lineageArchive = {};
 
     creatures = [];
     plants = [];
@@ -1587,9 +1667,13 @@
       c.update(dt);
 
       if (c.energy <= 0 || c.water <= 0 || c.age > c.maxAge || c.health <= 0) {
+        let cause = "vejez";
+        if (c.energy <= 0) cause = "hambre";
+        else if (c.water <= 0) cause = "sed";
+        else if (c.health <= 0) cause = "heridas";
         spawnCorpse(c.x, c.y, c.speciesId, c.radius() * 6);
         particles.push({ x: c.x, y: c.y, r: 6, alpha: 0.8, color: "#888888" });
-        recordDeath(c);
+        recordDeath(c, cause);
         removeCreature(c);
       }
     }
@@ -1934,7 +2018,7 @@
     if (selectedCreature) {
       insp.classList.add("open");
       const c = selectedCreature;
-      document.getElementById("inspName").textContent = `${c.spec.name} #${c.id}`;
+      document.getElementById("inspName").textContent = `${c.name} · ${c.spec.name}`;
       document.getElementById("inspBadge").textContent = `Gen ${c.gen} • ${c.speciesId.toUpperCase()}`;
       document.getElementById("inspBadge").style.color = c.spec.swatch;
       document.getElementById("inspBadge").style.background = c.spec.swatch + "22";
@@ -1969,6 +2053,40 @@
     } else {
       insp.classList.remove("open");
     }
+  }
+
+  // ==========================================
+  // GENEALOGÍA VIVA — RENDERIZADO DEL ÁRBOL
+  // ==========================================
+  function renderLineage() {
+    if (!selectedCreature) return;
+    const chain = buildLineageChain(selectedCreature.id);
+    document.getElementById("lineageName").textContent = selectedCreature.name;
+    document.getElementById("lineageIntro").textContent =
+      chain.length > 1
+        ? `${chain.length} generaciones de ascendencia registradas en esta sesión del terrario.`
+        : `${selectedCreature.name} no tiene ancestros registrados — es un fundador de su linaje.`;
+
+    const container = document.getElementById("lineageChain");
+    container.innerHTML = "";
+    chain.forEach((rec, i) => {
+      const spec = SPECIES_BY_ID[rec.speciesId];
+      const parentRec = i > 0 ? chain[i - 1] : null;
+      const drift = parentRec ? traitDrift(parentRec.genes, rec.genes) : null;
+      const statusText = rec.alive ? "vivo" : `murió · ${rec.cause || "desconocido"}`;
+
+      const node = document.createElement("div");
+      node.className = "lineage-node" + (i === chain.length - 1 ? " current" : "");
+      node.innerHTML = `
+        <div class="lineage-dot" style="background:${spec ? spec.swatch : "#8fd98a"}; color:${spec ? spec.swatch : "#8fd98a"};"></div>
+        <div class="lineage-info">
+          <span class="lineage-node-name">${rec.name}</span>
+          <span class="lineage-node-meta">${spec ? spec.name : rec.speciesId} · Gen ${rec.gen} · ${statusText} · ${rec.kids} cría${rec.kids === 1 ? "" : "s"}</span>
+          ${drift ? `<span class="lineage-drift">${drift}</span>` : ""}
+        </div>
+      `;
+      container.appendChild(node);
+    });
   }
 
   function formatEraText(era, index, totalEras) {
@@ -2063,7 +2181,7 @@
     const x = ev.clientX, y = ev.clientY;
 
     const clickedCreature = creatureGrid.nearest(x, y, 25);
-    if (clickedCreature && !pointerActive) {
+    if (clickedCreature) {
       selectedCreature = clickedCreature;
       updateUI();
       return;
@@ -2200,6 +2318,19 @@
       selectedCreature.water = selectedCreature.maxWater;
       selectedCreature.setEmote("✨🍖", 50);
     }
+  });
+
+  const lineageOverlay = document.getElementById("lineageOverlay");
+  document.getElementById("btnLineage").addEventListener("click", () => {
+    if (!selectedCreature) return;
+    renderLineage();
+    lineageOverlay.classList.add("open");
+  });
+  document.getElementById("lineageClose").addEventListener("click", () => {
+    lineageOverlay.classList.remove("open");
+  });
+  lineageOverlay.addEventListener("click", (e) => {
+    if (e.target === lineageOverlay) lineageOverlay.classList.remove("open");
   });
 
   const panelToggle = document.getElementById("panelToggle");
