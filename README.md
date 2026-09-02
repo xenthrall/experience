@@ -1,6 +1,11 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v7.0: Crónicas del Terrario)
+# Terrario Digital — Ecosistema Vivo & Evolución (v7.1: Optimización & Corrección de Interfaz)
 
-Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — un único `index.html`.
+Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — HTML, CSS y JS estáticos servidos como tres archivos (`index.html`, `styles.css`, `main.js`).
+
+## 🔧 Optimización de arquitectura & corrección de bug crítico
+
+- **Separación de archivos**: todo el proyecto vivía embebido en un único `index.html` de más de 3000 líneas (HTML + `<style>` + `<script>` inline). Se extrajo el CSS a `styles.css` y el JavaScript a `main.js`, dejando `index.html` en ~150 líneas. Mismo comportamiento, cero build step, mucho más fácil de mantener y seguir escalando.
+- **Bug corregido — botones que no respondían**: el selector CSS genérico `canvas { position: fixed; inset: 0; ... }` (pensado solo para el lienzo principal `#c`) también alcanzaba al pequeño `<canvas id="popChart">` del gráfico de población. Combinado con el `backdrop-filter` del panel (que crea un *containing block* para elementos `fixed`), el gráfico terminaba estirándose para cubrir **todo el panel de control**, interceptando los clics de absolutamente todos los botones (Audio Vivo, Modo Onírico, Meteoritos, Reiniciar, etc.). Se corrigió acotando la regla a `#c` y fijando `#popChart` con `position: static; pointer-events: none`. Verificado con pruebas automatizadas (Playwright) haciendo clic real en cada botón del panel.
 
 ## 🌿 Especies & Red Trófica
 
