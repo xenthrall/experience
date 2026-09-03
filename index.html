@@ -85,6 +85,7 @@
       <button id="btnMeteor">☄️ Meteoritos</button>
       <button id="btnReset">Reiniciar</button>
       <button id="btnChronicle">📜 Crónicas</button>
+      <button id="btnOracle">🔮 Oráculo</button>
     </div>
   </div>
 </div>
@@ -154,6 +155,26 @@
     <h2>🌳 Linaje de <span id="lineageName"></span></h2>
     <p class="lineage-intro" id="lineageIntro"></p>
     <div id="lineageChain"></div>
+  </div>
+</div>
+
+<div class="oracle-overlay" id="oracleOverlay">
+  <div class="oracle-scroll">
+    <button class="oracle-close" id="oracleClose" aria-label="Cerrar oráculo">✕</button>
+    <div class="oracle-eye" aria-hidden="true">👁️</div>
+    <h2>El Oráculo del Terrario</h2>
+    <p class="oracle-intro">Pregúntale algo al ecosistema. Su respuesta nace de lo que ocurre ahora mismo, aquí dentro.</p>
+
+    <form class="oracle-form" id="oracleForm">
+      <input type="text" id="oracleInput" class="oracle-input" placeholder="¿Qué quieres preguntarle al terrario?" maxlength="140" autocomplete="off">
+      <button type="submit" class="oracle-ask" id="oracleAsk">Consultar</button>
+    </form>
+
+    <div class="oracle-answer" id="oracleAnswer"></div>
+
+    <hr class="oracle-divider">
+    <p class="oracle-history-label">Libro de profecías <span id="oracleCount">0</span></p>
+    <div id="oracleHistory" class="oracle-history"></div>
   </div>
 </div>
 

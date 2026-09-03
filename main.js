@@ -256,6 +256,171 @@
   }
 
   // ==========================================
+  // EL ORÁCULO DEL TERRARIO (adivinación persistente, tejida con datos vivos)
+  // ==========================================
+  const ORACLE_KEY = "terrario_oracle_v1";
+  const MAX_PROPHECIES = 40;
+  let prophecies = [];
+
+  function loadProphecies() {
+    try {
+      const raw = localStorage.getItem(ORACLE_KEY);
+      prophecies = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      prophecies = [];
+    }
+  }
+
+  function saveProphecies() {
+    try {
+      localStorage.setItem(ORACLE_KEY, JSON.stringify(prophecies));
+    } catch (e) { /* almacenamiento no disponible: las profecías viven solo esta sesión */ }
+  }
+
+  function stripAccents(s) {
+    return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  }
+
+  function oracleSnapshot() {
+    const snap = ecosystemSnapshot();
+    return {
+      ...snap,
+      memory: deathLedger.length,
+      eras: chronicle.length,
+      meteors: meteorImpacts,
+      mutations: mutationsCount,
+      chosen: selectedCreature ? selectedCreature.name : null,
+      chosenSpecies: selectedCreature && SPECIES_BY_ID[selectedCreature.speciesId] ? SPECIES_BY_ID[selectedCreature.speciesId].name.toLowerCase() : null
+    };
+  }
+
+  const ORACLE_CATEGORIES = [
+    {
+      id: "muerte",
+      keywords: ["muer", "matar", "mori", "final", "acab", "fin del", "sufr"],
+      templates: [
+        (s) => `La muerte ya visitó este terrario ${s.memory} veces. Cada una fue una semilla, no un punto final.`,
+        (s) => `${s.kills} cacerías se han escrito en la tierra. Lo que termina aquí siempre alimenta lo que sigue.`,
+        (s) => `Nada muere del todo mientras haya generación ${s.gen} para heredar el miedo que aprendió.`,
+        (s) => `El suelo recuerda a ${s.memory} almas. Pregúntale a las luciérnagas del atardecer, ellas no mienten.`
+      ]
+    },
+    {
+      id: "amor",
+      keywords: ["amor", "amar", "pareja", "corazon", "querer", "enamor"],
+      templates: [
+        (s) => `${s.dominant} no conoce el amor, solo la proximidad útil. Y aun así, ${s.births} vidas nacieron de ella.`,
+        (s) => `El vínculo más honesto que existe aquí es genético: cada cría hereda un poco de quien la crió con hambre.`,
+        (s) => `En ${s.seasonLower}, hasta los depredadores bajan la guardia un instante. Llámalo lo que quieras.`,
+        (s) => `No hay romance en el terrario, solo generación ${s.gen} intentando no desaparecer sola.`
+      ]
+    },
+    {
+      id: "futuro",
+      keywords: ["futuro", "destino", "pasara", "ocurrira", "manana", "profec", "prediccion", "vendra"],
+      templates: [
+        (s) => `Si nada cambia, ${s.dominant} seguirá dominando este ${s.seasonLower} — pero el terrario nunca promete nada.`,
+        (s) => `Generación ${s.gen + 1} ya se está gestando en alguna madriguera que no has visto todavía.`,
+        (s) => `${s.eras} eras ya han terminado y ninguna terminó como se esperaba. Esta tampoco lo hará.`,
+        (s) => `Lo próximo que ocurra dependerá de quién beba primero en el oasis cuando caiga la noche.`
+      ]
+    },
+    {
+      id: "guerra",
+      keywords: ["guerra", "pelea", "luchar", "depredador", "caza", "ataque", "matanza", "violen"],
+      templates: [
+        (s) => `${s.kills} cacerías exitosas y contando. El terrario no conoce la paz, conoce el equilibrio.`,
+        (s) => `Cada ${s.seasonLower} trae su propia versión de la violencia: hambre, frío, o dientes. Elige tu enemigo.`,
+        (s) => `Los cazadores no odian a sus presas. Solo necesitan que dejen de existir para seguir existiendo ellos.`,
+        (s) => `${s.mutations} mutaciones cósmicas ya han afilado garras que antes no eran garras.`
+      ]
+    },
+    {
+      id: "comida",
+      keywords: ["comida", "hambre", "comer", "alimento", "hambr"],
+      templates: [
+        (s) => `En ${s.seasonLower}, la flora ${s.season === "Invierno" ? "apenas alcanza" : "crece con generosidad"}. El hambre decide más que el instinto.`,
+        (s) => `Todo lo que nace, nace hambriento. ${s.pop} bocas se abren ahora mismo, en algún rincón de este mundo.`,
+        (s) => `Siembra más de lo que crees necesario. El terrario nunca perdona la escasez.`,
+        (s) => `El hambre no distingue entre generación 1 y generación ${s.gen}. Es la única ley que no muta.`
+      ]
+    },
+    {
+      id: "clima",
+      keywords: ["tiempo", "clima", "lluvia", "invierno", "verano", "estacion", "frio", "calor", "nieve"],
+      templates: [
+        (s) => `Estamos en ${s.seasonLower}, bajo un cielo de ${s.todLower}. El clima aquí no anuncia nada, solo sucede.`,
+        (s) => `Cada estación es una promesa distinta: ${s.season === "Invierno" ? "esta te pide sobrevivir" : "esta te deja crecer"}.`,
+        (s) => `El tiempo no pasa igual para todos: un titán acorazado envejece distinto que un polinizador.`,
+        (s) => `${s.eras} eras han visto pasar las cuatro estaciones. Ninguna se repite exactamente igual.`
+      ]
+    },
+    {
+      id: "criatura",
+      keywords: ["criatura", "animal", "mascota", "especie", "el mio", "mi criatura"],
+      templates: [
+        (s) => s.chosen
+          ? `${s.chosen}, ${s.chosenSpecies}, camina por este mundo sin saber que le preguntaste por su destino.`
+          : `No has elegido a nadie todavía. Toca una criatura y vuelve a preguntar — el oráculo habla mejor con nombres.`,
+        (s) => `${s.dominant} domina el terrario ahora mismo, con ${s.pop} vidas repartiéndose el mismo suelo.`,
+        (s) => `Cada criatura que ves ya lleva en sus genes la respuesta a una pregunta que nadie le hizo.`,
+        (s) => `Generación ${s.gen}: cada una un experimento que la anterior no vivió para ver terminado.`
+      ]
+    },
+    {
+      id: "general",
+      keywords: [],
+      templates: [
+        (s) => `${s.pop} vidas laten ahora mismo bajo un cielo de ${s.seasonLower}. Esa es toda la verdad que tengo.`,
+        (s) => `El terrario no responde con certezas, responde con generación ${s.gen} y lo que sobrevivió hasta aquí.`,
+        (s) => `${s.eras > 0 ? `${s.eras} eras ya se escribieron en el pergamino` : "esta es la primera era, nada está escrito todavía"} — y aun así preguntas.`,
+        (s) => `Pregúntale al agua, ella ha visto beber a todos los que ya no están.`,
+        (s) => `La respuesta cambia si vuelves a preguntar en ${s.todLower}. Este mundo no se queda quieto para nadie.`,
+        (s) => `${s.dominant} no tiene opinión sobre tu pregunta, pero domina el terrario mientras la haces.`
+      ]
+    }
+  ];
+
+  function classifyQuestion(q) {
+    const norm = stripAccents(q);
+    for (const cat of ORACLE_CATEGORIES) {
+      if (cat.keywords.some((kw) => norm.includes(kw))) return cat;
+    }
+    return ORACLE_CATEGORIES[ORACLE_CATEGORIES.length - 1];
+  }
+
+  function consultOracle(question) {
+    const cat = classifyQuestion(question);
+    const tpl = cat.templates[Math.floor(Math.random() * cat.templates.length)];
+    return tpl(oracleSnapshot());
+  }
+
+  function recordProphecy(question, answer) {
+    prophecies.push({ q: question, a: answer, t: Date.now() });
+    if (prophecies.length > MAX_PROPHECIES) prophecies.shift();
+    saveProphecies();
+  }
+
+  function renderOracleHistory() {
+    const el = document.getElementById("oracleHistory");
+    document.getElementById("oracleCount").textContent = prophecies.length;
+    if (prophecies.length === 0) {
+      el.innerHTML = `<p class="oracle-empty">El libro está en blanco. Tu primera pregunta quedará grabada aquí para siempre.</p>`;
+      return;
+    }
+    let html = "";
+    for (let i = prophecies.length - 1; i >= 0; i--) {
+      const p = prophecies[i];
+      html += `<div class="oracle-entry"><span class="oracle-entry-q">"${escapeHtml(p.q)}"</span><span class="oracle-entry-a">${escapeHtml(p.a)}</span></div>`;
+    }
+    el.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  // ==========================================
   // GENEALOGÍA VIVA (árbol de linaje, vive mientras dure la sesión)
   // ==========================================
   const NAME_PREFIX = ["Ka", "Rho", "Tha", "Nyx", "Vel", "Or", "Ith", "Zar", "Mor", "Sil", "Ae", "Ux", "Fen", "Dra", "Quel", "Bry", "Es", "Ol", "Ura", "Vex", "Iz", "Aum", "Ny", "Sor"];
@@ -533,6 +698,11 @@
       },
       pluck() { ping(880 + Math.random() * 220, 0.5, "sine", 0.09); },
       thud() { ping(90, 0.4, "sine", 0.16); },
+      chime() {
+        ping(660, 1.1, "sine", 0.1);
+        ping(990, 1.3, "triangle", 0.07, 0.12);
+        ping(1320, 1.6, "sine", 0.05, 0.26);
+      },
       boom() {
         ping(60, 1.4, "sine", 0.28);
         ping(45, 1.8, "triangle", 0.18, 0.05);
@@ -2333,6 +2503,39 @@
     if (e.target === lineageOverlay) lineageOverlay.classList.remove("open");
   });
 
+  const oracleOverlay = document.getElementById("oracleOverlay");
+  const oracleAnswerEl = document.getElementById("oracleAnswer");
+  document.getElementById("btnOracle").addEventListener("click", () => {
+    renderOracleHistory();
+    oracleAnswerEl.classList.remove("in");
+    oracleAnswerEl.textContent = "";
+    oracleOverlay.classList.add("open");
+    Sound.chime();
+    setTimeout(() => document.getElementById("oracleInput").focus(), 200);
+  });
+  document.getElementById("oracleClose").addEventListener("click", () => {
+    oracleOverlay.classList.remove("open");
+  });
+  oracleOverlay.addEventListener("click", (e) => {
+    if (e.target === oracleOverlay) oracleOverlay.classList.remove("open");
+  });
+  document.getElementById("oracleForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("oracleInput");
+    const question = input.value.trim();
+    if (!question) return;
+    const answer = consultOracle(question);
+    oracleAnswerEl.classList.remove("in");
+    setTimeout(() => {
+      oracleAnswerEl.textContent = answer;
+      oracleAnswerEl.classList.add("in");
+    }, 200);
+    recordProphecy(question, answer);
+    renderOracleHistory();
+    input.value = "";
+    Sound.pluck();
+  });
+
   const panelToggle = document.getElementById("panelToggle");
   const panelEl = document.getElementById("panel");
   panelToggle.addEventListener("click", () => {
@@ -2343,6 +2546,7 @@
   resize();
   loadDeathLedger();
   loadChronicle();
+  loadProphecies();
   seedWorld();
   if (deathLedger.length > 0) {
     setTimeout(() => showToast(`🕯️ El terrario recuerda ${deathLedger.length} almas de visitas anteriores`), 1200);
