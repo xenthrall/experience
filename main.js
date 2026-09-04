@@ -421,6 +421,139 @@
   }
 
   // ==========================================
+  // POSTALES DEL TERRARIO (captura descargable de un instante)
+  // ==========================================
+  const POSTAL_COUNT_KEY = "terrario_postal_count_v1";
+  let postalCount = 0;
+
+  function loadPostalCount() {
+    try {
+      const raw = localStorage.getItem(POSTAL_COUNT_KEY);
+      postalCount = raw ? parseInt(raw, 10) || 0 : 0;
+    } catch (e) {
+      postalCount = 0;
+    }
+  }
+
+  function savePostalCount() {
+    try {
+      localStorage.setItem(POSTAL_COUNT_KEY, String(postalCount));
+    } catch (e) { /* almacenamiento no disponible: el contador vive solo esta sesión */ }
+  }
+
+  const POSTCARD_CAPTIONS = [
+    (s) => `${s.pop} vidas laten bajo un cielo de ${s.seasonLower}`,
+    (s) => `generación ${s.gen}, y todavía nadie sabe que esto es historia`,
+    (s) => `${s.dominant} reina hoy — mañana puede que no`,
+    (s) => `un instante robado al tiempo, en la ${s.todLower}`,
+    (s) => `${s.memory} almas descansan bajo este mismo suelo`,
+    (s) => `esto también será una crónica algún día`,
+    (s) => `${s.births} nacimientos, ${s.kills} cacerías, un solo instante`,
+    (s) => `nada de esto volverá a verse exactamente igual`,
+    (s) => s.eras > 0 ? `era ${s.eras + 1} del terrario, capturada en silencio` : `la primera era del terrario, capturada en silencio`,
+    (s) => s.chosen ? `${s.chosen} existió — aquí está la prueba` : `alguien aquí no sabe que está siendo recordado`
+  ];
+
+  function wrapTextBlock(octx, text, x, bottomY, maxWidth, lineHeight, maxLines) {
+    const words = text.split(" ");
+    let lines = [];
+    let current = "";
+    for (const w of words) {
+      const test = current ? current + " " + w : w;
+      if (octx.measureText(test).width > maxWidth && current) {
+        lines.push(current);
+        current = w;
+      } else {
+        current = test;
+      }
+    }
+    if (current) lines.push(current);
+    if (lines.length > maxLines) {
+      lines = lines.slice(0, maxLines);
+      let last = lines[maxLines - 1];
+      while (octx.measureText(last + "…").width > maxWidth && last.length > 0) {
+        last = last.slice(0, -1);
+      }
+      lines[maxLines - 1] = last + "…";
+    }
+    const startY = bottomY - (lines.length - 1) * lineHeight;
+    lines.forEach((line, i) => octx.fillText(line, x, startY + i * lineHeight));
+  }
+
+  function flashScreen() {
+    const el = document.getElementById("flashOverlay");
+    el.classList.add("active");
+    setTimeout(() => el.classList.remove("active"), 220);
+  }
+
+  function capturePostcard() {
+    const srcW = canvas.width, srcH = canvas.height;
+    const maxDim = 1600;
+    const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+    const outW = Math.round(srcW * scale), outH = Math.round(srcH * scale);
+
+    const off = document.createElement("canvas");
+    off.width = outW; off.height = outH;
+    const octx = off.getContext("2d");
+    octx.drawImage(canvas, 0, 0, srcW, srcH, 0, 0, outW, outH);
+
+    const vignette = octx.createRadialGradient(outW / 2, outH / 2, outH * 0.35, outW / 2, outH / 2, outH * 0.78);
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(0,0,0,0.45)");
+    octx.fillStyle = vignette;
+    octx.fillRect(0, 0, outW, outH);
+
+    const bottomH = outH * 0.26;
+    const bgrad = octx.createLinearGradient(0, outH - bottomH, 0, outH);
+    bgrad.addColorStop(0, "rgba(6,4,10,0)");
+    bgrad.addColorStop(1, "rgba(6,4,10,0.85)");
+    octx.fillStyle = bgrad;
+    octx.fillRect(0, outH - bottomH, outW, bottomH);
+
+    const pad = outW * 0.018;
+    octx.strokeStyle = "rgba(255,255,255,0.35)";
+    octx.lineWidth = Math.max(1, outW * 0.0022);
+    octx.strokeRect(pad, pad, outW - pad * 2, outH - pad * 2);
+
+    const snap = oracleSnapshot();
+    const caption = POSTCARD_CAPTIONS[Math.floor(Math.random() * POSTCARD_CAPTIONS.length)](snap);
+    const dateStr = new Date().toLocaleDateString("es", { day: "2-digit", month: "short", year: "numeric" });
+    const statsLine = `${snap.pop} vidas · gen ${snap.gen} · ${snap.dominant} · ${snap.season} · ${dateStr}`;
+
+    octx.textAlign = "left";
+    octx.fillStyle = "#f0e8ff";
+    octx.font = `italic 600 ${Math.round(outW * 0.024)}px Georgia, 'Fraunces', serif`;
+    wrapTextBlock(octx, `"${caption}"`, outW * 0.04, outH - outH * 0.10, outW * 0.92, outW * 0.03, 2);
+
+    octx.font = `600 ${Math.round(outW * 0.014)}px 'JetBrains Mono', monospace`;
+    octx.fillStyle = "rgba(240,232,255,0.7)";
+    octx.fillText(statsLine.toUpperCase(), outW * 0.04, outH - outH * 0.035);
+
+    octx.textAlign = "right";
+    octx.font = `700 ${Math.round(outW * 0.016)}px Georgia, serif`;
+    octx.fillStyle = "rgba(255,255,255,0.55)";
+    octx.fillText("TERRARIO DIGITAL", outW - outW * 0.04, outH * 0.06);
+
+    off.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `terrario-postal-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }, "image/png");
+
+    postalCount++;
+    savePostalCount();
+    flashScreen();
+    Sound.shutter();
+    showToast(`🖼️ Postal #${postalCount} guardada — revisa tus descargas`);
+  }
+
+  // ==========================================
   // GENEALOGÍA VIVA (árbol de linaje, vive mientras dure la sesión)
   // ==========================================
   const NAME_PREFIX = ["Ka", "Rho", "Tha", "Nyx", "Vel", "Or", "Ith", "Zar", "Mor", "Sil", "Ae", "Ux", "Fen", "Dra", "Quel", "Bry", "Es", "Ol", "Ura", "Vex", "Iz", "Aum", "Ny", "Sor"];
@@ -702,6 +835,10 @@
         ping(660, 1.1, "sine", 0.1);
         ping(990, 1.3, "triangle", 0.07, 0.12);
         ping(1320, 1.6, "sine", 0.05, 0.26);
+      },
+      shutter() {
+        ping(1900, 0.045, "square", 0.1);
+        ping(500, 0.08, "square", 0.09, 0.05);
       },
       boom() {
         ping(60, 1.4, "sine", 0.28);
@@ -2536,6 +2673,8 @@
     Sound.pluck();
   });
 
+  document.getElementById("btnPostal").addEventListener("click", capturePostcard);
+
   const panelToggle = document.getElementById("panelToggle");
   const panelEl = document.getElementById("panel");
   panelToggle.addEventListener("click", () => {
@@ -2547,6 +2686,7 @@
   loadDeathLedger();
   loadChronicle();
   loadProphecies();
+  loadPostalCount();
   seedWorld();
   if (deathLedger.length > 0) {
     setTimeout(() => showToast(`🕯️ El terrario recuerda ${deathLedger.length} almas de visitas anteriores`), 1200);

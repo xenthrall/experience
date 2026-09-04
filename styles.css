@@ -520,6 +520,21 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  /* FLASH DE CÁMARA (Postales del Terrario) */
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 500;
+    transition: opacity 0.5s ease;
+  }
+  .flash.active {
+    opacity: 0.85;
+    transition: opacity 0.05s ease;
+  }
+
   /* CAPA DE POESÍA GENERATIVA (Modo Onírico) */
   .poem-layer {
     position: fixed;
