@@ -337,15 +337,105 @@
   }
 
   function recordDeath(c, cause) {
+    const legendary = isLegendary(c);
     deathLedger.push({
       xf: c.x / W, yf: c.y / H, species: c.speciesId, gen: c.gen, t: Date.now(),
       name: c.name || null, cause: cause || "natural",
-      kills: c.kills || 0, kids: c.kids || 0
+      kills: c.kills || 0, kids: c.kids || 0, legendary
     });
     if (deathLedger.length > MAX_LEDGER) deathLedger.shift();
     saveDeathLedger();
     markLineageDeath(c, cause || "natural");
     recentDeathTimes.push(Date.now());
+
+    if (legendary) {
+      legendLedger.unshift({
+        name: c.name, species: c.speciesId, gen: c.gen, cause: cause || "natural",
+        kills: c.kills || 0, kids: c.kids || 0, t: Date.now(),
+        saga: generateSaga(c, cause || "natural")
+      });
+      if (legendLedger.length > MAX_LEGENDS) legendLedger.pop();
+      saveLegendLedger();
+      showToast(`📖 Una leyenda ha caído: ${c.name}`);
+    }
+  }
+
+  // ==========================================
+  // SAGAS LEGENDARIAS (hazañas que trascienden una sola vida)
+  // ==========================================
+  const LEGEND_KEY = "terrario_legend_ledger_v1";
+  const MAX_LEGENDS = 60;
+  const LEGEND_KILLS = 6, LEGEND_KIDS = 5, LEGEND_GEN = 6;
+  let legendLedger = [];
+
+  function loadLegendLedger() {
+    try {
+      const raw = localStorage.getItem(LEGEND_KEY);
+      legendLedger = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      legendLedger = [];
+    }
+  }
+
+  function saveLegendLedger() {
+    try {
+      localStorage.setItem(LEGEND_KEY, JSON.stringify(legendLedger));
+    } catch (e) { /* almacenamiento no disponible: las sagas viven solo esta sesión */ }
+  }
+
+  function isLegendary(c) {
+    return (c.kills || 0) >= LEGEND_KILLS || (c.kids || 0) >= LEGEND_KIDS || (c.gen || 0) >= LEGEND_GEN;
+  }
+
+  const SAGA_OPENERS = [
+    (n, sp) => `Se cuenta que ${n} no nació para pastar entre las sombras, sino para que otros ${sp} contaran su historia.`,
+    (n, sp) => `Antes de que ${n} cruzara este terrario, ningún ${sp} había dejado una huella tan profunda.`,
+    (n, sp) => `${n} empezó como cualquier otro ${sp}: pequeño, hambriento, invisible. No terminó así.`,
+    (n, sp) => `Hay nombres que el terrario no olvida. ${n} es uno de ellos.`
+  ];
+  const SAGA_DEEDS = [
+    (n, k) => `Se le atribuyen ${k} cacería${k === 1 ? "" : "s"}, cada una contada y recontada por quienes sobrevivieron para huir.`,
+    (n, k) => `${k} veces salió victorioso donde otros solo dejaron huesos.`,
+    (n, k) => `Su sombra sobre la hierba significaba, ${k} veces, que algo más no volvería a casa.`
+  ];
+  const SAGA_LEGACY = [
+    (n, kids) => `Dejó ${kids} descendientes, y en cada uno de ellos algo de ${n} sigue caminando.`,
+    (n, kids) => `${kids} crías llevan su sangre esparcida por el terrario, generación tras generación.`,
+    (n, kids) => `De ${n} nacieron ${kids} líneas nuevas, cada una jurando —a su manera— no repetir sus errores.`
+  ];
+  const SAGA_CLOSERS = [
+    (n, c) => `Al final, murió ${c}. Pero las leyendas, a diferencia de las criaturas, no se pudren bajo tierra.`,
+    (n, c) => `Cuando cayó, ${c}, incluso los buitres guardaron distancia un momento antes de acercarse.`,
+    (n, c) => `Su final llegó ${c} — y aun así, esta saga seguirá contándose mucho después de que sus huesos se disuelvan.`
+  ];
+
+  function generateSaga(c, cause) {
+    const spec = SPECIES_BY_ID[c.speciesId];
+    const spName = spec ? spec.name.toLowerCase() : "criatura";
+    const name = c.name || "un alma sin nombre";
+    const causeText = CAUSE_LABEL[cause] || CAUSE_LABEL.natural;
+    const seed = hashStr(name + c.id + c.speciesId);
+    const rnd = seededRand(seed);
+
+    const parts = [];
+    parts.push(SAGA_OPENERS[Math.floor(rnd() * SAGA_OPENERS.length)](name, spName));
+    if (c.kills > 0) parts.push(SAGA_DEEDS[Math.floor(rnd() * SAGA_DEEDS.length)](name, c.kills));
+    if (c.kids > 0) parts.push(SAGA_LEGACY[Math.floor(rnd() * SAGA_LEGACY.length)](name, c.kids));
+
+    const chain = buildLineageChain(c.id);
+    if (chain.length > 2) {
+      const founder = chain[0];
+      parts.push(`Su linaje se remonta ${chain.length - 1} generaciones atrás, hasta ${founder.name}, el primero de su estirpe en pisar este terrario.`);
+    } else if (c.gen >= LEGEND_GEN) {
+      parts.push(`Perteneció a la generación ${c.gen}, heredera de incontables mutaciones silenciosas que la trajeron hasta aquí.`);
+    }
+
+    parts.push(SAGA_CLOSERS[Math.floor(rnd() * SAGA_CLOSERS.length)](name, causeText));
+    return parts.join(" ");
+  }
+
+  function legendRank(entry) {
+    return entry.kills * 3 + entry.kids * 2 + entry.gen;
   }
 
   // ==========================================
@@ -1181,6 +1271,7 @@
 
       this.kids = 0;
       this.kills = 0;
+      this.legendary = false;
       this.seed = rand(0, 1000);
       this.emote = "";
       this.emoteTimer = 0;
@@ -1277,6 +1368,11 @@
       this.stateTimer += dt;
       if (this.emoteTimer > 0) this.emoteTimer -= dt;
       if (this.attackCooldown > 0) this.attackCooldown -= dt;
+
+      if (!this.legendary && isLegendary(this)) {
+        this.legendary = true;
+        showToast(`⚔️ ${this.name} se ha convertido en leyenda del terrario`);
+      }
 
       this.checkBushCover();
 
@@ -1875,6 +1971,26 @@
 
       ctx.restore();
 
+      if (this.legendary) {
+        const pulse = 0.5 + 0.5 * Math.sin(simTime * 0.004 + this.seed);
+        ctx.save();
+        ctx.globalAlpha = 0.35 + 0.35 * pulse;
+        ctx.strokeStyle = "#ffd54f";
+        ctx.shadowColor = "#ffd54f";
+        ctx.shadowBlur = 12 + pulse * 10;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, r + 5 + pulse * 2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        ctx.save();
+        ctx.font = "11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.globalAlpha = 0.85;
+        ctx.fillText("⭐", this.x, this.y - r - 14);
+        ctx.restore();
+      }
+
       if (options.showVision && (this === selectedCreature || this.speciesId === "carn_apex" || this.state === "CHASE")) {
         ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
         ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
@@ -2429,6 +2545,7 @@
     if (entry.kids > 0) extras.push(`${entry.kids} descendiente${entry.kids === 1 ? "" : "s"}`);
     if (entry.kills > 0) extras.push(`${entry.kills} cacería${entry.kills === 1 ? "" : "s"} a su nombre`);
     if (extras.length) line += ` (${extras.join(", ")})`;
+    if (entry.legendary) line = `⭐ ${line} Su saga completa vive en el libro de Sagas.`;
     return line;
   }
 
@@ -2495,17 +2612,32 @@
     for (let i = 0; i < starField.length; i++) {
       const s = starField[i];
       const spec = SPECIES_BY_ID[s.entry.species];
-      const col = spec ? spec.swatch : "#cfd8e8";
+      const col = s.entry.legendary ? "#ffd54f" : (spec ? spec.swatch : "#cfd8e8");
       const twinkle = 0.55 + 0.45 * Math.sin(tsec * s.speed + s.phase);
       const isActive = i === constellationHover || i === constellationSelected;
+      const rad = (s.entry.legendary ? s.r * 1.8 : s.r) * (isActive ? 1.8 : 1);
       cctx.save();
       cctx.globalAlpha = 0.45 + 0.55 * twinkle;
       cctx.fillStyle = isActive ? "#ffffff" : col;
       cctx.shadowColor = col;
-      cctx.shadowBlur = isActive ? 16 : 6;
+      cctx.shadowBlur = (isActive ? 16 : 6) + (s.entry.legendary ? 10 : 0);
       cctx.beginPath();
-      cctx.arc(s.x, s.y, isActive ? s.r * 1.8 : s.r, 0, Math.PI * 2);
+      cctx.arc(s.x, s.y, rad, 0, Math.PI * 2);
       cctx.fill();
+
+      if (s.entry.legendary) {
+        cctx.strokeStyle = col;
+        cctx.lineWidth = 0.8;
+        cctx.globalAlpha = (0.35 + 0.35 * twinkle) * (isActive ? 1.3 : 1);
+        const spikes = rad * 3.2;
+        for (let a = 0; a < 4; a++) {
+          const ang = (Math.PI / 4) * a + s.phase * 0.2;
+          cctx.beginPath();
+          cctx.moveTo(s.x - Math.cos(ang) * spikes, s.y - Math.sin(ang) * spikes);
+          cctx.lineTo(s.x + Math.cos(ang) * spikes, s.y + Math.sin(ang) * spikes);
+          cctx.stroke();
+        }
+      }
       cctx.restore();
     }
   }
@@ -2709,6 +2841,32 @@
     entriesEl.innerHTML = html;
   }
 
+  function renderSagas() {
+    const entriesEl = document.getElementById("sagaEntries");
+    const introEl = document.getElementById("sagaIntro");
+    document.getElementById("sagaCount").textContent = legendLedger.length;
+
+    if (legendLedger.length === 0) {
+      introEl.textContent = "Ninguna criatura ha alcanzado aún la leyenda. Se necesita una hazaña: seis cacerías, cinco crías, o sobrevivir seis generaciones de sangre.";
+      entriesEl.innerHTML = `<p class="saga-empty">El libro está en blanco. Las leyendas aún caminan por ahí afuera, sin saberlo.</p>`;
+      return;
+    }
+
+    introEl.textContent = `${legendLedger.length} leyenda${legendLedger.length === 1 ? "" : "s"} escrita${legendLedger.length === 1 ? "" : "s"} para siempre en este libro.`;
+
+    const sorted = legendLedger.slice().sort((a, b) => legendRank(b) - legendRank(a));
+    let html = "";
+    for (const entry of sorted) {
+      const spec = SPECIES_BY_ID[entry.species];
+      html += `<div class="saga-entry">
+        <span class="saga-name">⭐ ${entry.name || "Sin nombre"} <span class="saga-species">· ${spec ? spec.name : entry.species}</span></span>
+        <p class="saga-text">${entry.saga}</p>
+        <div class="saga-stats">Gen ${entry.gen} · ${entry.kills} caceria${entry.kills === 1 ? "" : "s"} · ${entry.kids} descendiente${entry.kids === 1 ? "" : "s"}</div>
+      </div>`;
+    }
+    entriesEl.innerHTML = html;
+  }
+
   function showToast(msg) {
     const t = document.getElementById("toast");
     t.textContent = msg;
@@ -2828,6 +2986,18 @@
   });
   chronicleOverlay.addEventListener("click", (e) => {
     if (e.target === chronicleOverlay) chronicleOverlay.classList.remove("open");
+  });
+
+  const sagaOverlay = document.getElementById("sagaOverlay");
+  document.getElementById("btnSagas").addEventListener("click", () => {
+    renderSagas();
+    sagaOverlay.classList.add("open");
+  });
+  document.getElementById("sagaClose").addEventListener("click", () => {
+    sagaOverlay.classList.remove("open");
+  });
+  sagaOverlay.addEventListener("click", (e) => {
+    if (e.target === sagaOverlay) sagaOverlay.classList.remove("open");
   });
 
   document.getElementById("btnRain").addEventListener("click", () => {
@@ -3029,6 +3199,7 @@
   loadDeathLedger();
   loadChronicle();
   loadProphecies();
+  loadLegendLedger();
   loadPostalCount();
   seedWorld();
   if (deathLedger.length > 0) {

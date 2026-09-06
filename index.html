@@ -19,7 +19,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v4.2 — Firmamento de las Almas</span>
+    <span class="eyebrow-label">Ecosistema Vivo v4.3 — Sagas Legendarias</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -91,6 +91,7 @@
       <button id="btnOracle">🔮 Oráculo</button>
       <button id="btnPostal">🖼️ Postal</button>
       <button id="btnConstellation">🌌 Firmamento</button>
+      <button id="btnSagas">📖 Sagas</button>
     </div>
   </div>
 </div>
@@ -191,6 +192,16 @@
     <p class="constellation-intro">Cada criatura que ha muerto en este terrario se convierte en una estrella. <span id="constellationCount">0</span> almas brillan aquí, para siempre. Toca una estrella para leer su epitafio.</p>
     <canvas id="constellationCanvas" class="constellation-canvas"></canvas>
     <div class="constellation-epitaph" id="constellationEpitaph">Elige una estrella entre las constelaciones.</div>
+  </div>
+</div>
+
+<div class="saga-overlay" id="sagaOverlay">
+  <div class="saga-scroll">
+    <button class="saga-close" id="sagaClose" aria-label="Cerrar sagas">✕</button>
+    <h2>📖 Sagas Legendarias</h2>
+    <p class="saga-intro" id="sagaIntro"></p>
+    <p class="saga-count-label">Leyendas en el libro: <span id="sagaCount">0</span></p>
+    <div id="sagaEntries"></div>
   </div>
 </div>
 
