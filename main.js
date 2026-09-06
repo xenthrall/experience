@@ -148,6 +148,120 @@
   let seasonMetabolismMult = 1;
   let skyParticles = []; // Nieve, hojas y pétalos ambientales
 
+  // ==========================================
+  // CLIMA EMOCIONAL DEL TERRARIO
+  // Un aura viva que responde al pulso real del ecosistema: hambre, duelo,
+  // cacería, nacimientos y abundancia se convierten en luz, color y partículas.
+  // ==========================================
+  const MOODS = {
+    calma:    { label: "Calma",      icon: "🌾", color: "150,190,150", baseAlpha: 0.020, spawnRate: 0.020 },
+    prospero: { label: "Próspero",   icon: "🌻", color: "255,205,90",  baseAlpha: 0.045, spawnRate: 0.130 },
+    tenso:    { label: "En tensión", icon: "⚡", color: "214,80,60",   baseAlpha: 0.065, spawnRate: 0.110 },
+    duelo:    { label: "En duelo",   icon: "🕯️", color: "120,130,170", baseAlpha: 0.075, spawnRate: 0.090 },
+    renacer:  { label: "Renacer",    icon: "🌱", color: "110,220,150", baseAlpha: 0.045, spawnRate: 0.110 },
+    hambruna: { label: "Hambruna",   icon: "🥀", color: "190,120,50",  baseAlpha: 0.060, spawnRate: 0.060 }
+  };
+  let currentMood = Object.assign({ id: "calma" }, MOODS.calma);
+  let moodPulse = 0;
+  let moodParticles = [];
+  let recentDeathTimes = [];
+  let recentBirthTimes = [];
+  let recentKillTimes = [];
+
+  function computeMood() {
+    const now = Date.now();
+    recentDeathTimes = recentDeathTimes.filter(t => now - t < 20000);
+    recentBirthTimes = recentBirthTimes.filter(t => now - t < 20000);
+    recentKillTimes = recentKillTimes.filter(t => now - t < 12000);
+
+    let avgEnergy = 0.6;
+    if (creatures.length > 0) {
+      let sum = 0;
+      for (let c of creatures) sum += c.energy / c.maxEnergy;
+      avgEnergy = sum / creatures.length;
+    }
+
+    let moodId = "calma";
+    if (creatures.length > 0 && avgEnergy < 0.32) moodId = "hambruna";
+    else if (recentDeathTimes.length >= 5) moodId = "duelo";
+    else if (recentKillTimes.length >= 3) moodId = "tenso";
+    else if (recentBirthTimes.length >= 4) moodId = "renacer";
+    else if (avgEnergy > 0.72 && creatures.length > 20) moodId = "prospero";
+
+    if (moodId !== currentMood.id) {
+      currentMood = Object.assign({ id: moodId }, MOODS[moodId]);
+      moodPulse = 1;
+      const iconEl = document.getElementById("moodIcon");
+      if (iconEl) {
+        iconEl.classList.remove("pulse");
+        void iconEl.offsetWidth;
+        iconEl.classList.add("pulse");
+      }
+    }
+
+    const iconEl = document.getElementById("moodIcon");
+    const labelEl = document.getElementById("moodLabel");
+    if (iconEl) iconEl.textContent = currentMood.icon;
+    if (labelEl) {
+      labelEl.textContent = currentMood.label;
+      labelEl.style.color = `rgb(${currentMood.color})`;
+    }
+  }
+
+  function spawnMoodParticle(moodId) {
+    switch (moodId) {
+      case "prospero":
+        return { x: rand(0, W), y: H + 6, vx: rand(-0.15, 0.15), vy: rand(-0.55, -0.2), r: rand(1, 2.2), life: rand(220, 420), baseAlpha: rand(0.4, 0.85), alpha: 0.6, color: "255,214,120", flicker: true, seed: rand(0, 100), grav: 0 };
+      case "tenso":
+        return { x: rand(0, W), y: rand(0, H), vx: rand(-0.35, 0.35), vy: rand(-0.35, 0.35), r: rand(1, 1.8), life: rand(40, 90), baseAlpha: rand(0.3, 0.6), alpha: 0.5, color: "214,80,60", flicker: true, seed: rand(0, 100), grav: 0 };
+      case "duelo":
+        return { x: rand(0, W), y: -6, vx: rand(-0.05, 0.05), vy: rand(0.15, 0.35), r: rand(1, 2), life: rand(320, 520), baseAlpha: rand(0.25, 0.5), alpha: 0.35, color: "150,160,190", flicker: false, seed: 0, grav: 0.0003 };
+      case "renacer":
+        return { x: rand(0, W), y: H + 6, vx: rand(-0.1, 0.1), vy: rand(-0.4, -0.15), r: rand(1.2, 2.4), life: rand(180, 340), baseAlpha: rand(0.4, 0.75), alpha: 0.55, color: "120,220,150", flicker: true, seed: rand(0, 100), grav: 0 };
+      case "hambruna":
+        return { x: rand(0, W), y: rand(0, H), vx: rand(-0.4, 0.4), vy: rand(0.05, 0.2), r: rand(1, 1.6), life: rand(120, 220), baseAlpha: rand(0.2, 0.4), alpha: 0.3, color: "190,140,60", flicker: false, seed: 0, grav: 0 };
+      default:
+        return { x: rand(0, W), y: rand(0, H), vx: rand(-0.05, 0.05), vy: rand(-0.1, -0.02), r: rand(0.8, 1.4), life: rand(150, 300), baseAlpha: rand(0.15, 0.3), alpha: 0.2, color: "180,200,170", flicker: true, seed: rand(0, 100), grav: 0 };
+    }
+  }
+
+  function updateMoodAura(dt) {
+    moodPulse = Math.max(0, moodPulse - 0.01 * dt);
+
+    if (moodParticles.length < 90 && Math.random() < currentMood.spawnRate * dt) {
+      moodParticles.push(spawnMoodParticle(currentMood.id));
+    }
+
+    for (let i = moodParticles.length - 1; i >= 0; i--) {
+      const p = moodParticles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += (p.grav || 0) * dt;
+      p.life -= dt;
+      p.alpha = p.flicker ? p.baseAlpha * (0.5 + 0.5 * Math.sin(simTime * 0.006 + p.seed)) : p.baseAlpha;
+      if (p.life <= 0 || p.y < -25 || p.y > H + 25 || p.x < -25 || p.x > W + 25) moodParticles.splice(i, 1);
+    }
+  }
+
+  function drawMoodAura(actx) {
+    actx.save();
+    const alpha = currentMood.baseAlpha + moodPulse * 0.08;
+    const grad = actx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.2, W / 2, H / 2, Math.max(W, H) * 0.78);
+    grad.addColorStop(0, `rgba(${currentMood.color},0)`);
+    grad.addColorStop(1, `rgba(${currentMood.color},${alpha.toFixed(3)})`);
+    actx.fillStyle = grad;
+    actx.fillRect(0, 0, W, H);
+
+    for (const p of moodParticles) {
+      actx.globalAlpha = p.alpha;
+      actx.fillStyle = `rgb(${p.color})`;
+      actx.beginPath();
+      actx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      actx.fill();
+    }
+    actx.restore();
+  }
+
   // Modo Onírico: poesía visual generativa a partir del estado del ecosistema
   let poemTimer = 0;
   const POEM_TEMPLATES = [
@@ -231,6 +345,7 @@
     if (deathLedger.length > MAX_LEDGER) deathLedger.shift();
     saveDeathLedger();
     markLineageDeath(c, cause || "natural");
+    recentDeathTimes.push(Date.now());
   }
 
   // ==========================================
@@ -1414,6 +1529,7 @@
               this.energy = Math.min(this.maxEnergy, this.energy + prey.energy * 0.6 + 30);
               this.kills++;
               totalKills++;
+              recentKillTimes.push(Date.now());
               Sound.thud();
               this.setEmote("🐺", 60);
               spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 8);
@@ -1464,6 +1580,7 @@
             this.energy = Math.min(this.maxEnergy, this.energy + 70);
             this.kills++;
             totalKills++;
+            recentKillTimes.push(Date.now());
             Sound.thud();
             this.setEmote("👑", 70);
             spawnCorpse(prey.x, prey.y, prey.speciesId, prey.radius() * 12);
@@ -1536,6 +1653,7 @@
       this.energy *= 0.55;
       this.kids++;
       births++;
+      recentBirthTimes.push(Date.now());
       Sound.pluck();
       if (child.gen > maxGen) maxGen = child.gen;
 
@@ -1875,6 +1993,12 @@
     mutationZones = [];
     meteorCooldown = rand(1400, 3200);
     skyParticles = [];
+    moodParticles = [];
+    recentDeathTimes = [];
+    recentBirthTimes = [];
+    recentKillTimes = [];
+    currentMood = Object.assign({ id: "calma" }, MOODS.calma);
+    moodPulse = 0;
     seasonTime = 0;
     births = 0;
     totalKills = 0;
@@ -1901,6 +2025,7 @@
   // BUCLE DE ACTUALIZACIÓN (SIMULACIÓN FÍSICA)
   // ==========================================
   function tick(dt) {
+    updateMoodAura(dt);
     if (options.autoDayNight) {
       dayTime = (dayTime + 0.00015 * dt) % 1.0;
       document.getElementById("rangeTod").value = Math.floor(dayTime * 100);
@@ -2167,6 +2292,7 @@
       ctx.restore();
     }
 
+    drawMoodAura(ctx);
     drawAtmosphere();
     drawMeteors(ctx);
     ctx.filter = "none";
@@ -2613,6 +2739,7 @@
     if (frameCounter % 8 === 0) {
       updateUI();
       updatePopChart();
+      computeMood();
     }
   }
 

@@ -136,6 +136,14 @@
   .eyebrow-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .eyebrow-clock { flex: none; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; }
   .eyebrow-clock .tod-icon { font-size: 12px; }
+  #moodLabel { transition: color 0.7s ease; font-weight: 700; }
+  .mood-icon { display: inline-block; transition: filter 0.5s ease; }
+  .mood-icon.pulse { animation: moodPulse 0.7s ease; }
+  @keyframes moodPulse {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.5); filter: drop-shadow(0 0 5px currentColor); }
+    100% { transform: scale(1); }
+  }
 
   .toggle {
     display: none;
