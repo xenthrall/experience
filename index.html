@@ -19,7 +19,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v4.1 — Genealogía Viva</span>
+    <span class="eyebrow-label">Ecosistema Vivo v4.2 — Firmamento de las Almas</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -87,6 +87,7 @@
       <button id="btnChronicle">📜 Crónicas</button>
       <button id="btnOracle">🔮 Oráculo</button>
       <button id="btnPostal">🖼️ Postal</button>
+      <button id="btnConstellation">🌌 Firmamento</button>
     </div>
   </div>
 </div>
@@ -177,6 +178,16 @@
     <hr class="oracle-divider">
     <p class="oracle-history-label">Libro de profecías <span id="oracleCount">0</span></p>
     <div id="oracleHistory" class="oracle-history"></div>
+  </div>
+</div>
+
+<div class="constellation-overlay" id="constellationOverlay">
+  <div class="constellation-scroll">
+    <button class="constellation-close" id="constellationClose" aria-label="Cerrar firmamento">✕</button>
+    <h2>🌌 Firmamento de las Almas</h2>
+    <p class="constellation-intro">Cada criatura que ha muerto en este terrario se convierte en una estrella. <span id="constellationCount">0</span> almas brillan aquí, para siempre. Toca una estrella para leer su epitafio.</p>
+    <canvas id="constellationCanvas" class="constellation-canvas"></canvas>
+    <div class="constellation-epitaph" id="constellationEpitaph">Elige una estrella entre las constelaciones.</div>
   </div>
 </div>
 

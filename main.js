@@ -223,7 +223,11 @@
   }
 
   function recordDeath(c, cause) {
-    deathLedger.push({ xf: c.x / W, yf: c.y / H, species: c.speciesId, gen: c.gen, t: Date.now() });
+    deathLedger.push({
+      xf: c.x / W, yf: c.y / H, species: c.speciesId, gen: c.gen, t: Date.now(),
+      name: c.name || null, cause: cause || "natural",
+      kills: c.kills || 0, kids: c.kids || 0
+    });
     if (deathLedger.length > MAX_LEDGER) deathLedger.shift();
     saveDeathLedger();
     markLineageDeath(c, cause || "natural");
@@ -2250,6 +2254,148 @@
   }
 
   // ==========================================
+  // FIRMAMENTO DE LAS ALMAS (constelaciones permanentes de los caídos)
+  // ==========================================
+  function hashStr(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+  function seededRand(seed) {
+    let s = seed >>> 0;
+    return function () {
+      s ^= s << 13; s ^= s >>> 17; s ^= s << 5;
+      s >>>= 0;
+      return s / 4294967296;
+    };
+  }
+
+  const CAUSE_LABEL = {
+    "hambre": "de hambre, buscando un último bocado",
+    "sed": "de sed, lejos del agua",
+    "heridas": "de sus heridas",
+    "vejez": "de vejez, habiendo visto pasar sus estaciones",
+    "cazado en manada": "cazado por una manada",
+    "cazado por un apex": "cazado por un depredador apex",
+    "natural": "en paz, entre la hierba"
+  };
+
+  const EPITAPH_TEMPLATES = [
+    (n, sp, c) => `${n}, ${sp}, murió ${c}. Su luz sigue aquí.`,
+    (n, sp, c) => `Aquí brilla ${n}. Fue ${sp} y se apagó ${c}.`,
+    (n, sp, c) => `${n} caminó como ${sp} hasta que murió ${c}. El cielo lo recuerda.`,
+    (n, sp, c) => `Se cuenta que ${n}, ${sp} de generación lejana, murió ${c}.`
+  ];
+
+  function generateEpitaph(entry) {
+    const spec = SPECIES_BY_ID[entry.species];
+    const spName = spec ? spec.name.toLowerCase() : "criatura";
+    const name = entry.name || "un alma sin nombre";
+    const causeText = CAUSE_LABEL[entry.cause] || CAUSE_LABEL.natural;
+    const seed = hashStr((entry.name || "") + entry.t + entry.species);
+    const tpl = EPITAPH_TEMPLATES[seed % EPITAPH_TEMPLATES.length];
+    let line = tpl(name, spName, causeText);
+    const extras = [];
+    if (entry.gen > 1) extras.push(`generación ${entry.gen}`);
+    if (entry.kids > 0) extras.push(`${entry.kids} descendiente${entry.kids === 1 ? "" : "s"}`);
+    if (entry.kills > 0) extras.push(`${entry.kills} cacería${entry.kills === 1 ? "" : "s"} a su nombre`);
+    if (extras.length) line += ` (${extras.join(", ")})`;
+    return line;
+  }
+
+  let starField = null; // caché de posiciones estelares, recalculado cuando cambia el número de almas
+  function buildStarField(w, h) {
+    return deathLedger.map((entry, i) => {
+      const rnd = seededRand(hashStr((entry.name || "anon") + entry.t + i));
+      return {
+        entry, i,
+        x: rnd() * w,
+        y: rnd() * h,
+        r: 1.1 + rnd() * 2.0 + Math.min(2.2, (entry.gen || 1) * 0.18),
+        phase: rnd() * Math.PI * 2,
+        speed: 0.6 + rnd() * 0.9
+      };
+    });
+  }
+
+  let constellationHover = -1;
+  let constellationSelected = -1;
+
+  function drawConstellationSky(cctx, w, h, tsec) {
+    if (!starField || starField.length !== deathLedger.length) starField = buildStarField(w, h);
+    cctx.clearRect(0, 0, w, h);
+    const grad = cctx.createRadialGradient(w * 0.5, h * 0.35, 0, w * 0.5, h * 0.5, Math.max(w, h) * 0.75);
+    grad.addColorStop(0, "#0d1730");
+    grad.addColorStop(1, "#040611");
+    cctx.fillStyle = grad;
+    cctx.fillRect(0, 0, w, h);
+
+    if (starField.length === 0) {
+      cctx.fillStyle = "rgba(220,230,255,0.5)";
+      cctx.font = "italic 15px 'Fraunces', serif";
+      cctx.textAlign = "center";
+      cctx.fillText("Ningún alma ha partido todavía. El cielo está en blanco.", w / 2, h / 2);
+      return;
+    }
+
+    // Líneas de constelación: conecta cada estrella con la más cercana de su misma especie
+    cctx.save();
+    cctx.lineWidth = 0.6;
+    for (let i = 0; i < starField.length; i++) {
+      const s = starField[i];
+      let bestJ = -1, bestD = Infinity;
+      for (let j = 0; j < starField.length; j++) {
+        if (i === j) continue;
+        const o = starField[j];
+        if (o.entry.species !== s.entry.species) continue;
+        const d = distSq(s.x, s.y, o.x, o.y);
+        if (d < bestD) { bestD = d; bestJ = j; }
+      }
+      if (bestJ > i) {
+        const o = starField[bestJ];
+        const spec = SPECIES_BY_ID[s.entry.species];
+        cctx.strokeStyle = (spec ? spec.swatch : "#8fa5c9") + "33";
+        cctx.beginPath();
+        cctx.moveTo(s.x, s.y);
+        cctx.lineTo(o.x, o.y);
+        cctx.stroke();
+      }
+    }
+    cctx.restore();
+
+    for (let i = 0; i < starField.length; i++) {
+      const s = starField[i];
+      const spec = SPECIES_BY_ID[s.entry.species];
+      const col = spec ? spec.swatch : "#cfd8e8";
+      const twinkle = 0.55 + 0.45 * Math.sin(tsec * s.speed + s.phase);
+      const isActive = i === constellationHover || i === constellationSelected;
+      cctx.save();
+      cctx.globalAlpha = 0.45 + 0.55 * twinkle;
+      cctx.fillStyle = isActive ? "#ffffff" : col;
+      cctx.shadowColor = col;
+      cctx.shadowBlur = isActive ? 16 : 6;
+      cctx.beginPath();
+      cctx.arc(s.x, s.y, isActive ? s.r * 1.8 : s.r, 0, Math.PI * 2);
+      cctx.fill();
+      cctx.restore();
+    }
+  }
+
+  function findStarAt(x, y, maxD) {
+    if (!starField) return -1;
+    let best = -1, bestD = maxD * maxD;
+    for (let i = 0; i < starField.length; i++) {
+      const s = starField[i];
+      const d = distSq(s.x, s.y, x, y);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best;
+  }
+
+  // ==========================================
   // GRÁFICO HISTÓRICO DE POBLACIÓN
   // ==========================================
   function updatePopChart() {
@@ -2674,6 +2820,76 @@
   });
 
   document.getElementById("btnPostal").addEventListener("click", capturePostcard);
+
+  const constellationOverlay = document.getElementById("constellationOverlay");
+  const constellationCanvas = document.getElementById("constellationCanvas");
+  const constellationCtx = constellationCanvas.getContext("2d");
+  const constellationEpitaph = document.getElementById("constellationEpitaph");
+  let constellationRAF = null;
+
+  function sizeConstellationCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const r = constellationCanvas.getBoundingClientRect();
+    constellationCanvas.width = r.width * dpr;
+    constellationCanvas.height = r.height * dpr;
+    constellationCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    starField = null;
+  }
+
+  function constellationFrame(ts) {
+    const r = constellationCanvas.getBoundingClientRect();
+    drawConstellationSky(constellationCtx, r.width, r.height, ts / 1000);
+    constellationRAF = requestAnimationFrame(constellationFrame);
+  }
+
+  function constellationPos(ev) {
+    const r = constellationCanvas.getBoundingClientRect();
+    const cx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+    const cy = (ev.touches ? ev.touches[0].clientY : ev.clientY) - r.top;
+    return { x: cx, y: cy };
+  }
+
+  constellationCanvas.addEventListener("mousemove", (ev) => {
+    const p = constellationPos(ev);
+    constellationHover = findStarAt(p.x, p.y, 14);
+  });
+  constellationCanvas.addEventListener("mouseleave", () => { constellationHover = -1; });
+  constellationCanvas.addEventListener("click", (ev) => {
+    const p = constellationPos(ev);
+    const idx = findStarAt(p.x, p.y, 16);
+    if (idx >= 0) {
+      constellationSelected = idx;
+      constellationEpitaph.textContent = generateEpitaph(starField[idx].entry);
+      Sound.pluck();
+    }
+  });
+
+  document.getElementById("btnConstellation").addEventListener("click", () => {
+    document.getElementById("constellationCount").textContent = deathLedger.length;
+    constellationSelected = -1;
+    constellationHover = -1;
+    constellationEpitaph.textContent = deathLedger.length
+      ? "Elige una estrella entre las constelaciones."
+      : "El cielo está vacío. Ninguna alma ha partido todavía.";
+    constellationOverlay.classList.add("open");
+    requestAnimationFrame(() => {
+      sizeConstellationCanvas();
+      if (!constellationRAF) constellationRAF = requestAnimationFrame(constellationFrame);
+    });
+  });
+  document.getElementById("constellationClose").addEventListener("click", () => {
+    constellationOverlay.classList.remove("open");
+    if (constellationRAF) { cancelAnimationFrame(constellationRAF); constellationRAF = null; }
+  });
+  constellationOverlay.addEventListener("click", (e) => {
+    if (e.target === constellationOverlay) {
+      constellationOverlay.classList.remove("open");
+      if (constellationRAF) { cancelAnimationFrame(constellationRAF); constellationRAF = null; }
+    }
+  });
+  window.addEventListener("resize", () => {
+    if (constellationOverlay.classList.contains("open")) sizeConstellationCanvas();
+  });
 
   const panelToggle = document.getElementById("panelToggle");
   const panelEl = document.getElementById("panel");
