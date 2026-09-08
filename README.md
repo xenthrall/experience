@@ -1,6 +1,6 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v8.0: Vínculo del Alma & Gran Aurora)
+# Terrario Digital — Ecosistema Vivo & Evolución (v9.0: El Árbol Ancestral & El Gran Eclipse)
 
-Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — HTML, CSS y JS estáticos servidos como tres archivos (`index.html`, `styles.css`, `main.js`).
+Un simulador de vida artificial, selección natural y arte generativo que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — HTML, CSS y JS estáticos servidos como tres archivos (`index.html`, `styles.css`, `main.js`).
 
 ## 🔧 Optimización de arquitectura & corrección de bug crítico
 
@@ -66,6 +66,43 @@ Un simulador de vida artificial y selección natural que corre por completo en e
 - **Botón `✨ Aurora`**: invoca un despliegue de auroras boreales cósmicas en la alta atmósfera, con cortinas de luz ondulante en tonos esmeralda (`#00ffa2`), violeta místico (`#a855f7`) y cian glacial (`#38bdf8`), con reflejos que reverberan en las aguas de cada oasis y arpegios cristalinos en el paisaje sonoro.
 - **Aparición Natural**: la Aurora Boreal emerge suavemente durante las noches y atardeceres del terrario, intensificándose cuando el Clima Emocional entra en *Renacer* o *Calma*.
 - **Estelas Bioluminiscentes de Feromonas**: cada criatura viva deja un rastro efímero de partículas químicas bioluminiscentes a su paso (esporas de menta para herbívoros, ascuas carmesí para depredadores, polvo estelar para polinizadores), tejiendo una pintura generativa en constante disolución.
+
+## 🌳 El Árbol Ancestral (Yggdrasil del Terrario & Santuario de Paz)
+
+- **Núcleo Místico del Terrario**: En el corazón del mundo crece un árbol milenario con ramas y raíces vivas que respiran y pulsan bioluminiscencia en sincronía con el biorritmo del ecosistema.
+- **Santuario Sagrado**: El dosel del árbol proyecta una zona de santuario esmeralda donde impera la paz cósmica: los depredadores se calman y no atacan a sus presas, y toda criatura herida o exhausta regenera energía y salud de forma acelerada.
+- **Frutos de Ámbar Eterno**: Las ramas del árbol producen frutos dorados que caen al suelo; cualquier criatura que los consuma obtiene longevidad biológica prolongada y rejuvenecimiento celular.
+- **Briznas del Alma (`SoulWisps`)**: Cada criatura que trasciende o perece cerca de las raíces ve su espíritu liberado como una voluta etérea de luz que asciende en espirales hacia el cielo, cantando una nota armónica al fundirse en el firmamento.
+- **Modal de Sabiduría Ancestral (`🌳 Yggdrasil` o Tecla `T`)**: Abre un códice interactivo que muestra las eras vividas por el árbol, su vitalidad, almas acogidas y un **lienzo de anillos de crecimiento concéntricos** (`#treeRingCanvas`), dibujados proceduralmente según los años y eras del terrario.
+- **Gran Floración Cósmica (`🌸 Florecer`)**: Al desatar la floración desde el modal, el árbol emite una onda expansiva dorada, un arpegio de arpa cósmica y una lluvia torrencial de flores místicas y bayas que reanima y fertiliza todo el mundo.
+
+## 🌑 El Gran Eclipse Cósmico & Ingravidez
+
+- **Alineación Astral Trascendental (`🌑 Eclipse` o Tecla `O`)**: El Sol y la Luna entran en conjunción perfecta sobre el terrario. Los cielos se oscurecen en un violeta abisal, revelando estrellas y constelaciones diurnas mientras la corona solar chisporrotea con llamaradas solares y perlas de Baily generativas.
+- **Ingravidez Espiritual**: Durante el punto álgido del eclipse (*totality*), la gravedad se disuelve: las criaturas del terrario flotan suavemente en ingravidez cósmica, rodeadas de estelas de luz estelar.
+- **Cántico Tibetano Ancestral**: La alineación viene acompañada de un resonante *singing bowl* tibetano sintetizado en frecuencia áurea (136.1 Hz — Ohm), induciendo un estado de meditación armónica en todo el ecosistema.
+
+## 🌊 Resonancia Cimática del Terreno (Patrones Armónicos de Chladni)
+
+- **Geometría Sagrada Acústica (`🌊 Cimática`)**: Modela matemáticamente las placas de Chladni sobre el sustrato del terrario: $m \cdot \cos(nx) - n \cdot \cos(my) = 0$.
+- **Reacción en Tiempo Real**: La frecuencia nodal y el dibujo geométrico de la arena responden activamente al pulso de la simulación, a las notas musicales reproducidas y al estado de ánimo del ecosistema (*Caos*, *Tensión*, *Calma*, *Renacer*), haciendo visible el sonido como líneas doradas sobre el suelo.
+
+## 🎼 Audio Bio-Polifónico Espacial (Web Audio 3D & Nuevos Timbres)
+
+- **Posicionamiento Binaural Estéreo (`StereoPannerNode`)**: Cada sonido en el terrario (pasos, llamadas, meteoritos, mordiscos, bendiciones) se proyecta espacialmente en el estéreo izquierdo/derecho en función exacta de su coordenada horizontal $X$, sumergiendo al usuario en un entorno tridimensional.
+- **Nuevos Timbres Sintetizados**:
+  - 🪈 *Flauta Pastoral*: Melodías suaves en escala pentatónica para nacimientos y paseos serenos.
+  - 🎻 *Cuerdas de Tensión*: Disonancias orgánicas sintetizadas que anuncian emboscadas y peligro inminente.
+  - 🥁 *Taiko Telúrico*: Golpes resonantes de baja frecuencia para megafauna e impactos sísmicos.
+  - 🔔 *Campanas de Cristal & Celesta*: Arpegios celestiales durante floraciones, auroras y mutaciones estelares.
+  - ⚡ *Trueno Dinámico*: Convección de ruido blanco filtrado con sub-armónicos para rayos celestiales.
+  - 🥣 *Cuenco Tibetano & Arpa Cósmica*: Osciladores senoidales puros en batimiento lento para eclipses y el Gran Árbol.
+
+## ⚡ Poderes Elementales de Creación
+
+- **⚡ Rayo Celestial (`data-tool="lightning"`)**: Lanza un arco voltaico procedural ramificado desde las alturas con relámpago de pantalla, sonido de trueno envolvente e ionización de suelo que genera un cráter místico super-fértil.
+- **💨 Vórtice de Viento (`data-tool="vortex"`)**: Engendra un remolino de aire que succiona y arremolina suavemente a las criaturas en espiral, redistribuyendo densidades poblacionales con suave flotabilidad.
+- **🌟 Bendición Cósmica (`data-tool="blessing"`)**: Toca a cualquier criatura viva para consagrarla con un halo dorado de santidad: regenera al instante toda su salud, sacia su sed y hambre, y la bendice con fertilidad e inmunidad temporal ante depredadores.
 
 ## 💀 Memoria del Terrario — Persistencia entre Visitas
 

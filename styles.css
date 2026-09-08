@@ -1388,6 +1388,197 @@
     transition: opacity 0.3s ease;
   }
 
+  /* ECLIPSE ICON ANIMATION */
+  .eclipse-icon {
+    display: inline-block;
+    transition: transform 0.4s ease, filter 0.4s ease;
+  }
+  .eclipse-icon.active {
+    transform: scale(1.25);
+    filter: drop-shadow(0 0 8px #c084fc);
+    animation: eclipsePulse 2.4s ease-in-out infinite;
+  }
+  @keyframes eclipsePulse {
+    0%, 100% { transform: scale(1.15) rotate(0deg); filter: drop-shadow(0 0 6px #a855f7); }
+    50% { transform: scale(1.3) rotate(10deg); filter: drop-shadow(0 0 14px #e879f9); }
+  }
+
+  /* TOOLBAR ELEMENTAL TOOLS ACCENTS */
+  .tool-item[data-tool="lightning"]:hover, .tool-item[data-tool="lightning"].active {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(168, 85, 247, 0.3));
+    border-color: #38bdf8;
+    color: #38bdf8;
+  }
+  .tool-item[data-tool="vortex"]:hover, .tool-item[data-tool="vortex"].active {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.25), rgba(56, 189, 248, 0.3));
+    border-color: #34d399;
+    color: #34d399;
+  }
+  .tool-item[data-tool="blessing"]:hover, .tool-item[data-tool="blessing"].active {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(244, 114, 182, 0.3));
+    border-color: #fbbf24;
+    color: #fbbf24;
+  }
+
+  /* MODAL EL ÁRBOL ANCESTRAL (YGGDRASIL) */
+  .tree-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 210;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 16, 12, 0.72);
+    backdrop-filter: blur(8px) saturate(1.2);
+    -webkit-backdrop-filter: blur(8px) saturate(1.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    padding: 24px;
+  }
+  .tree-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .tree-scroll {
+    position: relative;
+    max-width: 580px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #0d2117 0%, #06120c 100%);
+    color: #e2f1e8;
+    border-radius: 14px;
+    padding: 34px 30px 28px;
+    box-shadow: 0 30px 90px -20px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(74, 224, 181, 0.3), 0 0 70px -15px rgba(52, 211, 153, 0.22);
+    font-family: "Libre Franklin", sans-serif;
+    transform: scale(0.95) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+  }
+  .tree-overlay.open .tree-scroll {
+    transform: scale(1) translateY(0);
+  }
+  .tree-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: rgba(226, 241, 232, 0.6);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .tree-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .tree-emblem {
+    font-size: 42px;
+    margin-bottom: 8px;
+    display: inline-block;
+    filter: drop-shadow(0 0 16px rgba(52, 211, 153, 0.6));
+    animation: treePulse 3s ease-in-out infinite;
+  }
+  @keyframes treePulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(52, 211, 153, 0.5)); }
+    50% { transform: scale(1.08); filter: drop-shadow(0 0 24px rgba(251, 191, 36, 0.7)); }
+  }
+  .tree-scroll h2 {
+    margin: 0 0 8px;
+    font-family: "Fraunces", serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    background: linear-gradient(90deg, #4ade80, #fbbf24, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tree-quote {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #bbf7d0;
+    opacity: 0.88;
+    margin: 0 auto 22px;
+    max-width: 460px;
+  }
+  .tree-vital-card {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(74, 224, 181, 0.2);
+    border-radius: 10px;
+    padding: 14px 10px;
+    margin-bottom: 22px;
+  }
+  .tree-vital-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .tree-stat-label {
+    font-size: 10px;
+    font-family: "JetBrains Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #86efac;
+    opacity: 0.8;
+  }
+  .tree-stat-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .tree-ring-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  #treeRingCanvas {
+    background: radial-gradient(circle, rgba(16, 42, 30, 0.8) 0%, rgba(6, 18, 12, 0.95) 75%);
+    border: 1px solid rgba(74, 224, 181, 0.25);
+    border-radius: 50%;
+    box-shadow: 0 0 30px -5px rgba(52, 211, 153, 0.25);
+  }
+  .tree-ring-legend {
+    margin-top: 10px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: #a7f3d0;
+    opacity: 0.75;
+  }
+  .tree-actions {
+    margin-top: 10px;
+  }
+  .tree-bloom-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #0284c7 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 12px 24px !important;
+    border-radius: 26px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    box-shadow: 0 8px 24px -6px rgba(16, 185, 129, 0.6), 0 0 20px rgba(56, 189, 248, 0.3) !important;
+    cursor: pointer;
+    transition: all 0.25s ease !important;
+  }
+  .tree-bloom-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 30px -4px rgba(16, 185, 129, 0.8), 0 0 30px rgba(56, 189, 248, 0.5) !important;
+  }
+
   @media (max-width: 768px) {
     .panel {
       left: calc(10px + env(safe-area-inset-left, 0px));

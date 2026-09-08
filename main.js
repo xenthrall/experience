@@ -21,6 +21,12 @@
     const r = popCanvas.getBoundingClientRect();
     popCanvas.width = r.width * dpr; popCanvas.height = r.height * dpr;
     popCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (ancientTree) {
+      ancientTree.x = W * 0.5;
+      ancientTree.y = H * 0.44;
+      buildTreeStructure();
+    }
   }
   window.addEventListener("resize", resize);
 
@@ -38,6 +44,7 @@
     showBars: false,
     autoDayNight: true,
     dreamMode: false,
+    showCymatics: true,
     activeTool: "food"
   };
 
@@ -341,6 +348,23 @@
   let meteorCooldown = rand(1400, 3200);
   let audioEnabled = false;
 
+  // Resonancia Cimática del Terreno (Chladni Patterns)
+  let cymaticPulse = 0;
+
+  // El Gran Eclipse Cósmico
+  let eclipseActive = 0.0;
+  let eclipseTimer = 0;
+  let eclipsesWitnessed = 0;
+
+  // El Árbol Ancestral (Yggdrasil del Terrario)
+  let ancientTree = null;
+  let treeBloomsWitnessed = 0;
+  let soulWisps = [];
+
+  // Poderes Elementales: Rayos y Vórtices
+  let lightningBolts = [];
+  let vortices = [];
+
   // ==========================================
   // MEMORIA DEL TERRARIO (persiste entre reinicios y entre visitas)
   // ==========================================
@@ -388,6 +412,10 @@
       if (legendLedger.length > MAX_LEGENDS) legendLedger.pop();
       saveLegendLedger();
       showToast(`📖 Una leyenda ha caído: ${c.name}`);
+    }
+
+    if (ancientTree) {
+      spawnSoulWisp(c.x, c.y, c.speciesId);
     }
   }
 
@@ -596,6 +624,15 @@
       ]
     },
     {
+      id: "arbol_eclipse",
+      keywords: ["arbol", "yggdrasil", "raiz", "raices", "eclipse", "sol", "luna", "sombra", "floracion", "boreal", "cielo"],
+      templates: [
+        (s) => ancientTree ? `El Árbol Ancestral custodia ${ancientTree.soulsAbsorbed} almas en su savia. Nadie muere por completo mientras su tronco sostenga el cielo.` : `Las raíces del mundo son invisibles, pero sostienen cada paso de este valle.`,
+        (s) => `Cuando la sombra del Gran Eclipse cubre el sol, el terrario suspende sus leyes y todo aprende a volar.`,
+        (s) => `Bajo el Yggdrasil existe una tregua sagrada: los que comen hojas y los que afilan colmillos descansan bajo el mismo verde.`
+      ]
+    },
+    {
       id: "criatura",
       keywords: ["criatura", "animal", "mascota", "especie", "el mio", "mi criatura"],
       templates: [
@@ -691,7 +728,9 @@
     (s) => `${s.births} nacimientos, ${s.kills} cacerías, un solo instante`,
     (s) => `nada de esto volverá a verse exactamente igual`,
     (s) => s.eras > 0 ? `era ${s.eras + 1} del terrario, capturada en silencio` : `la primera era del terrario, capturada en silencio`,
-    (s) => s.chosen ? `${s.chosen} existió — aquí está la prueba` : `alguien aquí no sabe que está siendo recordado`
+    (s) => s.chosen ? `${s.chosen} existió — aquí está la prueba` : `alguien aquí no sabe que está siendo recordado`,
+    (s) => ancientTree && ancientTree.soulsAbsorbed > 0 ? `el Árbol Ancestral custodia ${ancientTree.soulsAbsorbed} almas en sus raíces` : `el latido secreto de la tierra florece en silencio`,
+    (s) => eclipseActive > 0.3 ? `bajo la corona del Gran Eclipse, el universo contuvo la respiración` : `la luz y la sombra se entrelazan sobre el terrario`
   ];
 
   function wrapTextBlock(octx, text, x, bottomY, maxWidth, lineHeight, maxLines) {
@@ -876,6 +915,8 @@
       dominant: snap.dominant,
       season: snap.season,
       meteorImpacts, mutations: mutationsCount,
+      eclipses: eclipsesWitnessed,
+      treeBlooms: treeBloomsWitnessed,
       extinctions: extinctions.slice(),
       memorySize: deathLedger.length
     });
@@ -1019,7 +1060,7 @@
       noiseSrc.start();
     }
 
-    function ping(freq, dur, type, vol, delay) {
+    function ping(freq, dur, type, vol, delay, panX) {
       if (!ctx) return;
       const t0 = ctx.currentTime + (delay || 0);
       const o = ctx.createOscillator();
@@ -1030,7 +1071,21 @@
       g.gain.linearRampToValueAtTime(vol, t0 + 0.02);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       o.connect(g);
-      g.connect(master);
+
+      if (panX !== undefined && panX !== null && ctx.createStereoPanner && W > 0) {
+        try {
+          const panner = ctx.createStereoPanner();
+          const panVal = Math.max(-0.85, Math.min(0.85, (panX / W) * 2 - 1));
+          panner.pan.setValueAtTime(panVal, t0);
+          g.connect(panner);
+          panner.connect(master);
+        } catch (e) {
+          g.connect(master);
+        }
+      } else {
+        g.connect(master);
+      }
+
       o.start(t0);
       o.stop(t0 + dur + 0.05);
     }
@@ -1069,20 +1124,20 @@
         dreamWet.gain.setTargetAtTime(on ? 0.4 : 0, t, 1.5);
         dreamFeedback.gain.setTargetAtTime(on ? 0.45 : 0, t, 1.5);
       },
-      pluck() { ping(880 + Math.random() * 220, 0.5, "sine", 0.09); },
-      thud() { ping(90, 0.4, "sine", 0.16); },
-      chime() {
-        ping(660, 1.1, "sine", 0.1);
-        ping(990, 1.3, "triangle", 0.07, 0.12);
-        ping(1320, 1.6, "sine", 0.05, 0.26);
+      pluck(x) { ping(880 + Math.random() * 220, 0.5, "sine", 0.09, 0, x); },
+      thud(x) { ping(90, 0.4, "sine", 0.16, 0, x); },
+      chime(x) {
+        ping(660, 1.1, "sine", 0.1, 0, x);
+        ping(990, 1.3, "triangle", 0.07, 0.12, x);
+        ping(1320, 1.6, "sine", 0.05, 0.26, x);
       },
       shutter() {
         ping(1900, 0.045, "square", 0.1);
         ping(500, 0.08, "square", 0.09, 0.05);
       },
-      boom() {
-        ping(60, 1.4, "sine", 0.28);
-        ping(45, 1.8, "triangle", 0.18, 0.05);
+      boom(x) {
+        ping(60, 1.4, "sine", 0.28, 0, x);
+        ping(45, 1.8, "triangle", 0.18, 0.05, x);
       },
       aurora() {
         if (!ctx) return;
@@ -1090,6 +1145,50 @@
         notes.forEach((f, i) => {
           ping(f, 1.8 + i * 0.2, "sine", 0.07, i * 0.14);
           ping(f * 1.5, 2.0, "triangle", 0.03, i * 0.14 + 0.08);
+        });
+      },
+      pastoralFlute(x) {
+        const pentatonic = [392.00, 440.00, 493.88, 587.33, 659.25, 783.99];
+        const f = pentatonic[Math.floor(Math.random() * pentatonic.length)];
+        ping(f, 0.45, "sine", 0.07, 0, x);
+        ping(f * 2, 0.35, "triangle", 0.03, 0.02, x);
+      },
+      tenseStrings(x) {
+        const tones = [146.83, 164.81, 174.61, 220.00];
+        const f = tones[Math.floor(Math.random() * tones.length)];
+        ping(f, 0.35, "sawtooth", 0.07, 0, x);
+      },
+      earthTaiko(x) {
+        ping(68, 0.4, "triangle", 0.18, 0, x);
+        ping(42, 0.6, "sine", 0.14, 0.03, x);
+      },
+      crystalChimes(x) {
+        ping(1174.66, 0.9, "sine", 0.05, 0, x);
+        ping(1760.00, 1.2, "triangle", 0.04, 0.08, x);
+      },
+      celestaArp(x) {
+        const notes = [1046.50, 1318.51, 1567.98];
+        notes.forEach((f, i) => ping(f, 0.6, "sine", 0.04, i * 0.07, x));
+      },
+      thunder(x) {
+        ping(50, 1.2, "sawtooth", 0.28, 0, x);
+        ping(35, 1.6, "triangle", 0.35, 0.04, x);
+        ping(120, 0.5, "square", 0.12, 0.01, x);
+      },
+      singingBowl() {
+        if (!ctx) return;
+        const notes = [216, 432, 648, 864];
+        notes.forEach((f, i) => {
+          ping(f, 3.4 + i * 0.6, "sine", 0.08 / (i + 1), i * 0.12);
+        });
+      },
+      cosmicHarp() {
+        if (!ctx) return;
+        const harp = [261.63, 329.63, 392.00, 493.88, 587.33, 659.25, 783.99];
+        harp.forEach((f, i) => {
+          const pan = (i / (harp.length - 1)) * (W || 800);
+          ping(f, 1.8, "sine", 0.07, i * 0.12, pan);
+          ping(f * 2, 1.2, "triangle", 0.02, i * 0.12 + 0.02, pan);
         });
       },
       soulBond() {
@@ -1128,11 +1227,11 @@
         o2.connect(g2); g2.connect(master);
         o2.start(t1); o2.stop(t1 + 0.1);
       },
-      whoosh() {
-        ping(320, 0.45, "triangle", 0.12);
-        ping(480, 0.35, "sine", 0.09, 0.05);
+      whoosh(x) {
+        ping(320, 0.45, "triangle", 0.12, 0, x);
+        ping(480, 0.35, "sine", 0.09, 0.05, x);
       },
-      roar() {
+      roar(x) {
         if (!ctx) return;
         const t0 = ctx.currentTime;
         const o = ctx.createOscillator();
@@ -1145,7 +1244,19 @@
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
         f.frequency.value = 400;
-        o.connect(f); f.connect(g); g.connect(master);
+        o.connect(f); f.connect(g);
+        if (x !== undefined && x !== null && ctx.createStereoPanner && W > 0) {
+          try {
+            const panner = ctx.createStereoPanner();
+            panner.pan.setValueAtTime(Math.max(-0.85, Math.min(0.85, (x / W) * 2 - 1)), t0);
+            g.connect(panner);
+            panner.connect(master);
+          } catch (e) {
+            g.connect(master);
+          }
+        } else {
+          g.connect(master);
+        }
         o.start(t0); o.stop(t0 + 0.6);
       }
     };
@@ -1367,6 +1478,8 @@
       this.kids = 0;
       this.kills = 0;
       this.legendary = false;
+      this.blessed = false;
+      this.blessedTimer = 0;
       this.seed = rand(0, 1000);
       this.emote = "";
       this.emoteTimer = 0;
@@ -1508,6 +1621,49 @@
           this.wrap();
           this.checkReproduction();
           return;
+        }
+      }
+
+      // Efectos de Bendición Cósmica
+      if (this.blessedTimer > 0) {
+        this.blessedTimer -= dt;
+        if (this.blessedTimer <= 0) {
+          this.blessed = false;
+        } else {
+          this.blessed = true;
+          this.health = Math.min(100, this.health + 0.12 * dt);
+          if (Math.random() < 0.25 * dt) {
+            particles.push({
+              x: this.x + spread(this.radius() * 1.4),
+              y: this.y + spread(this.radius() * 1.4),
+              r: rand(1.5, 3), alpha: 0.85, color: "#fde047"
+            });
+          }
+        }
+      }
+
+      // Santuario Sagrado del Árbol Ancestral
+      if (ancientTree) {
+        const dTreeSq = distSq(this.x, this.y, ancientTree.x, ancientTree.y);
+        if (dTreeSq < 135 * 135) {
+          this.stamina = Math.min(this.maxStamina, this.stamina + 0.3 * dt);
+          this.health = Math.min(100, this.health + 0.08 * dt);
+          if (this.speciesId.startsWith("carn_") && this.energy > 20 && this.target) {
+            this.target = null;
+            this.state = "WANDER";
+            this.setEmote("🕊️", 40);
+          }
+        }
+      }
+
+      // Ingravidez y calma durante el Gran Eclipse
+      if (eclipseActive > 0.15) {
+        if (Math.random() < 0.15 * dt) {
+          particles.push({
+            x: this.x + spread(this.radius()),
+            y: this.y + spread(this.radius()),
+            r: 1.6, alpha: 0.7 * eclipseActive, color: "#e879f9"
+          });
         }
       }
 
@@ -2126,6 +2282,19 @@
         ctx.restore();
       }
 
+      if (this.blessed) {
+        const bPulse = 0.5 + 0.5 * Math.sin(simTime * 0.006 + this.seed);
+        ctx.save();
+        ctx.strokeStyle = "#fde047";
+        ctx.shadowColor = "#eab308";
+        ctx.shadowBlur = 10 + bPulse * 8;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y - r - 12, r * 0.85 + 3, (r * 0.85 + 3) * 0.35, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       if (options.showVision && (this === selectedCreature || this.speciesId === "carn_apex" || this.state === "CHASE")) {
         ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
         ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
@@ -2165,14 +2334,20 @@
   // AMBIENTE, BIOMAS Y VEGETACIÓN DINÁMICA
   // ==========================================
   function initBiomes() {
+    initAncientTree();
     waterBodies = [];
     bushes = [];
 
     const numPonds = W > 800 ? 3 : 2;
     for (let i = 0; i < numPonds; i++) {
+      let px = rand(W * 0.15, W * 0.85);
+      let py = rand(H * 0.15, H * 0.85);
+      if (ancientTree && distSq(px, py, ancientTree.x, ancientTree.y) < 140 * 140) {
+        px = px < W * 0.5 ? px - 90 : px + 90;
+      }
       waterBodies.push({
-        x: rand(W * 0.15, W * 0.85),
-        y: rand(H * 0.15, H * 0.85),
+        x: clamp(px, 60, W - 60),
+        y: clamp(py, 60, H - 60),
         radius: rand(45, 80),
         seed: rand(0, 1000)
       });
@@ -2262,6 +2437,14 @@
     releaseSoulBond();
     auroraActive = 0;
     auroraManualTimer = 0;
+    eclipsesWitnessed = 0;
+    treeBloomsWitnessed = 0;
+    eclipseActive = 0;
+    eclipseTimer = 0;
+    cymaticPulse = 0;
+    soulWisps = [];
+    lightningBolts = [];
+    vortices = [];
     camX = W / 2;
     camY = H / 2;
     camZoom = 1.0;
@@ -2409,6 +2592,10 @@
     updateAurora(dt);
     updateBioTrails(dt);
     updateSoulBond(dt);
+    updateAncientTree(dt);
+    updateEclipse(dt);
+    updateElementalPowers(dt);
+    if (cymaticPulse > 0) cymaticPulse = Math.max(0, cymaticPulse - 0.012 * dt);
 
     if (options.dreamMode) {
       poemTimer -= dt;
@@ -2989,6 +3176,720 @@
   }
 
   // ==========================================
+  // EL ÁRBOL ANCESTRAL (YGGDRASIL DEL TERRARIO)
+  // ==========================================
+  function initAncientTree() {
+    ancientTree = {
+      x: W * 0.5,
+      y: H * 0.44,
+      radius: 38,
+      ageCycles: (ancientTree ? ancientTree.ageCycles + 1 : 1),
+      soulsAbsorbed: (ancientTree ? ancientTree.soulsAbsorbed : 0),
+      fruitsProduced: (ancientTree ? ancientTree.fruitsProduced : 0),
+      vitality: 100,
+      bloomActive: 0,
+      fruits: [],
+      roots: []
+    };
+    buildTreeStructure();
+  }
+
+  function buildTreeStructure() {
+    if (!ancientTree) return;
+    ancientTree.roots = [];
+    const numRoots = 10;
+    for (let i = 0; i < numRoots; i++) {
+      const ang = (i / (numRoots - 1)) * Math.PI * 0.95 + 0.05 * Math.PI;
+      const rDist = rand(70, 125);
+      const ex = ancientTree.x + Math.cos(ang) * rDist;
+      const ey = ancientTree.y + Math.sin(ang) * (rDist * 0.85);
+      const midX = (ancientTree.x + ex) / 2 + spread(16);
+      const midY = (ancientTree.y + ey) / 2 + spread(12);
+      ancientTree.roots.push({
+        cx: midX, cy: midY,
+        ex, ey,
+        width: rand(3.8, 6.5),
+        energized: false
+      });
+    }
+  }
+
+  function spawnSoulWisp(fromX, fromY, speciesId) {
+    if (!ancientTree) return;
+    const colors = {
+      herb_agile: "#34d399",
+      herb_mega: "#fbbf24",
+      carn_pack: "#f87171",
+      carn_apex: "#c084fc",
+      scavenger: "#38bdf8",
+      pollinator: "#fef08a"
+    };
+    soulWisps.push({
+      x: fromX, y: fromY,
+      color: colors[speciesId] || "#a7f3d0",
+      speed: rand(2.0, 3.4),
+      wobble: rand(0, Math.PI * 2)
+    });
+  }
+
+  function updateSoulWisps(dt) {
+    if (!ancientTree) return;
+    for (let i = soulWisps.length - 1; i >= 0; i--) {
+      const w = soulWisps[i];
+      w.wobble += 0.12 * dt;
+      const dx = ancientTree.x - w.x;
+      const dy = ancientTree.y - w.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 20) {
+        ancientTree.soulsAbsorbed++;
+        ancientTree.vitality = Math.min(100, ancientTree.vitality + 0.5);
+        if (ancientTree.roots.length > 0) {
+          const r = ancientTree.roots[Math.floor(Math.random() * ancientTree.roots.length)];
+          r.energized = true;
+          setTimeout(() => { r.energized = false; }, 600);
+        }
+        soulWisps.splice(i, 1);
+      } else {
+        w.x += (dx / dist) * w.speed * dt + Math.cos(w.wobble) * 0.8;
+        w.y += (dy / dist) * w.speed * dt + Math.sin(w.wobble) * 0.8;
+      }
+    }
+  }
+
+  function drawSoulWisps(wctx) {
+    if (soulWisps.length === 0) return;
+    wctx.save();
+    for (let w of soulWisps) {
+      wctx.fillStyle = w.color;
+      wctx.shadowColor = w.color;
+      wctx.shadowBlur = 8;
+      wctx.beginPath();
+      wctx.arc(w.x, w.y, 2.8, 0, Math.PI * 2);
+      wctx.fill();
+    }
+    wctx.restore();
+  }
+
+  function updateAncientTree(dt) {
+    if (!ancientTree) return;
+    const tree = ancientTree;
+
+    if (tree.bloomActive > 0) tree.bloomActive -= dt;
+
+    if (tree.fruits.length < 4 && Math.random() < 0.0016 * dt) {
+      const fAng = rand(-0.85 * Math.PI, -0.15 * Math.PI);
+      const fDist = rand(22, 42);
+      tree.fruits.push({
+        x: tree.x + Math.cos(fAng) * fDist,
+        y: tree.y + Math.sin(fAng) * fDist,
+        fallen: false,
+        seed: rand(0, 1000)
+      });
+    }
+
+    for (let f of tree.fruits) {
+      if (!f.fallen && Math.random() < 0.0007 * dt) {
+        f.fallen = true;
+        f.x = tree.x + spread(55);
+        f.y = tree.y + rand(16, 52);
+      }
+    }
+
+    for (let i = tree.fruits.length - 1; i >= 0; i--) {
+      const f = tree.fruits[i];
+      if (f.fallen) {
+        const eater = creatureGrid.nearest(f.x, f.y, 22);
+        if (eater) {
+          blessCreature(eater);
+          tree.fruitsProduced++;
+          tree.fruits.splice(i, 1);
+        }
+      }
+    }
+
+    updateSoulWisps(dt);
+  }
+
+  function triggerTreeBloom() {
+    if (!ancientTree) return;
+    ancientTree.bloomActive = 260;
+    treeBloomsWitnessed++;
+    cymaticPulse = 1.2;
+    Sound.cosmicHarp();
+
+    for (let i = 0; i < 50; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const spd = rand(1.5, 5.0);
+      particles.push({
+        x: ancientTree.x, y: ancientTree.y - 45,
+        vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
+        r: rand(2.5, 5), alpha: 0.95, color: i % 2 === 0 ? "#fde047" : "#4ade80"
+      });
+    }
+
+    for (let i = 0; i < 14; i++) {
+      spawnFood(ancientTree.x + spread(240), ancientTree.y + spread(190));
+    }
+    for (let b of bushes) {
+      b.berries = b.maxBerries;
+    }
+
+    for (let c of creatures) {
+      c.health = 100;
+      c.stamina = c.maxStamina;
+      c.energy = Math.min(c.maxEnergy, c.energy + 25);
+      c.setEmote("🌸✨", 70);
+    }
+
+    showToast("🌸 ¡Gran Floración Cósmica desatada! El terrario renace en luz");
+  }
+
+  function drawAncientTree(tctx) {
+    if (!ancientTree) return;
+    const tree = ancientTree;
+    const t = simTime * 0.001;
+
+    tctx.save();
+
+    // 1. Aura del Santuario Sagrado
+    const sancRadius = 135;
+    tctx.beginPath();
+    tctx.arc(tree.x, tree.y, sancRadius, 0, Math.PI * 2);
+    const auraGrad = tctx.createRadialGradient(tree.x, tree.y, 20, tree.x, tree.y, sancRadius);
+    auraGrad.addColorStop(0, "rgba(52, 211, 153, 0.07)");
+    auraGrad.addColorStop(0.75, "rgba(74, 224, 181, 0.04)");
+    auraGrad.addColorStop(1, "rgba(251, 191, 36, 0.0)");
+    tctx.fillStyle = auraGrad;
+    tctx.fill();
+
+    tctx.strokeStyle = `rgba(74, 224, 181, ${0.18 + 0.08 * Math.sin(t * 1.5)})`;
+    tctx.lineWidth = 1.2;
+    tctx.setLineDash([4, 6]);
+    tctx.stroke();
+    tctx.setLineDash([]);
+
+    const numRunes = 8;
+    for (let i = 0; i < numRunes; i++) {
+      const rAng = (i / numRunes) * Math.PI * 2 + t * 0.2;
+      const rx = tree.x + Math.cos(rAng) * sancRadius;
+      const ry = tree.y + Math.sin(rAng) * sancRadius;
+      tctx.fillStyle = "rgba(74, 224, 181, 0.4)";
+      tctx.beginPath();
+      tctx.arc(rx, ry, 2, 0, Math.PI * 2);
+      tctx.fill();
+    }
+
+    // 2. Onda expansiva de floración
+    if (tree.bloomActive > 0) {
+      const bloomProgress = 1 - (tree.bloomActive / 260);
+      const bloomR = bloomProgress * Math.max(W, H) * 0.85;
+      tctx.beginPath();
+      tctx.arc(tree.x, tree.y, bloomR, 0, Math.PI * 2);
+      tctx.strokeStyle = `rgba(251, 191, 36, ${(1 - bloomProgress) * 0.65})`;
+      tctx.lineWidth = 3 * (1 - bloomProgress);
+      tctx.stroke();
+    }
+
+    // 3. Raíces
+    for (let i = 0; i < tree.roots.length; i++) {
+      const r = tree.roots[i];
+      tctx.beginPath();
+      tctx.moveTo(tree.x, tree.y);
+      tctx.quadraticCurveTo(r.cx, r.cy, r.ex, r.ey);
+      tctx.strokeStyle = "rgba(42, 28, 16, 0.85)";
+      tctx.lineWidth = r.width;
+      tctx.stroke();
+
+      const veinPulse = 0.4 + 0.35 * Math.sin(t * 2 + i * 0.7);
+      tctx.beginPath();
+      tctx.moveTo(tree.x, tree.y);
+      tctx.quadraticCurveTo(r.cx, r.cy, r.ex, r.ey);
+      tctx.strokeStyle = `rgba(74, 224, 181, ${veinPulse * (r.energized ? 1.0 : 0.6)})`;
+      tctx.lineWidth = Math.max(1, r.width * 0.35);
+      tctx.stroke();
+    }
+
+    // 4. Tronco
+    tctx.fillStyle = "#2e1e12";
+    tctx.beginPath();
+    tctx.moveTo(tree.x - 22, tree.y + 18);
+    tctx.quadraticCurveTo(tree.x - 12, tree.y, tree.x - 14, tree.y - 38);
+    tctx.lineTo(tree.x + 14, tree.y - 38);
+    tctx.quadraticCurveTo(tree.x + 12, tree.y, tree.x + 22, tree.y + 18);
+    tctx.closePath();
+    tctx.fill();
+    tctx.strokeStyle = "#1a100a";
+    tctx.lineWidth = 1.5;
+    tctx.stroke();
+
+    const heartPulse = 0.5 + 0.5 * Math.sin(t * 3);
+    tctx.fillStyle = `rgba(251, 191, 36, ${0.4 + 0.4 * heartPulse})`;
+    tctx.shadowColor = "#fbbf24";
+    tctx.shadowBlur = 10;
+    tctx.beginPath();
+    tctx.ellipse(tree.x, tree.y - 8, 5, 9, 0, 0, Math.PI * 2);
+    tctx.fill();
+    tctx.shadowBlur = 0;
+
+    // 5. Copa
+    const sway = Math.sin(t * 1.2) * 3;
+    const lobes = [
+      { dx: -24 + sway * 0.6, dy: -48, r: 28, col: "rgba(16, 120, 75, 0.85)" },
+      { dx: 24 + sway * 0.6,  dy: -48, r: 28, col: "rgba(22, 138, 88, 0.85)" },
+      { dx: 0 + sway,         dy: -62, r: 34, col: "rgba(34, 160, 102, 0.9)" },
+      { dx: -14 + sway * 0.8, dy: -68, r: 24, col: "rgba(74, 222, 128, 0.8)" },
+      { dx: 14 + sway * 0.8,  dy: -68, r: 24, col: "rgba(52, 211, 153, 0.8)" },
+      { dx: 0 + sway,         dy: -78, r: 20, col: "rgba(110, 231, 183, 0.75)" }
+    ];
+
+    for (let l of lobes) {
+      tctx.beginPath();
+      tctx.arc(tree.x + l.dx, tree.y + l.dy, l.r, 0, Math.PI * 2);
+      tctx.fillStyle = l.col;
+      tctx.fill();
+    }
+
+    // 6. Frutos de Ámbar
+    for (let f of tree.fruits) {
+      tctx.save();
+      const fp = 0.7 + 0.3 * Math.sin(t * 4 + f.seed);
+      tctx.shadowColor = "#fbbf24";
+      tctx.shadowBlur = 8;
+      tctx.fillStyle = "#fde047";
+      tctx.beginPath();
+      tctx.arc(f.x, f.y, f.fallen ? 4.5 : 3.8, 0, Math.PI * 2);
+      tctx.fill();
+
+      if (!f.fallen) {
+        tctx.strokeStyle = "#2e1e12";
+        tctx.lineWidth = 1;
+        tctx.beginPath();
+        tctx.moveTo(f.x, f.y - 3.8);
+        tctx.lineTo(f.x, f.y - 8);
+        tctx.stroke();
+      } else {
+        tctx.strokeStyle = `rgba(251, 191, 36, ${0.4 * fp})`;
+        tctx.lineWidth = 1;
+        tctx.beginPath();
+        tctx.arc(f.x, f.y, 7, 0, Math.PI * 2);
+        tctx.stroke();
+      }
+      tctx.restore();
+    }
+
+    tctx.restore();
+  }
+
+  function openTreeModal() {
+    if (!ancientTree) return;
+    const treeOverlay = document.getElementById("treeOverlay");
+    document.getElementById("treeAge").textContent = "Ciclo " + ancientTree.ageCycles;
+    document.getElementById("treeSouls").textContent = ancientTree.soulsAbsorbed;
+    document.getElementById("treeFruits").textContent = ancientTree.fruitsProduced;
+    document.getElementById("treeVitality").textContent = Math.round(ancientTree.vitality) + "%";
+
+    const quotes = [
+      "«En sus raíces habitan las almas que un día corrieron por este valle; en sus ramas florece la memoria viva de cada era.»",
+      "«El tiempo no se pierde en el terrario: se hace savia dorada, corteza paciente y frutos celestiales.»",
+      "«Bajo su sombra sagrada, las bestias de sangre y los ciervos de viento comparten la misma tregua de paz.»",
+      "«Cada alma recordada enciende una vena luminosa que nutre las hojas contra el olvido del cosmos.»"
+    ];
+    document.getElementById("treeQuote").textContent = quotes[(ancientTree.ageCycles + ancientTree.soulsAbsorbed) % quotes.length];
+
+    drawTreeRings();
+    treeOverlay.classList.add("open");
+    Sound.chime(ancientTree.x);
+  }
+
+  function drawTreeRings() {
+    const ringCanvas = document.getElementById("treeRingCanvas");
+    if (!ringCanvas) return;
+    const rctx = ringCanvas.getContext("2d");
+    const rw = ringCanvas.width, rh = ringCanvas.height;
+    const cx = rw / 2, cy = rh / 2;
+    rctx.clearRect(0, 0, rw, rh);
+
+    const maxR = cx - 12;
+    const totalRings = Math.max(3, Math.min(18, ancientTree.ageCycles + Math.floor(ancientTree.soulsAbsorbed / 4)));
+
+    const bgGrad = rctx.createRadialGradient(cx, cy, 5, cx, cy, maxR);
+    bgGrad.addColorStop(0, "rgba(22, 60, 42, 0.9)");
+    bgGrad.addColorStop(0.7, "rgba(10, 30, 20, 0.95)");
+    bgGrad.addColorStop(1, "rgba(5, 16, 11, 1)");
+    rctx.fillStyle = bgGrad;
+    rctx.beginPath();
+    rctx.arc(cx, cy, maxR, 0, Math.PI * 2);
+    rctx.fill();
+
+    for (let r = 1; r <= totalRings; r++) {
+      const ringRadius = (r / totalRings) * (maxR - 10) + 10;
+      rctx.beginPath();
+      const steps = 48;
+      for (let s = 0; s <= steps; s++) {
+        const ang = (s / steps) * Math.PI * 2;
+        const wave = Math.sin(ang * 5 + r * 1.3) * (1.5 + r * 0.15) + Math.cos(ang * 3 - r) * 1.2;
+        const rad = ringRadius + wave;
+        const rx = cx + Math.cos(ang) * rad;
+        const ry = cy + Math.sin(ang) * rad;
+        if (s === 0) rctx.moveTo(rx, ry);
+        else rctx.lineTo(rx, ry);
+      }
+      rctx.closePath();
+      rctx.strokeStyle = r === totalRings ? "rgba(74, 224, 181, 0.8)" : `rgba(251, 191, 36, ${0.15 + (r / totalRings) * 0.35})`;
+      rctx.lineWidth = r === totalRings ? 2 : 1;
+      rctx.stroke();
+    }
+
+    const soulNodes = Math.min(24, ancientTree.soulsAbsorbed);
+    for (let i = 0; i < soulNodes; i++) {
+      const nodeAng = (i * 137.5 * Math.PI) / 180;
+      const nodeR = 12 + Math.sqrt(i / soulNodes) * (maxR - 22);
+      const nx = cx + Math.cos(nodeAng) * nodeR;
+      const ny = cy + Math.sin(nodeAng) * nodeR;
+      rctx.fillStyle = "#4ade80";
+      rctx.shadowColor = "#4ade80";
+      rctx.shadowBlur = 6;
+      rctx.beginPath();
+      rctx.arc(nx, ny, 2.5, 0, Math.PI * 2);
+      rctx.fill();
+    }
+    rctx.shadowBlur = 0;
+
+    rctx.fillStyle = "#fbbf24";
+    rctx.shadowColor = "#fbbf24";
+    rctx.shadowBlur = 10;
+    rctx.beginPath();
+    rctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    rctx.fill();
+    rctx.shadowBlur = 0;
+  }
+
+  // ==========================================
+  // LA RESONANCIA CIMÁTICA DEL TERRENO
+  // ==========================================
+  function drawCymatics(cctx) {
+    if (!options.showCymatics) return;
+    const moodModes = {
+      calma:    { n: 3, m: 2, col: "rgba(74, 222, 128, " },
+      prospero: { n: 4, m: 3, col: "rgba(251, 191, 36, " },
+      tenso:    { n: 6, m: 5, col: "rgba(248, 113, 113, " },
+      duelo:    { n: 2, m: 2, col: "rgba(167, 139, 250, " },
+      renacer:  { n: 5, m: 4, col: "rgba(56, 189, 248, " },
+      hambruna: { n: 5, m: 2, col: "rgba(251, 146, 60, " }
+    };
+    const mode = moodModes[currentMood.id] || moodModes.calma;
+    const t = simTime * 0.0008;
+    const alpha = Math.min(0.28, 0.07 + 0.03 * Math.sin(t * 2) + cymaticPulse * 0.22);
+    if (alpha <= 0.01) return;
+
+    cctx.save();
+    cctx.strokeStyle = mode.col + alpha + ")";
+    cctx.lineWidth = 1.2;
+
+    const n = mode.n, m = mode.m;
+    const cols = 28, rows = 18;
+    const dx = W / cols, dy = H / rows;
+
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        const x = i * dx;
+        const y = j * dy;
+        const chladni = Math.cos((n * Math.PI * x) / W + t) * Math.cos((m * Math.PI * y) / H) -
+                        Math.cos((m * Math.PI * x) / W) * Math.cos((n * Math.PI * y) / H + t);
+        if (Math.abs(chladni) < 0.25) {
+          const len = (0.25 - Math.abs(chladni)) * dx * 1.8;
+          const ang = Math.atan2(Math.sin((m * Math.PI * y) / H), Math.sin((n * Math.PI * x) / W)) + t * 0.5;
+          cctx.beginPath();
+          cctx.moveTo(x - Math.cos(ang) * len * 0.5, y - Math.sin(ang) * len * 0.5);
+          cctx.lineTo(x + Math.cos(ang) * len * 0.5, y + Math.sin(ang) * len * 0.5);
+          cctx.stroke();
+        }
+      }
+    }
+    cctx.restore();
+  }
+
+  // ==========================================
+  // EL GRAN ECLIPSE CÓSMICO
+  // ==========================================
+  function triggerEclipse() {
+    if (eclipseTimer > 0) return;
+    eclipseTimer = 1800;
+    eclipsesWitnessed++;
+    Sound.singingBowl();
+    showToast("🌑 ¡El Gran Eclipse Cósmico ha comenzado! La gravedad y el tiempo se desvanecen");
+  }
+
+  function updateEclipse(dt) {
+    if (eclipseTimer > 0) {
+      eclipseTimer -= dt;
+      const elapsed = 1800 - eclipseTimer;
+      if (elapsed < 300) {
+        eclipseActive = elapsed / 300;
+      } else if (eclipseTimer < 300) {
+        eclipseActive = eclipseTimer / 300;
+      } else {
+        eclipseActive = 1.0;
+      }
+    } else {
+      eclipseActive = Math.max(0, eclipseActive - 0.02 * dt);
+    }
+
+    const ecIcon = document.getElementById("eclipseIcon");
+    const ecLabel = document.getElementById("eclipseLabel");
+    if (ecIcon && ecLabel) {
+      if (eclipseActive > 0.7) {
+        ecIcon.classList.add("active");
+        ecIcon.textContent = "🌑";
+        ecLabel.textContent = "Totalidad";
+      } else if (eclipseActive > 0.1) {
+        ecIcon.classList.remove("active");
+        ecIcon.textContent = "🌘";
+        ecLabel.textContent = "Eclipse";
+      } else {
+        ecIcon.classList.remove("active");
+        ecIcon.textContent = "🌑";
+        ecLabel.textContent = "Alineación";
+      }
+    }
+  }
+
+  function drawEclipse(ectx) {
+    if (eclipseActive < 0.02) return;
+    const t = simTime * 0.001;
+    const sunX = W * 0.5, sunY = H * 0.20;
+    const moonR = 34;
+
+    ectx.save();
+
+    ectx.fillStyle = `rgba(18, 6, 38, ${0.68 * eclipseActive})`;
+    ectx.fillRect(0, 0, W, H);
+
+    if (eclipseActive > 0.3) {
+      ectx.save();
+      const starAlpha = (eclipseActive - 0.3) * 1.4;
+      for (let i = 0; i < 40; i++) {
+        const sx = (Math.sin(i * 99 + 1) * 0.5 + 0.5) * W;
+        const sy = (Math.cos(i * 37 + 2) * 0.5 + 0.5) * H * 0.65;
+        const twinkle = 0.5 + 0.5 * Math.sin(t * 3 + i * 2);
+        ectx.fillStyle = `rgba(255, 255, 255, ${starAlpha * twinkle * 0.85})`;
+        ectx.beginPath();
+        ectx.arc(sx, sy, 1.2, 0, Math.PI * 2);
+        ectx.fill();
+      }
+      ectx.restore();
+    }
+
+    ectx.save();
+    ectx.translate(sunX, sunY);
+    ectx.globalCompositeOperation = "screen";
+
+    const numStreamers = 36;
+    for (let i = 0; i < numStreamers; i++) {
+      const ang = (i / numStreamers) * Math.PI * 2 + t * 0.15;
+      const streamerLen = 50 + 45 * Math.sin(ang * 4 + t * 2) + 25 * Math.cos(ang * 7 - t * 3);
+      const streamerGrad = ectx.createLinearGradient(0, 0, Math.cos(ang) * streamerLen, Math.sin(ang) * streamerLen);
+      const col = i % 2 === 0 ? "rgba(251, 191, 36, " : "rgba(192, 132, 252, ";
+      streamerGrad.addColorStop(0, col + (0.45 * eclipseActive) + ")");
+      streamerGrad.addColorStop(0.6, "rgba(56, 189, 248, " + (0.25 * eclipseActive) + ")");
+      streamerGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+      ectx.strokeStyle = streamerGrad;
+      ectx.lineWidth = 4 + 2 * Math.sin(ang * 3 + t);
+      ectx.beginPath();
+      ectx.moveTo(Math.cos(ang) * (moonR - 2), Math.sin(ang) * (moonR - 2));
+      ectx.lineTo(Math.cos(ang) * (moonR + streamerLen), Math.sin(ang) * (moonR + streamerLen));
+      ectx.stroke();
+    }
+
+    const hazeGrad = ectx.createRadialGradient(0, 0, moonR, 0, 0, moonR * 3.2);
+    hazeGrad.addColorStop(0, `rgba(255, 255, 255, ${0.85 * eclipseActive})`);
+    hazeGrad.addColorStop(0.2, `rgba(251, 191, 36, ${0.55 * eclipseActive})`);
+    hazeGrad.addColorStop(0.6, `rgba(168, 85, 247, ${0.35 * eclipseActive})`);
+    hazeGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ectx.fillStyle = hazeGrad;
+    ectx.beginPath();
+    ectx.arc(0, 0, moonR * 3.2, 0, Math.PI * 2);
+    ectx.fill();
+
+    ectx.globalCompositeOperation = "source-over";
+    ectx.fillStyle = "#08040d";
+    ectx.beginPath();
+    ectx.arc(0, 0, moonR, 0, Math.PI * 2);
+    ectx.fill();
+
+    if (eclipseActive > 0.15 && eclipseActive < 0.85) {
+      const beadAng = (eclipseTimer > 900 ? 0.3 : 3.4);
+      const bx = Math.cos(beadAng) * moonR;
+      const by = Math.sin(beadAng) * moonR;
+      ectx.fillStyle = "#ffffff";
+      ectx.shadowColor = "#fde047";
+      ectx.shadowBlur = 16;
+      ectx.beginPath();
+      ectx.arc(bx, by, 4.5, 0, Math.PI * 2);
+      ectx.fill();
+    }
+
+    ectx.restore();
+    ectx.restore();
+  }
+
+  // ==========================================
+  // PODERES ELEMENTALES DE CREACIÓN
+  // ==========================================
+  function spawnLightning(targetX, targetY) {
+    const startX = targetX + spread(80);
+    const startY = 0;
+    const segments = [];
+    let curX = startX, curY = startY;
+    const steps = 9;
+    for (let i = 1; i <= steps; i++) {
+      const frac = i / steps;
+      const nxtX = startX + (targetX - startX) * frac + spread(30 * (1 - frac));
+      const nxtY = targetY * frac;
+      segments.push({ x1: curX, y1: curY, x2: nxtX, y2: nxtY });
+      curX = nxtX; curY = nxtY;
+    }
+    lightningBolts.push({
+      segments,
+      targetX, targetY,
+      timer: 16,
+      maxTimer: 16
+    });
+
+    const flashEl = document.getElementById("flashOverlay");
+    if (flashEl) {
+      flashEl.style.opacity = "0.75";
+      setTimeout(() => { flashEl.style.opacity = "0"; }, 70);
+    }
+
+    for (let i = 0; i < 24; i++) {
+      particles.push({
+        x: targetX, y: targetY,
+        vx: spread(3.5), vy: spread(3.5),
+        r: rand(1.5, 3.5), alpha: 0.9, color: "#38bdf8"
+      });
+    }
+
+    spawnFood(targetX + spread(12), targetY + spread(12));
+    spawnFood(targetX + spread(16), targetY + spread(16));
+
+    const nearby = creatureGrid.queryRadius(targetX, targetY, 90);
+    for (let c of nearby) {
+      const dx = c.x - targetX, dy = c.y - targetY;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      c.vx = (dx / d) * 3.5;
+      c.vy = (dy / d) * 3.5;
+    }
+
+    cymaticPulse = Math.min(1.5, cymaticPulse + 0.85);
+    Sound.thunder(targetX);
+    showToast("⚡ ¡Rayo Celestial! Suelo fertilizado con ceniza estelar");
+  }
+
+  function spawnVortex(x, y) {
+    vortices.push({
+      x, y,
+      timer: 240,
+      maxTimer: 240,
+      radius: 95
+    });
+    Sound.whoosh(x);
+  }
+
+  function blessCreature(c) {
+    c.health = 100;
+    c.energy = c.maxEnergy;
+    c.water = c.maxWater;
+    c.stamina = c.maxStamina;
+    c.blessed = true;
+    c.blessedTimer = 3600;
+    c.setEmote("🌟🕊️", 100);
+    for (let i = 0; i < 22; i++) {
+      particles.push({
+        x: c.x, y: c.y,
+        vx: spread(2.2), vy: spread(2.2),
+        r: rand(2, 4), alpha: 0.95, color: "#fde047"
+      });
+    }
+    Sound.chime(c.x);
+    showToast(`🌟 ¡${c.name} ha recibido la Bendición Cósmica!`);
+  }
+
+  function updateElementalPowers(dt) {
+    for (let i = lightningBolts.length - 1; i >= 0; i--) {
+      const b = lightningBolts[i];
+      b.timer -= dt;
+      if (b.timer <= 0) lightningBolts.splice(i, 1);
+    }
+
+    for (let i = vortices.length - 1; i >= 0; i--) {
+      const v = vortices[i];
+      v.timer -= dt;
+      if (v.timer <= 0) {
+        vortices.splice(i, 1);
+        continue;
+      }
+
+      const nearby = creatureGrid.queryRadius(v.x, v.y, v.radius);
+      for (let c of nearby) {
+        const dx = c.x - v.x, dy = c.y - v.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        const force = (1 - d / v.radius) * 1.8 * dt;
+        c.x += (-dy / d) * force * 1.4 - (dx / d) * force * 0.4;
+        c.y += (dx / d) * force * 1.4 - (dy / d) * force * 0.4;
+      }
+
+      if (Math.random() < 0.5 * dt) {
+        const pAng = Math.random() * Math.PI * 2;
+        const pDist = rand(10, v.radius);
+        particles.push({
+          x: v.x + Math.cos(pAng) * pDist,
+          y: v.y + Math.sin(pAng) * pDist,
+          vx: -Math.sin(pAng) * 2,
+          vy: Math.cos(pAng) * 2,
+          r: rand(1.5, 3),
+          alpha: 0.8,
+          color: "#34d399"
+        });
+      }
+    }
+  }
+
+  function drawElementalPowers(dctx) {
+    for (let b of lightningBolts) {
+      const alpha = b.timer / b.maxTimer;
+      dctx.save();
+      dctx.strokeStyle = `rgba(186, 230, 253, ${alpha})`;
+      dctx.lineWidth = 2.5;
+      dctx.shadowColor = "#38bdf8";
+      dctx.shadowBlur = 12;
+      for (let s of b.segments) {
+        dctx.beginPath();
+        dctx.moveTo(s.x1, s.y1);
+        dctx.lineTo(s.x2, s.y2);
+        dctx.stroke();
+      }
+      dctx.restore();
+    }
+
+    for (let v of vortices) {
+      const alpha = (v.timer / v.maxTimer) * 0.45;
+      dctx.save();
+      dctx.strokeStyle = `rgba(52, 211, 153, ${alpha})`;
+      dctx.lineWidth = 1.4;
+      dctx.setLineDash([6, 8]);
+      const rot = (v.maxTimer - v.timer) * 0.08;
+      for (let r = 20; r <= v.radius; r += 25) {
+        dctx.beginPath();
+        dctx.arc(v.x, v.y, r, rot, rot + Math.PI * 1.6);
+        dctx.stroke();
+      }
+      dctx.restore();
+    }
+  }
+
+  // ==========================================
   // RENDERIZADO DEL MUNDO
   // ==========================================
   function drawWorld() {
@@ -3007,6 +3908,7 @@
     ctx.scale(camZoom, camZoom);
     ctx.translate(-camX, -camY);
 
+    drawCymatics(ctx);
     drawCraters(ctx);
 
     for (let pond of waterBodies) {
@@ -3068,6 +3970,8 @@
       ctx.restore();
     }
 
+    drawAncientTree(ctx);
+
     for (let c of carcasses) {
       ctx.save();
       ctx.translate(c.x, c.y);
@@ -3113,6 +4017,8 @@
 
     drawMutationZones(ctx);
     drawBioTrails(ctx);
+    drawSoulWisps(ctx);
+    drawElementalPowers(ctx);
 
     for (let c of creatures) {
       c.draw(ctx);
@@ -3159,6 +4065,7 @@
 
     ctx.restore();
 
+    drawEclipse(ctx);
     drawAurora(ctx);
     drawMoodAura(ctx);
     drawAtmosphere();
@@ -3477,6 +4384,14 @@
     if (stAuroraEl) {
       stAuroraEl.textContent = auroraActive > 0.65 ? "Tormenta Boreal" : (auroraActive > 0.2 ? "Ondas Esmeralda" : "Inactiva");
     }
+    const stTreeEl = document.getElementById("stTree");
+    if (stTreeEl && ancientTree) {
+      stTreeEl.textContent = `Vigor ${Math.round(ancientTree.vitality)}% · ${ancientTree.soulsAbsorbed} 🕯️`;
+    }
+    const stEclipseEl = document.getElementById("stEclipse");
+    if (stEclipseEl) {
+      stEclipseEl.textContent = eclipseActive > 0.65 ? "🌑 Totalidad" : (eclipseActive > 0.1 ? "🌘 Parcial" : "Alineación");
+    }
     const stPossEl = document.getElementById("stPossession");
     if (stPossEl) {
       stPossEl.textContent = possessedCreature ? `👁️ ${possessedCreature.name}` : "Libre";
@@ -3580,6 +4495,12 @@
     text += `El linaje más antiguo alcanzó la generación ${era.maxGen}. `;
     if (era.meteorImpacts > 0) {
       text += `El cielo dejó caer ${era.meteorImpacts} meteorito${era.meteorImpacts === 1 ? "" : "s"}, mutando la carne de sus habitantes ${era.mutations} ${era.mutations === 1 ? "vez" : "veces"}. `;
+    }
+    if (era.eclipses > 0) {
+      text += `El Gran Eclipse cubrió de noche sagrada la era en ${era.eclipses} ocasión${era.eclipses === 1 ? "" : "es"}. `;
+    }
+    if (era.treeBlooms > 0) {
+      text += `El Árbol Ancestral desató su Gran Floración ${era.treeBlooms} ${era.treeBlooms === 1 ? "vez" : "veces"}, renovando la vida. `;
     }
     if (era.extinctions && era.extinctions.length > 0) {
       const names = era.extinctions.map((e) => (SPECIES_BY_ID[e.species] ? SPECIES_BY_ID[e.species].name : e.species));
@@ -3718,8 +4639,13 @@
       return;
     }
 
+    if (ancientTree && distSq(x, y, ancientTree.x, ancientTree.y) < 48 * 48) {
+      openTreeModal();
+      return;
+    }
+
     const clickedCreature = creatureGrid.nearest(x, y, 25);
-    if (clickedCreature) {
+    if (clickedCreature && options.activeTool !== "lightning" && options.activeTool !== "vortex" && options.activeTool !== "blessing") {
       selectedCreature = clickedCreature;
       updateUI();
       return;
@@ -3754,6 +4680,27 @@
       case "water":
         waterBodies.push({ x: x, y: y, radius: rand(45, 75), seed: rand(0, 1000) });
         break;
+      case "lightning":
+        spawnLightning(x, y);
+        break;
+      case "vortex":
+        spawnVortex(x, y);
+        break;
+      case "blessing":
+        const targetCreature = creatureGrid.nearest(x, y, 45) || clickedCreature;
+        if (targetCreature) {
+          blessCreature(targetCreature);
+        } else {
+          for (let i = 0; i < 16; i++) {
+            particles.push({
+              x: x + spread(25), y: y + spread(25),
+              vx: spread(0.5), vy: spread(0.5),
+              r: rand(2, 4), alpha: 0.9, color: "#fde047"
+            });
+          }
+          Sound.chime(x);
+        }
+        break;
     }
   }
 
@@ -3765,7 +4712,7 @@
   canvas.addEventListener("pointermove", (ev) => {
     if (pointerActive) {
       if (possessedCreature) handlePointer(ev);
-      else if (options.activeTool === "food") handlePointer(ev);
+      else if (options.activeTool === "food" || options.activeTool === "vortex") handlePointer(ev);
     }
   });
   const endPointer = () => { pointerActive = false; };
@@ -3819,6 +4766,33 @@
       auroraManualTimer = 2200;
       Sound.aurora();
       showToast("✨ ¡Gran Aurora Boreal invocada! El cielo cósmico despierta");
+    });
+  }
+
+  const btnEclipse = document.getElementById("btnEclipse");
+  if (btnEclipse) {
+    btnEclipse.addEventListener("click", () => {
+      triggerEclipse();
+    });
+  }
+
+  const btnTree = document.getElementById("btnTree");
+  if (btnTree) {
+    btnTree.addEventListener("click", openTreeModal);
+  }
+  const treeClose = document.getElementById("treeClose");
+  const treeOverlay = document.getElementById("treeOverlay");
+  if (treeClose && treeOverlay) {
+    treeClose.addEventListener("click", () => treeOverlay.classList.remove("open"));
+    treeOverlay.addEventListener("click", (e) => {
+      if (e.target === treeOverlay) treeOverlay.classList.remove("open");
+    });
+  }
+  const btnTreeBloom = document.getElementById("btnTreeBloom");
+  if (btnTreeBloom) {
+    btnTreeBloom.addEventListener("click", () => {
+      triggerTreeBloom();
+      if (treeOverlay) treeOverlay.classList.remove("open");
     });
   }
 
@@ -3885,6 +4859,7 @@
   setupToggle("togEmotes", "showEmotes");
   setupToggle("togBars", "showBars");
   setupToggle("togDayNight", "autoDayNight");
+  setupToggle("togCymatics", "showCymatics");
 
   document.getElementById("inspClose").addEventListener("click", () => { selectedCreature = null; updateUI(); });
   document.getElementById("btnFeedSelected").addEventListener("click", () => {
@@ -3964,6 +4939,12 @@
       } else if (selectedCreature) {
         possessCreature(selectedCreature);
       }
+    }
+    if (e.code === "KeyT" && !e.ctrlKey && !e.metaKey && !possessedCreature) {
+      openTreeModal();
+    }
+    if (e.code === "KeyO" && !e.ctrlKey && !e.metaKey && !possessedCreature) {
+      triggerEclipse();
     }
   });
 

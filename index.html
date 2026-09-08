@@ -19,7 +19,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v4.4 — Vínculo del Alma & Gran Aurora</span>
+    <span class="eyebrow-label">Ecosistema Vivo v9.0 — El Árbol Ancestral & Gran Eclipse</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -32,6 +32,9 @@
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span class="tod-icon aurora-icon" id="auroraIcon" title="Aurora Boreal">✨</span>
       <span id="auroraLabel">Velo Calmo</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon eclipse-icon" id="eclipseIcon" title="Gran Eclipse">🌑</span>
+      <span id="eclipseLabel">Alineación</span>
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span id="timeElapsed">0:00</span>
     </span>
@@ -60,6 +63,8 @@
       <dt>Cazas exitosas</dt><dd id="stKills">0</dd>
       <dt>💀 Almas recordadas</dt><dd id="stMemory">0</dd>
       <dt>🌌 Aurora Boreal</dt><dd id="stAurora">Inactiva</dd>
+      <dt>🌳 Árbol Ancestral</dt><dd id="stTree">Vigor 100%</dd>
+      <dt>🌑 Gran Eclipse</dt><dd id="stEclipse">Alineación</dd>
       <dt>👁️ Vínculo de Alma</dt><dd id="stPossession">Libre</dd>
     </dl>
 
@@ -85,6 +90,7 @@
       <button class="toggle-btn active" id="togDayNight">🌙 Ciclo Auto</button>
       <button class="toggle-btn" id="togAudio">🔊 Audio Vivo</button>
       <button class="toggle-btn" id="togDream">🌀 Modo Onírico</button>
+      <button class="toggle-btn active" id="togCymatics">🌊 Cimática</button>
     </div>
 
     <div class="btnrow">
@@ -92,6 +98,8 @@
       <button id="btnRain">🌧️ Lluvia Fértil</button>
       <button id="btnMeteor">☄️ Meteoritos</button>
       <button id="btnAurora">✨ Aurora</button>
+      <button id="btnEclipse">🌑 Eclipse</button>
+      <button id="btnTree">🌳 Yggdrasil</button>
       <button id="btnPossess">👁️ Encarnar</button>
       <button id="btnReset">Reiniciar</button>
       <button id="btnChronicle">📜 Crónicas</button>
@@ -105,14 +113,17 @@
 
 <!-- BARRA DE HERRAMIENTAS / SPAWN INFERIOR -->
 <div class="toolbar" id="toolbar">
-  <button class="tool-item active" data-tool="food">🌿 Sembrar Alimento</button>
-  <button class="tool-item" data-tool="herb_agile">🦌 Ciervo Ágil</button>
+  <button class="tool-item active" data-tool="food">🌿 Alimento</button>
+  <button class="tool-item" data-tool="herb_agile">🦌 Ciervo</button>
   <button class="tool-item" data-tool="herb_mega">🦏 Titán</button>
   <button class="tool-item" data-tool="carn_pack">🐺 Cazador</button>
   <button class="tool-item" data-tool="carn_apex">🦖 Apex</button>
   <button class="tool-item" data-tool="scavenger">🦅 Carroñero</button>
   <button class="tool-item" data-tool="pollinator">✨ Polinizador</button>
   <button class="tool-item" data-tool="water">💧 Oasis</button>
+  <button class="tool-item" data-tool="lightning">⚡ Rayo</button>
+  <button class="tool-item" data-tool="vortex">💨 Vórtice</button>
+  <button class="tool-item" data-tool="blessing">🌟 Bendecir</button>
 </div>
 
 <!-- TARJETA INSPECTOR DE CRIATURA -->
@@ -210,6 +221,45 @@
     <p class="saga-intro" id="sagaIntro"></p>
     <p class="saga-count-label">Leyendas en el libro: <span id="sagaCount">0</span></p>
     <div id="sagaEntries"></div>
+  </div>
+</div>
+
+<div class="tree-overlay" id="treeOverlay">
+  <div class="tree-scroll">
+    <button class="tree-close" id="treeClose" aria-label="Cerrar Árbol Ancestral">✕</button>
+    <div class="tree-emblem" aria-hidden="true">🌳</div>
+    <h2>El Árbol Ancestral (Yggdrasil)</h2>
+    <p class="tree-quote" id="treeQuote">«En sus raíces habitan las almas que un día corrieron por este valle; en sus ramas florece la memoria viva de cada era.»</p>
+    
+    <div class="tree-vital-card">
+      <div class="tree-vital-stat">
+        <span class="tree-stat-label">Edad del Árbol</span>
+        <span class="tree-stat-val" id="treeAge">Ciclo 1</span>
+      </div>
+      <div class="tree-vital-stat">
+        <span class="tree-stat-label">Almas en Raíces</span>
+        <span class="tree-stat-val" id="treeSouls">0</span>
+      </div>
+      <div class="tree-vital-stat">
+        <span class="tree-stat-label">Frutos Sagrados</span>
+        <span class="tree-stat-val" id="treeFruits">0</span>
+      </div>
+      <div class="tree-vital-stat">
+        <span class="tree-stat-label">Vigor de Vida</span>
+        <span class="tree-stat-val" id="treeVitality">100%</span>
+      </div>
+    </div>
+
+    <div class="tree-ring-display">
+      <canvas id="treeRingCanvas" width="220" height="220"></canvas>
+      <div class="tree-ring-legend" id="treeRingLegend">
+        Anillos de Crecimiento & Sabiduría Cósmica
+      </div>
+    </div>
+
+    <div class="tree-actions">
+      <button class="primary tree-bloom-btn" id="btnTreeBloom">🌸 Desatar Gran Floración Cósmica</button>
+    </div>
   </div>
 </div>
 
