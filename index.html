@@ -19,7 +19,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v4.3 — Sagas Legendarias</span>
+    <span class="eyebrow-label">Ecosistema Vivo v4.4 — Vínculo del Alma & Gran Aurora</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -29,6 +29,9 @@
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span class="tod-icon mood-icon" id="moodIcon" title="Clima emocional del terrario">🌾</span>
       <span id="moodLabel">Calma</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon aurora-icon" id="auroraIcon" title="Aurora Boreal">✨</span>
+      <span id="auroraLabel">Velo Calmo</span>
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span id="timeElapsed">0:00</span>
     </span>
@@ -56,6 +59,8 @@
       <dt>Nacimientos totales</dt><dd id="stBirths">0</dd>
       <dt>Cazas exitosas</dt><dd id="stKills">0</dd>
       <dt>💀 Almas recordadas</dt><dd id="stMemory">0</dd>
+      <dt>🌌 Aurora Boreal</dt><dd id="stAurora">Inactiva</dd>
+      <dt>👁️ Vínculo de Alma</dt><dd id="stPossession">Libre</dd>
     </dl>
 
     <hr class="divider">
@@ -86,6 +91,8 @@
       <button class="primary" id="btnPause">Pausar</button>
       <button id="btnRain">🌧️ Lluvia Fértil</button>
       <button id="btnMeteor">☄️ Meteoritos</button>
+      <button id="btnAurora">✨ Aurora</button>
+      <button id="btnPossess">👁️ Encarnar</button>
       <button id="btnReset">Reiniciar</button>
       <button id="btnChronicle">📜 Crónicas</button>
       <button id="btnOracle">🔮 Oráculo</button>
@@ -135,6 +142,7 @@
 
   <div class="insp-actions">
     <button class="primary" id="btnFollowCam">🎯 Centrar</button>
+    <button class="primary btn-possess-insp" id="btnPossessInsp">👁️ Encarnar Alma</button>
     <button id="btnFeedSelected">🍖 Alimentar</button>
     <button id="btnLineage">🌳 Linaje</button>
   </div>
@@ -202,6 +210,41 @@
     <p class="saga-intro" id="sagaIntro"></p>
     <p class="saga-count-label">Leyendas en el libro: <span id="sagaCount">0</span></p>
     <div id="sagaEntries"></div>
+  </div>
+</div>
+
+<!-- HUD DE VÍNCULO DEL ALMA / MODO ENCARNACIÓN -->
+<div class="possession-hud" id="possessionHUD" aria-live="polite">
+  <div class="possession-header">
+    <div class="possession-host">
+      <span class="possession-avatar" id="possAvatar">🦌</span>
+      <div class="possession-info">
+        <div class="possession-name-row">
+          <span class="possession-name" id="possName">Criatura</span>
+          <span class="possession-badge" id="possBadge">Especie</span>
+        </div>
+        <div class="possession-stats-micro" id="possMicroStats">Gen 1 · 0 crías · 0 cazas</div>
+      </div>
+    </div>
+
+    <div class="possession-biometrics">
+      <div class="heartbeat-box" id="possHeartBox">
+        <span class="heart-icon" id="possHeartIcon">❤️</span>
+        <span class="heart-bpm" id="possBPM">74 BPM</span>
+      </div>
+      <canvas id="ecgCanvas" class="ecg-canvas" width="130" height="32" title="Monitor electrocardiograma en tiempo real"></canvas>
+    </div>
+
+    <div class="possession-actions">
+      <button class="poss-btn ability" id="btnPossAbility" type="button" title="Activar instinto primordial (Barra Espaciadora)">⚡ <span id="possAbilityLabel">Habilidad</span></button>
+      <button class="poss-btn" id="btnPossAutopilot" type="button" title="Alternar instinto automático vs control manual (Tecla A)">🤖 <span id="possAutopilotLabel">Auto: ON</span></button>
+      <button class="poss-btn danger" id="btnPossRelease" type="button" title="Desconectar alma y despertar (Escape)">✕ Despertar</button>
+    </div>
+  </div>
+
+  <div class="possession-mind">
+    <div class="mind-label">👁️ Flujo Telepático de Consciencia <span class="mind-keys">(WASD/Flechas: Mover · Espacio: Habilidad · Esc: Despertar)</span></div>
+    <div class="mind-text" id="possThoughts">Sintiendo el latido del suelo...</div>
   </div>
 </div>
 

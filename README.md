@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v7.1: Optimización & Corrección de Interfaz)
+# Terrario Digital — Ecosistema Vivo & Evolución (v8.0: Vínculo del Alma & Gran Aurora)
 
 Un simulador de vida artificial y selección natural que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — HTML, CSS y JS estáticos servidos como tres archivos (`index.html`, `styles.css`, `main.js`).
 
@@ -45,6 +45,27 @@ Un simulador de vida artificial y selección natural que corre por completo en e
 - **Deriva cromática**: un filtro de rotación de matiz (`hue-rotate`) gira continuamente sobre toda la escena, sumado a saturación y contraste realzados, para que el ecosistema entero mute de paleta en tiempo real.
 - **Poesía visual generativa**: cada pocos segundos aparece, con una transición suave, un verso construido a partir del estado vivo del ecosistema (población, generación, especie dominante, estación, hora del día, nacimientos y cacerías) — un poema que nunca se repite igual dos veces.
 - **Eco sonoro onírico**: al activarse, el paisaje sonoro generativo gana un bucle de delay/retroalimentación que hace flotar cada acorde, disolviéndose de nuevo en silencio limpio al desactivarlo.
+
+## 👁️ Vínculo del Alma — Modo Encarnación & Control Cinético
+
+- **Botón `👁️ Encarnar` (Panel y Tarjeta Inspector)**: funde tu consciencia directamente en cualquier criatura viva del terrario (o pulsa la tecla `E`).
+- **Cámara Sensorial de Seguimiento**: la vista se centra con zoom cinematográfico suave (`1.34×`) siguiendo cada movimiento de la criatura.
+- **Latido Cardíaco Generativo & Telemetría ECG**: monitor electrocardiográfico en vivo con trazado de ondas P-Q-R-S-T en tiempo real y sintetizador de pulso biológico sub-grave (`lub-dub`) a través de la Web Audio API, acelerando en momentos de pánico, cacería o agotamiento físico (`48–168 BPM`).
+- **Flujo Telepático de Consciencia**: pensamientos poéticos en primera persona generados dinámicamente en función del estado fisiológico (hambre, sed, resistencia, edad, descendencia, cacerías, estatus de leyenda o estación en curso).
+- **Radar Sensorial Olfativo**: balizas concéntricas de sonar y vectores direccionales proyectados hacia el agua más cercana (`💧 95m`), vegetación (`🌿 60m`) y amenazas o presas (`⚠️ PELIGRO`).
+- **Control Cinético Directo & Instintos Primordiales**: toma el control manual con `WASD` o las flechas de dirección (o clic/arrastre sobre el terreno), o alterna el modo `🤖 Auto-instinto` con la tecla `A`. Pulsa la `Barra Espaciadora` para desatar la habilidad única de la especie:
+  - 🦌 **Ciervo Ágil**: *Ráfaga de Sigilo* (nube de esporas de camuflaje que despista depredadores y restaura resistencia).
+  - 🦏 **Titán Acorazado**: *Impacto Sísmico* (golpe telúrico que repele carnívoros y germina brotes).
+  - 🐺 **Cazador de Manada** / 🦖 **Apex**: *Acometida Voraz* (impulso hiperveloz con rugido intimidatorio de área).
+  - 🦅 **Carroñero**: *Ascenso Celestial* (vuelo elevado invulnerable con visión panorámica de osamentas).
+  - ✨ **Polinizador**: *Eclosión de Polen* (espiral de esporas que madura arbustos y esparce flora silvestre).
+- **Muerte Trascendental**: si la criatura huésped muere mientras tu alma está enlazada, el terrario despliega una secuencia de despedida solemne antes de que su luz ascienda al Firmamento de las Almas.
+
+## 🌌 La Gran Aurora Boreal & Estelas de Feromonas
+
+- **Botón `✨ Aurora`**: invoca un despliegue de auroras boreales cósmicas en la alta atmósfera, con cortinas de luz ondulante en tonos esmeralda (`#00ffa2`), violeta místico (`#a855f7`) y cian glacial (`#38bdf8`), con reflejos que reverberan en las aguas de cada oasis y arpegios cristalinos en el paisaje sonoro.
+- **Aparición Natural**: la Aurora Boreal emerge suavemente durante las noches y atardeceres del terrario, intensificándose cuando el Clima Emocional entra en *Renacer* o *Calma*.
+- **Estelas Bioluminiscentes de Feromonas**: cada criatura viva deja un rastro efímero de partículas químicas bioluminiscentes a su paso (esporas de menta para herbívoros, ascuas carmesí para depredadores, polvo estelar para polinizadores), tejiendo una pintura generativa en constante disolución.
 
 ## 💀 Memoria del Terrario — Persistencia entre Visitas
 

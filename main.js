@@ -306,6 +306,33 @@
   }
 
   let selectedCreature = null;
+  let followingCreature = null;
+  let camX = W / 2, camY = H / 2, camZoom = 1.0;
+  let targetCamX = W / 2, targetCamY = H / 2, targetCamZoom = 1.0;
+
+  // Aurora Boreal Cósmica
+  let auroraActive = 0.0;
+  let auroraManualTimer = 0;
+
+  // Estelas de Feromonas Bioluminiscentes (Bio-Trails)
+  const bioTrails = [];
+  const MAX_BIO_TRAILS = 450;
+
+  // Vínculo del Alma / Modo Encarnación
+  let possessedCreature = null;
+  let possessionAutopilot = true;
+  let possessionAbilityCooldown = 0;
+  const possessionAbilityMaxCooldown = 220;
+  let possessionBPM = 74;
+  let lastHeartbeatAudioSimTime = 0;
+  let possessionThoughtTimer = 0;
+  let ecgPhase = 0;
+  const ecgHistory = new Array(130).fill(16);
+  const possessionKeys = {
+    KeyW: false, KeyA: false, KeyS: false, KeyD: false,
+    ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false,
+    ShiftLeft: false, ShiftRight: false
+  };
 
   // Eventos cósmicos: lluvias de meteoritos, cráteres y zonas de mutación
   let meteors = [];
@@ -347,6 +374,10 @@
     saveDeathLedger();
     markLineageDeath(c, cause || "natural");
     recentDeathTimes.push(Date.now());
+
+    if (possessedCreature === c) {
+      handlePossessedDeath(c, cause || "natural");
+    }
 
     if (legendary) {
       legendLedger.unshift({
@@ -1052,6 +1083,70 @@
       boom() {
         ping(60, 1.4, "sine", 0.28);
         ping(45, 1.8, "triangle", 0.18, 0.05);
+      },
+      aurora() {
+        if (!ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        notes.forEach((f, i) => {
+          ping(f, 1.8 + i * 0.2, "sine", 0.07, i * 0.14);
+          ping(f * 1.5, 2.0, "triangle", 0.03, i * 0.14 + 0.08);
+        });
+      },
+      soulBond() {
+        if (!ctx) return;
+        const notes = [220, 329.63, 440, 554.37, 659.25, 880];
+        notes.forEach((f, i) => {
+          ping(f, 1.2, "sine", 0.08, i * 0.1);
+        });
+      },
+      soulRelease() {
+        if (!ctx) return;
+        const notes = [880, 659.25, 440, 329.63];
+        notes.forEach((f, i) => {
+          ping(f, 0.9, "sine", 0.07, i * 0.12);
+        });
+      },
+      heartbeat(bpm, stress = 1) {
+        if (!ctx) return;
+        const t0 = ctx.currentTime;
+        const o1 = ctx.createOscillator();
+        const g1 = ctx.createGain();
+        o1.frequency.setValueAtTime(52 + stress * 10, t0);
+        o1.frequency.exponentialRampToValueAtTime(32, t0 + 0.08);
+        g1.gain.setValueAtTime(0.22 * Math.min(1.4, stress), t0);
+        g1.gain.exponentialRampToValueAtTime(0.001, t0 + 0.08);
+        o1.connect(g1); g1.connect(master);
+        o1.start(t0); o1.stop(t0 + 0.09);
+
+        const t1 = t0 + 0.12;
+        const o2 = ctx.createOscillator();
+        const g2 = ctx.createGain();
+        o2.frequency.setValueAtTime(44 + stress * 8, t1);
+        o2.frequency.exponentialRampToValueAtTime(28, t1 + 0.09);
+        g2.gain.setValueAtTime(0.16 * Math.min(1.4, stress), t1);
+        g2.gain.exponentialRampToValueAtTime(0.001, t1 + 0.09);
+        o2.connect(g2); g2.connect(master);
+        o2.start(t1); o2.stop(t1 + 0.1);
+      },
+      whoosh() {
+        ping(320, 0.45, "triangle", 0.12);
+        ping(480, 0.35, "sine", 0.09, 0.05);
+      },
+      roar() {
+        if (!ctx) return;
+        const t0 = ctx.currentTime;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(95, t0);
+        o.frequency.exponentialRampToValueAtTime(38, t0 + 0.55);
+        g.gain.setValueAtTime(0.22, t0);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.55);
+        const f = ctx.createBiquadFilter();
+        f.type = "lowpass";
+        f.frequency.value = 400;
+        o.connect(f); f.connect(g); g.connect(master);
+        o.start(t0); o.stop(t0 + 0.6);
       }
     };
   })();
@@ -1277,6 +1372,10 @@
       this.emoteTimer = 0;
       this.attackCooldown = 0;
       this.target = null;
+      this.lastTrailX = x;
+      this.lastTrailY = y;
+      this.camouflageBoost = 0;
+      this.celestialAscent = 0;
 
       registerLineage(this, parentId);
     }
@@ -1353,6 +1452,10 @@
     }
 
     checkBushCover() {
+      if (this.camouflageBoost > 0) {
+        this.isInBush = true;
+        return;
+      }
       this.isInBush = false;
       for (let i = 0; i < bushes.length; i++) {
         const b = bushes[i];
@@ -1368,6 +1471,8 @@
       this.stateTimer += dt;
       if (this.emoteTimer > 0) this.emoteTimer -= dt;
       if (this.attackCooldown > 0) this.attackCooldown -= dt;
+      if (this.camouflageBoost > 0) this.camouflageBoost -= dt;
+      if (this.celestialAscent > 0) this.celestialAscent -= dt;
 
       if (!this.legendary && isLegendary(this)) {
         this.legendary = true;
@@ -1375,6 +1480,36 @@
       }
 
       this.checkBushCover();
+
+      // Generación de estelas de feromonas bioluminiscentes
+      const dTrailSq = distSq(this.x, this.y, this.lastTrailX, this.lastTrailY);
+      const minTrailDistSq = this.speciesId === "pollinator" ? 80 : (this.speciesId === "herb_mega" ? 140 : 180);
+      if (dTrailSq >= minTrailDistSq) {
+        this.lastTrailX = this.x;
+        this.lastTrailY = this.y;
+        spawnBioTrail(this);
+      }
+
+      // Control manual en Modo Encarnación (cuando no está en piloto automático)
+      if (possessedCreature === this && !possessionAutopilot) {
+        let mx = 0, my = 0;
+        if (possessionKeys.KeyW || possessionKeys.ArrowUp) my -= 1;
+        if (possessionKeys.KeyS || possessionKeys.ArrowDown) my += 1;
+        if (possessionKeys.KeyA || possessionKeys.ArrowLeft) mx -= 1;
+        if (possessionKeys.KeyD || possessionKeys.ArrowRight) mx += 1;
+
+        if (mx !== 0 || my !== 0) {
+          const targetAngle = Math.atan2(my, mx);
+          this.heading += angleDiff(targetAngle, this.heading) * Math.min(1, 0.24 * dt);
+          this.isSprinting = Boolean(possessionKeys.ShiftLeft || possessionKeys.ShiftRight) && this.stamina > 10;
+          const spd = this.genes.speed * (this.isSprinting ? 1.65 : 1.0) * dt;
+          this.x += Math.cos(this.heading) * spd;
+          this.y += Math.sin(this.heading) * spd;
+          this.wrap();
+          this.checkReproduction();
+          return;
+        }
+      }
 
       // Desgaste metabólico
       const baseMetabolism = (0.035 * this.genes.size + 0.05 * this.genes.speed);
@@ -2122,6 +2257,14 @@
     simTime = 0;
     realElapsedMs = 0;
     selectedCreature = null;
+    followingCreature = null;
+    bioTrails.length = 0;
+    releaseSoulBond();
+    auroraActive = 0;
+    auroraManualTimer = 0;
+    camX = W / 2;
+    camY = H / 2;
+    camZoom = 1.0;
 
     initBiomes();
 
@@ -2263,6 +2406,9 @@
     }
 
     updateCosmicEvents(dt);
+    updateAurora(dt);
+    updateBioTrails(dt);
+    updateSoulBond(dt);
 
     if (options.dreamMode) {
       poemTimer -= dt;
@@ -2271,6 +2417,575 @@
         poemTimer = rand(340, 520);
       }
     }
+  }
+
+  // ==========================================
+  // ESTELAS DE FEROMONAS BIOLUMINISCENTES
+  // ==========================================
+  function spawnBioTrail(c) {
+    if (bioTrails.length >= MAX_BIO_TRAILS) bioTrails.shift();
+    const colors = {
+      herb_agile: "#34d399",
+      herb_mega: "#fbbf24",
+      carn_pack: "#f87171",
+      carn_apex: "#c084fc",
+      scavenger: "#38bdf8",
+      pollinator: "#fef08a"
+    };
+    const col = colors[c.speciesId] || "#a7f3d0";
+    const rad = c.speciesId === "herb_mega" ? 3.4 : (c.speciesId === "pollinator" ? 1.6 : 2.2);
+    bioTrails.push({
+      x: c.x,
+      y: c.y,
+      vx: spread(0.12),
+      vy: spread(0.12),
+      r: rad,
+      alpha: c.legendary ? 0.95 : (options.dreamMode ? 0.85 : 0.65),
+      decay: options.dreamMode ? 0.0022 : 0.0055,
+      color: col,
+      speciesId: c.speciesId,
+      legendary: c.legendary
+    });
+  }
+
+  function updateBioTrails(dt) {
+    for (let i = bioTrails.length - 1; i >= 0; i--) {
+      const t = bioTrails[i];
+      t.x += t.vx * dt;
+      t.y += t.vy * dt;
+      t.alpha -= t.decay * dt;
+      if (t.alpha <= 0.02) bioTrails.splice(i, 1);
+    }
+  }
+
+  function drawBioTrails(tctx) {
+    if (bioTrails.length === 0) return;
+    tctx.save();
+    const isNight = dayTime > 0.65 && dayTime < 0.95;
+    if (isNight || options.dreamMode) {
+      tctx.shadowBlur = 6;
+    }
+    for (let i = 0; i < bioTrails.length; i++) {
+      const t = bioTrails[i];
+      tctx.globalAlpha = t.alpha;
+      tctx.fillStyle = t.color;
+      if (isNight || options.dreamMode) tctx.shadowColor = t.color;
+      tctx.beginPath();
+      tctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+      tctx.fill();
+    }
+    tctx.restore();
+  }
+
+  // ==========================================
+  // LA GRAN AURORA BOREAL CÓSMICA
+  // ==========================================
+  function updateAurora(dt) {
+    let target = 0.0;
+    const isNight = dayTime > 0.65 && dayTime < 0.95;
+    if (isNight) {
+      target = 0.5 + 0.35 * Math.sin(simTime * 0.0008);
+    } else if (dayTime >= 0.55 && dayTime <= 0.65) {
+      target = 0.25;
+    }
+    if (currentMood.id === "renacer") target = Math.max(target, 0.75);
+    if (currentMood.id === "calma") target = Math.max(target, 0.45);
+    if (currentMood.id === "duelo") target = Math.max(target, 0.4);
+
+    if (auroraManualTimer > 0) {
+      auroraManualTimer -= dt;
+      target = 1.0;
+    }
+
+    auroraActive += (target - auroraActive) * 0.02 * dt;
+
+    const auroraIconEl = document.getElementById("auroraIcon");
+    const auroraLabelEl = document.getElementById("auroraLabel");
+    if (auroraIconEl && auroraLabelEl) {
+      if (auroraActive > 0.55) {
+        auroraIconEl.classList.add("active");
+        auroraLabelEl.textContent = auroraActive > 0.85 ? "Tormenta Boreal" : "Ondas Esmeralda";
+      } else if (auroraActive > 0.18) {
+        auroraIconEl.classList.remove("active");
+        auroraLabelEl.textContent = "Velo Tenue";
+      } else {
+        auroraIconEl.classList.remove("active");
+        auroraLabelEl.textContent = "Velo Calmo";
+      }
+    }
+  }
+
+  function drawAurora(actx) {
+    if (auroraActive < 0.03) return;
+    const t = simTime * 0.0008;
+    actx.save();
+
+    // Velo etéreo de fondo
+    const skyGlow = actx.createLinearGradient(0, 0, 0, H * 0.55);
+    skyGlow.addColorStop(0, `rgba(0, 255, 162, ${0.12 * auroraActive})`);
+    skyGlow.addColorStop(0.4, `rgba(168, 85, 247, ${0.09 * auroraActive})`);
+    skyGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    actx.fillStyle = skyGlow;
+    actx.fillRect(0, 0, W, H * 0.55);
+
+    // Cortinas de luz ondulante
+    const bands = [
+      { y0: H * 0.06, h: H * 0.32, color1: "rgba(0, 255, 162, ", color2: "rgba(56, 189, 248, ", speed: 1.0, freq: 0.0035 },
+      { y0: H * 0.12, h: H * 0.36, color1: "rgba(168, 85, 247, ", color2: "rgba(244, 63, 94, ", speed: -0.8, freq: 0.0042 },
+      { y0: H * 0.04, h: H * 0.28, color1: "rgba(56, 189, 248, ", color2: "rgba(0, 255, 162, ", speed: 1.2, freq: 0.005 }
+    ];
+
+    actx.globalCompositeOperation = "screen";
+
+    for (let b of bands) {
+      const step = 20;
+      for (let x = -20; x <= W + 20; x += step) {
+        const wave1 = Math.sin(x * b.freq + t * b.speed) * 32;
+        const wave2 = Math.cos(x * (b.freq * 1.8) - t * 0.7) * 18;
+        const yTop = b.y0 + wave1 + wave2;
+        const yBot = yTop + b.h + Math.sin(x * 0.005 + t) * 24;
+
+        const rayGrad = actx.createLinearGradient(x, yTop, x, yBot);
+        const alphaPeak = (0.28 + 0.12 * Math.sin(x * 0.02 + t * 2)) * auroraActive;
+        rayGrad.addColorStop(0, b.color1 + "0)");
+        rayGrad.addColorStop(0.2, b.color1 + alphaPeak + ")");
+        rayGrad.addColorStop(0.65, b.color2 + (alphaPeak * 0.8) + ")");
+        rayGrad.addColorStop(1, b.color2 + "0)");
+
+        actx.fillStyle = rayGrad;
+        actx.fillRect(x - 2, yTop, step + 4, yBot - yTop);
+      }
+    }
+
+    actx.restore();
+  }
+
+  // ==========================================
+  // VÍNCULO DEL ALMA / MODO ENCARNACIÓN
+  // ==========================================
+  const SOUL_THOUGHTS = {
+    herb_agile: [
+      (c, ctx) => `El viento acaricia mis orejas. Percibo la humedad del pasto a ${ctx.distWater}m, pero el aire huele a peligro.`,
+      (c, ctx) => `Mis patas tiemblan de vigor. Un salto en falso y los Cazadores me arrancarán la piel; la manada es mi refugio.`,
+      (c, ctx) => `He corrido bajo tres soles. Si el invierno llega pronto, la velocidad de mis músculos será mi única oración.`,
+      (c, ctx) => `El follaje espeso me cubre. Mientras no haga ruido, los depredadores pasarán de largo sin ver mis ojos.`
+    ],
+    herb_mega: [
+      (c, ctx) => `El suelo retumba a cada paso. Mis huesos son roca antigua y ningún cazador solitario se atreverá a desafiarme.`,
+      (c, ctx) => `Los arbustos de bayas se rinden a mi andar. El terrario es paciente y yo camino al compás de las eras.`,
+      (c, ctx) => `He engendrado ${c.kids} crías gigantescas. Cuando mis ojos se apaguen, la llanura seguirá llevando mi memoria.`,
+      (c, ctx) => `La corteza de mi lomo detiene espinas y garras. No huyo: solo avanzo hacia donde brota el agua.`
+    ],
+    carn_pack: [
+      (c, ctx) => `El aroma de presa tibia corta la brisa. Mis colmillos reclaman su tributo antes de que caiga la noche.`,
+      (c, ctx) => `Somos el enjambre que danza en la sombra. Si la manada rodea a la presa a ${ctx.distPrey}m, la cacería será nuestra.`,
+      (c, ctx) => `El hambre me araña el estómago con furia. Un zarpazo veloz devolverá la energía a mis patas cansadas.`,
+      (c, ctx) => `He cazado ${c.kills} veces bajo este firmamento. Cada vida arrebatada alimenta el fuego de mi estirpe.`
+    ],
+    carn_apex: [
+      (c, ctx) => `Soy el monarca indiscutido de este terrario. Todos los que pastan en este valle conocen el eco de mi rugido.`,
+      (c, ctx) => `No persigo en desespero; escojo el momento preciso. La quietud antes del ataque es mi arte sagrado.`,
+      (c, ctx) => `Mis cicatrices cuentan las batallas de esta era. El terrario entero tiembla cuando mis fauces se abren.`,
+      (c, ctx) => `La muerte que siembro fertiliza la tierra para los que vendrán después. Soy el engranaje final del destino.`
+    ],
+    scavenger: [
+      (c, ctx) => `Desde las alturas veo el mapa entero de la vida y el fin. Los huesos limpios son el poema que leo desde el cielo.`,
+      (c, ctx) => `Desciendo en espiral silenciosa. No cazo, pero heredo los restos de todos los gigantes que cayeron.`,
+      (c, ctx) => `El viento ascendente me sostiene sin fatiga. Las osamentas fertilizan las flores de mañana.`,
+      (c, ctx) => `Observo a los titanes y cazadores desde arriba. Abajo reina la prisa; en el cielo solo existe la eternidad.`
+    ],
+    pollinator: [
+      (c, ctx) => `Gotas de luz y polen dorado brotan de mis alas. Cada vuelo entre los matorrales siembra nuevo alimento.`,
+      (c, ctx) => `La luz solar me llena de dicha. El mundo es un tapiz de colores vivos y néctar que nunca se agota.`,
+      (c, ctx) => `Mi cuerpo es diminuto, pero sin mi danza este terrario caería en un desierto estéril.`,
+      (c, ctx) => `Vuelo hacia los destellos de las flores cósmicas. La existencia es un zumbido radiante de creación.`
+    ]
+  };
+
+  function generateSoulThoughts(c) {
+    const p = c.findNearestWater();
+    const distWater = p ? Math.round(Math.sqrt(distSq(c.x, c.y, p.x, p.y))) : 999;
+    let distPrey = 999;
+    if (c.speciesId === "carn_pack" || c.speciesId === "carn_apex") {
+      const target = creatureGrid.nearest(c.x, c.y, 250, (o) => o.speciesId.startsWith("herb_"));
+      if (target) distPrey = Math.round(Math.sqrt(distSq(c.x, c.y, target.x, target.y)));
+    }
+
+    if (c.energy < c.maxEnergy * 0.28) {
+      return `“El estómago se me cierra en agonía... el hambre nubla mis pupilas. Debo encontrar sustento de inmediato.”`;
+    }
+    if (c.water < 25) {
+      return `“La garganta se me quema en sed pura. El frescor del estanque a ${distWater}m es mi única esperanza.”`;
+    }
+    if (c.legendary) {
+      return `“Un fulgor dorado arde en mi pecho. Soy una leyenda viviente del terrario y el Firmamento canta mi nombre.”`;
+    }
+    if (auroraActive > 0.6) {
+      return `“El manto del firmamento ondea en luces celestiales... una calma cósmica desciende sobre mi respiración.”`;
+    }
+
+    const list = SOUL_THOUGHTS[c.speciesId] || SOUL_THOUGHTS.herb_agile;
+    const fn = list[Math.floor(Math.random() * list.length)];
+    return `“${fn(c, { distWater, distPrey })}”`;
+  }
+
+  function possessCreature(c) {
+    if (!c || c.health <= 0) return;
+    possessedCreature = c;
+    followingCreature = c;
+    possessionAutopilot = true;
+    possessionAbilityCooldown = 0;
+    possessionThoughtTimer = 0;
+
+    const hud = document.getElementById("possessionHUD");
+    if (hud) hud.classList.add("active");
+
+    Sound.soulBond();
+    updatePossessionUI();
+    const thoughtsEl = document.getElementById("possThoughts");
+    if (thoughtsEl) thoughtsEl.textContent = generateSoulThoughts(c);
+    showToast(`👁️ Consciencia fundida en ${c.name} (${c.spec.name})`);
+  }
+
+  function releaseSoulBond() {
+    if (!possessedCreature) return;
+    possessedCreature = null;
+    followingCreature = null;
+
+    const hud = document.getElementById("possessionHUD");
+    if (hud) hud.classList.remove("active");
+
+    Sound.soulRelease();
+    updateUI();
+    showToast("✨ Vínculo liberado — regresando a la vista panorámica");
+  }
+
+  function updatePossessionUI() {
+    if (!possessedCreature) return;
+    const c = possessedCreature;
+    const avatarMap = {
+      herb_agile: "🦌",
+      herb_mega: "🦏",
+      carn_pack: "🐺",
+      carn_apex: "🦖",
+      scavenger: "🦅",
+      pollinator: "✨"
+    };
+
+    const possAvatar = document.getElementById("possAvatar");
+    const possName = document.getElementById("possName");
+    const possBadge = document.getElementById("possBadge");
+    const possMicroStats = document.getElementById("possMicroStats");
+    const possAbilityLabel = document.getElementById("possAbilityLabel");
+    const possAutopilotLabel = document.getElementById("possAutopilotLabel");
+    const btnAbility = document.getElementById("btnPossAbility");
+
+    if (possAvatar) possAvatar.textContent = avatarMap[c.speciesId] || "🐾";
+    if (possName) possName.textContent = c.name + (c.legendary ? " ⚔️" : "");
+    if (possBadge) {
+      possBadge.textContent = c.spec.name;
+      possBadge.style.color = c.spec.swatch;
+      possBadge.style.borderColor = c.spec.swatch + "66";
+    }
+    if (possMicroStats) {
+      possMicroStats.textContent = `Gen ${c.gen} · ${c.kids} crías · ${c.kills} presas · ${Math.round(c.energy)}/${Math.round(c.maxEnergy)} En`;
+    }
+
+    const abilityNames = {
+      herb_agile: "Ráfaga de Sigilo",
+      herb_mega: "Impacto Sísmico",
+      carn_pack: "Acometida Voraz",
+      carn_apex: "Rugido Real",
+      scavenger: "Ascenso Celestial",
+      pollinator: "Eclosión de Polen"
+    };
+
+    if (possAbilityLabel) {
+      possAbilityLabel.textContent = possessionAbilityCooldown > 0
+        ? `Recargando (${Math.ceil(possessionAbilityCooldown / 60)}s)`
+        : abilityNames[c.speciesId] || "Instinto Primordial";
+    }
+
+    if (btnAbility) {
+      btnAbility.classList.toggle("ready", possessionAbilityCooldown <= 0);
+    }
+
+    if (possAutopilotLabel) {
+      possAutopilotLabel.textContent = possessionAutopilot ? "Auto: ON" : "Manual: WASD";
+    }
+  }
+
+  function triggerPossessionAbility() {
+    if (!possessedCreature || possessionAbilityCooldown > 0) return;
+    const c = possessedCreature;
+    possessionAbilityCooldown = possessionAbilityMaxCooldown;
+
+    switch (c.speciesId) {
+      case "herb_agile": {
+        c.camouflageBoost = 260;
+        c.stamina = Math.min(c.maxStamina, c.stamina + 45);
+        c.setEmote("🍃✨", 70);
+        for (let i = 0; i < 20; i++) {
+          particles.push({
+            x: c.x + spread(16), y: c.y + spread(16),
+            r: rand(2, 4.5), alpha: 0.9, color: "#34d399",
+            vx: spread(1.5), vy: spread(1.5)
+          });
+        }
+        alarmWaves.push({ x: c.x, y: c.y, r: 10, maxR: 180, alpha: 0.8, color: "#34d399" });
+        Sound.whoosh();
+        showToast("🌿 ¡Ráfaga de Sigilo! Rastreadores despistados y camuflaje activo");
+        break;
+      }
+
+      case "herb_mega": {
+        alarmWaves.push({ x: c.x, y: c.y, r: 14, maxR: 240, alpha: 1.0, color: "#facc15" });
+        for (let i = 0; i < 5; i++) spawnFood(c.x + spread(50), c.y + spread(50));
+        const enemies = creatureGrid.queryRadius(c.x, c.y, 220, (o) => o.speciesId.startsWith("carn_"));
+        for (let e of enemies) {
+          e.steerAway(c.x, c.y, 1.0, 0.4, 2.0);
+          e.setEmote("💫😵", 60);
+        }
+        c.setEmote("💥🦏", 70);
+        Sound.thud();
+        Sound.boom();
+        showToast("🛡️ ¡Impacto Sísmico! Carnívoros repelidos y brotes germinados");
+        break;
+      }
+
+      case "carn_pack":
+      case "carn_apex": {
+        const boostSpd = c.speciesId === "carn_apex" ? 3.8 : 3.2;
+        c.x += Math.cos(c.heading) * boostSpd * 14;
+        c.y += Math.sin(c.heading) * boostSpd * 14;
+        c.stamina = Math.min(c.maxStamina, c.stamina + 30);
+        alarmWaves.push({ x: c.x, y: c.y, r: 12, maxR: 220, alpha: 1.0, color: "#f87171" });
+        const preyList = creatureGrid.queryRadius(c.x, c.y, 240, (o) => o.speciesId.startsWith("herb_"));
+        for (let pr of preyList) {
+          pr.state = "FLEE";
+          pr.setEmote("😱", 60);
+          pr.steerAway(c.x, c.y, 1.0, 0.35, 1.5);
+        }
+        c.setEmote("⚡🐾", 70);
+        Sound.roar();
+        showToast("⚡ ¡Acometida Voraz! Rugido intimidatorio esparcido por el valle");
+        break;
+      }
+
+      case "scavenger": {
+        c.celestialAscent = 280;
+        c.energy = Math.min(c.maxEnergy, c.energy + 25);
+        c.setEmote("🦅✨", 70);
+        for (let i = 0; i < 16; i++) {
+          particles.push({
+            x: c.x + spread(12), y: c.y + spread(12),
+            r: rand(1.5, 3.5), alpha: 0.9, color: "#38bdf8",
+            vx: spread(0.8), vy: -rand(1, 3)
+          });
+        }
+        Sound.whoosh();
+        showToast("🦅 ¡Ascenso Celestial! Vuelo elevado con visión panorámica");
+        break;
+      }
+
+      case "pollinator": {
+        for (let i = 0; i < 5; i++) spawnFood(c.x + spread(35), c.y + spread(35));
+        for (let b of bushes) {
+          if (distSq(c.x, c.y, b.x, b.y) < 180 * 180) b.berries = b.maxBerries;
+        }
+        for (let i = 0; i < 28; i++) {
+          particles.push({
+            x: c.x, y: c.y,
+            r: rand(2, 4), alpha: 1, color: i % 2 === 0 ? "#fef08a" : "#f472b6",
+            vx: Math.cos(i * 0.22) * rand(1, 4), vy: Math.sin(i * 0.22) * rand(1, 4)
+          });
+        }
+        c.setEmote("🌸💖", 70);
+        Sound.chime();
+        showToast("✨ ¡Eclosión de Polen! Arbustos madurados y semillas esparcidas");
+        break;
+      }
+    }
+
+    updatePossessionUI();
+  }
+
+  function handlePossessedDeath(c, cause) {
+    Sound.boom();
+    const flash = document.getElementById("flashOverlay");
+    if (flash) {
+      flash.style.background = "radial-gradient(circle, rgba(168, 85, 247, 0.45) 0%, rgba(8, 5, 20, 0.92) 100%)";
+      flash.classList.add("boom");
+      setTimeout(() => flash.classList.remove("boom"), 700);
+    }
+    showToast(`🕯️ El alma de ${c.name} ha dejado el cuerpo (${cause})`);
+    const thoughtsEl = document.getElementById("possThoughts");
+    if (thoughtsEl) {
+      thoughtsEl.textContent = `“El latido cesa, pero la memoria de este suelo me acoge. Ahora soy una estrella más en el Firmamento.”`;
+    }
+    setTimeout(() => {
+      releaseSoulBond();
+    }, 2800);
+  }
+
+  function updateSoulBond(dt) {
+    if (!possessedCreature) return;
+    const c = possessedCreature;
+
+    if (possessionAbilityCooldown > 0) {
+      possessionAbilityCooldown -= dt;
+      if (possessionAbilityCooldown <= 0) {
+        possessionAbilityCooldown = 0;
+        updatePossessionUI();
+      }
+    }
+
+    // Cálculo dinámico de BPM
+    let targetBPM = 72;
+    if (c.state === "FLEE" || c.state === "CHASE") targetBPM += 55;
+    if (c.isSprinting) targetBPM += 32;
+    if (c.energy < c.maxEnergy * 0.3) targetBPM += 22;
+    if (c.state === "SLEEP") targetBPM -= 24;
+    targetBPM = clamp(targetBPM, 48, 168);
+    possessionBPM += (targetBPM - possessionBPM) * 0.05 * dt;
+
+    // Latido cardíaco en audio
+    const beatIntervalSim = (60 / possessionBPM) * 60;
+    if (simTime - lastHeartbeatAudioSimTime >= beatIntervalSim) {
+      lastHeartbeatAudioSimTime = simTime;
+      const stressRatio = clamp((possessionBPM - 60) / 75, 0.5, 1.8);
+      if (audioEnabled) Sound.heartbeat(possessionBPM, stressRatio);
+    }
+
+    // ECG Telemetría
+    ecgPhase = (ecgPhase + (possessionBPM / 60) * 0.06 * dt) % 1.0;
+    let ecgVal = 16;
+    if (ecgPhase > 0.18 && ecgPhase < 0.26) {
+      ecgVal = 16 - Math.sin((ecgPhase - 0.18) / 0.08 * Math.PI) * 4;
+    } else if (ecgPhase > 0.35 && ecgPhase < 0.39) {
+      ecgVal = 16 + 5;
+    } else if (ecgPhase >= 0.39 && ecgPhase < 0.44) {
+      ecgVal = 16 - 13;
+    } else if (ecgPhase >= 0.44 && ecgPhase < 0.48) {
+      ecgVal = 16 + 6;
+    } else if (ecgPhase > 0.58 && ecgPhase < 0.72) {
+      ecgVal = 16 - Math.sin((ecgPhase - 0.58) / 0.14 * Math.PI) * 5;
+    }
+    ecgHistory.shift();
+    ecgHistory.push(ecgVal);
+    drawECGWave();
+
+    // Actualización de pensamientos poéticos
+    possessionThoughtTimer += dt;
+    if (possessionThoughtTimer >= 260) {
+      possessionThoughtTimer = 0;
+      const thoughtsEl = document.getElementById("possThoughts");
+      if (thoughtsEl) {
+        thoughtsEl.style.opacity = "0";
+        setTimeout(() => {
+          thoughtsEl.textContent = generateSoulThoughts(c);
+          thoughtsEl.style.opacity = "1";
+        }, 300);
+      }
+    }
+
+    const bpmEl = document.getElementById("possBPM");
+    if (bpmEl) bpmEl.textContent = `${Math.round(possessionBPM)} BPM`;
+
+    const heartIcon = document.getElementById("possHeartIcon");
+    if (heartIcon) {
+      const animDur = (60 / possessionBPM).toFixed(2);
+      heartIcon.style.animationDuration = `${animDur}s`;
+    }
+  }
+
+  function drawECGWave() {
+    const ecgCanvas = document.getElementById("ecgCanvas");
+    if (!ecgCanvas) return;
+    const ectx = ecgCanvas.getContext("2d");
+    const w = ecgCanvas.width, h = ecgCanvas.height;
+    ectx.clearRect(0, 0, w, h);
+
+    ectx.strokeStyle = "rgba(244, 63, 94, 0.12)";
+    ectx.lineWidth = 0.5;
+    for (let x = 0; x < w; x += 16) {
+      ectx.beginPath(); ectx.moveTo(x, 0); ectx.lineTo(x, h); ectx.stroke();
+    }
+    for (let y = 0; y < h; y += 8) {
+      ectx.beginPath(); ectx.moveTo(0, y); ectx.lineTo(w, y); ectx.stroke();
+    }
+
+    ectx.strokeStyle = "#f43f5e";
+    ectx.lineWidth = 1.6;
+    ectx.shadowColor = "#f43f5e";
+    ectx.shadowBlur = 6;
+    ectx.beginPath();
+    for (let i = 0; i < ecgHistory.length; i++) {
+      const x = (i / (ecgHistory.length - 1)) * w;
+      const y = ecgHistory[i];
+      if (i === 0) ectx.moveTo(x, y);
+      else ectx.lineTo(x, y);
+    }
+    ectx.stroke();
+    ectx.shadowBlur = 0;
+  }
+
+  function drawSoulBondSensory(sctx, c) {
+    const sonarR = ((simTime * 0.08) % 180) + 12;
+    sctx.save();
+    sctx.strokeStyle = `rgba(167, 139, 250, ${(1 - sonarR / 190) * 0.55})`;
+    sctx.lineWidth = 1.4;
+    sctx.beginPath();
+    sctx.arc(c.x, c.y, sonarR, 0, Math.PI * 2);
+    sctx.stroke();
+
+    sctx.translate(c.x, c.y);
+    sctx.rotate(simTime * 0.0012);
+    sctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    sctx.lineWidth = 1.2;
+    const rR = c.radius() + 16;
+    for (let a = 0; a < 4; a++) {
+      const ang = (a * Math.PI) / 2;
+      sctx.beginPath();
+      sctx.arc(0, 0, rR, ang - 0.22, ang + 0.22);
+      sctx.stroke();
+    }
+    sctx.restore();
+
+    sctx.save();
+    const nearestWater = c.findNearestWater();
+    if (nearestWater) {
+      const d = Math.sqrt(distSq(c.x, c.y, nearestWater.x, nearestWater.y));
+      if (d > 30 && d < 380) {
+        sctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+        sctx.setLineDash([4, 6]);
+        sctx.beginPath();
+        sctx.moveTo(c.x, c.y);
+        sctx.lineTo(nearestWater.x, nearestWater.y);
+        sctx.stroke();
+        sctx.setLineDash([]);
+        sctx.font = "10px JetBrains Mono, monospace";
+        sctx.fillStyle = "#38bdf8";
+        sctx.fillText(`💧 ${Math.round(d)}m`, (c.x + nearestWater.x) * 0.5, (c.y + nearestWater.y) * 0.5 - 6);
+      }
+    }
+
+    if (c.speciesId.startsWith("herb_")) {
+      const pred = creatureGrid.nearest(c.x, c.y, 220, (o) => o.speciesId.startsWith("carn_"));
+      if (pred) {
+        const d = Math.sqrt(distSq(c.x, c.y, pred.x, pred.y));
+        sctx.strokeStyle = "rgba(244, 63, 94, 0.6)";
+        sctx.lineWidth = 1.5;
+        sctx.beginPath();
+        sctx.moveTo(c.x, c.y);
+        sctx.lineTo(pred.x, pred.y);
+        sctx.stroke();
+        sctx.font = "10px JetBrains Mono, monospace";
+        sctx.fillStyle = "#f43f5e";
+        sctx.fillText(`⚠️ PELIGRO ${Math.round(d)}m`, (c.x + pred.x) * 0.5, (c.y + pred.y) * 0.5 - 6);
+      }
+    }
+    sctx.restore();
   }
 
   // ==========================================
@@ -2287,6 +3002,11 @@
       ctx.clearRect(0, 0, W, H);
     }
 
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.scale(camZoom, camZoom);
+    ctx.translate(-camX, -camY);
+
     drawCraters(ctx);
 
     for (let pond of waterBodies) {
@@ -2302,6 +3022,21 @@
       ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
+
+      // Reflejo de la Aurora Boreal en el agua
+      if (auroraActive > 0.05) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pond.x, pond.y, pond.radius, 0, Math.PI * 2);
+        ctx.clip();
+        const reflGrad = ctx.createLinearGradient(pond.x - pond.radius, pond.y, pond.x + pond.radius, pond.y);
+        reflGrad.addColorStop(0, `rgba(0, 255, 162, ${0.28 * auroraActive})`);
+        reflGrad.addColorStop(0.5, `rgba(56, 189, 248, ${0.22 * auroraActive})`);
+        reflGrad.addColorStop(1, `rgba(168, 85, 247, ${0.25 * auroraActive})`);
+        ctx.fillStyle = reflGrad;
+        ctx.fillRect(pond.x - pond.radius, pond.y - pond.radius, pond.radius * 2, pond.radius * 2);
+        ctx.restore();
+      }
 
       const wave = Math.sin(simTime * 0.003 + pond.seed) * 3;
       ctx.beginPath();
@@ -2377,6 +3112,7 @@
     }
 
     drawMutationZones(ctx);
+    drawBioTrails(ctx);
 
     for (let c of creatures) {
       c.draw(ctx);
@@ -2408,6 +3144,22 @@
       ctx.restore();
     }
 
+    if (possessedCreature) {
+      drawSoulBondSensory(ctx, possessedCreature);
+    } else if (followingCreature) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(74, 224, 181, 0.6)";
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(followingCreature.x, followingCreature.y, followingCreature.radius() + 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.restore();
+
+    drawAurora(ctx);
     drawMoodAura(ctx);
     drawAtmosphere();
     drawMeteors(ctx);
@@ -2721,6 +3473,15 @@
     document.getElementById("stKills").textContent = totalKills;
     document.getElementById("stMemory").textContent = deathLedger.length;
 
+    const stAuroraEl = document.getElementById("stAurora");
+    if (stAuroraEl) {
+      stAuroraEl.textContent = auroraActive > 0.65 ? "Tormenta Boreal" : (auroraActive > 0.2 ? "Ondas Esmeralda" : "Inactiva");
+    }
+    const stPossEl = document.getElementById("stPossession");
+    if (stPossEl) {
+      stPossEl.textContent = possessedCreature ? `👁️ ${possessedCreature.name}` : "Libre";
+    }
+
     const secs = Math.floor(realElapsedMs / 1000);
     const m = Math.floor(secs / 60), s2 = secs % 60;
     document.getElementById("timeElapsed").textContent = m + ":" + (s2 < 10 ? "0" : "") + s2;
@@ -2733,6 +3494,15 @@
       document.getElementById("inspBadge").textContent = `Gen ${c.gen} • ${c.speciesId.toUpperCase()}`;
       document.getElementById("inspBadge").style.color = c.spec.swatch;
       document.getElementById("inspBadge").style.background = c.spec.swatch + "22";
+
+      const btnFollowCam = document.getElementById("btnFollowCam");
+      if (btnFollowCam) {
+        btnFollowCam.textContent = (followingCreature === selectedCreature ? "🎯 Siguiendo" : "🎯 Centrar");
+      }
+      const btnPossInsp = document.getElementById("btnPossessInsp");
+      if (btnPossInsp) {
+        btnPossInsp.textContent = (possessedCreature === selectedCreature ? "✕ Despertar" : "👁️ Encarnar Alma");
+      }
 
       const stateTexts = {
         WANDER: "🧭 Explorando entorno",
@@ -2891,6 +3661,25 @@
       realElapsedMs += deltaMs;
     }
 
+    // Actualización suave de la cámara de seguimiento / encarnación
+    if (possessedCreature) {
+      targetCamX = possessedCreature.x;
+      targetCamY = possessedCreature.y;
+      targetCamZoom = 1.34;
+    } else if (followingCreature) {
+      targetCamX = followingCreature.x;
+      targetCamY = followingCreature.y;
+      targetCamZoom = 1.25;
+    } else {
+      targetCamX = W / 2;
+      targetCamY = H / 2;
+      targetCamZoom = 1.0;
+    }
+
+    camX += (targetCamX - camX) * 0.08;
+    camY += (targetCamY - camY) * 0.08;
+    camZoom += (targetCamZoom - camZoom) * 0.06;
+
     drawWorld();
 
     frameCounter++;
@@ -2898,6 +3687,7 @@
       updateUI();
       updatePopChart();
       computeMood();
+      if (possessedCreature) updatePossessionUI();
     }
   }
 
@@ -2916,7 +3706,17 @@
   let pointerActive = false, lastSpawnTs = 0;
 
   function handlePointer(ev) {
-    const x = ev.clientX, y = ev.clientY;
+    const screenX = ev.clientX, screenY = ev.clientY;
+    const x = (screenX - W / 2) / camZoom + camX;
+    const y = (screenY - H / 2) / camZoom + camY;
+
+    if (possessedCreature) {
+      possessionAutopilot = false;
+      updatePossessionUI();
+      possessedCreature.steerToward(x, y, 1.0, 0.28, 1.4);
+      particles.push({ x, y, r: 4, alpha: 0.85, color: "#c084fc" });
+      return;
+    }
 
     const clickedCreature = creatureGrid.nearest(x, y, 25);
     if (clickedCreature) {
@@ -2963,7 +3763,10 @@
     try { canvas.setPointerCapture(ev.pointerId); } catch (e) {}
   });
   canvas.addEventListener("pointermove", (ev) => {
-    if (pointerActive && options.activeTool === "food") handlePointer(ev);
+    if (pointerActive) {
+      if (possessedCreature) handlePointer(ev);
+      else if (options.activeTool === "food") handlePointer(ev);
+    }
   });
   const endPointer = () => { pointerActive = false; };
   canvas.addEventListener("pointerup", endPointer);
@@ -3009,6 +3812,28 @@
     spawnMeteorShower();
     meteorCooldown = rand(2600, 5400);
   });
+
+  const btnAurora = document.getElementById("btnAurora");
+  if (btnAurora) {
+    btnAurora.addEventListener("click", () => {
+      auroraManualTimer = 2200;
+      Sound.aurora();
+      showToast("✨ ¡Gran Aurora Boreal invocada! El cielo cósmico despierta");
+    });
+  }
+
+  const btnPossess = document.getElementById("btnPossess");
+  if (btnPossess) {
+    btnPossess.addEventListener("click", () => {
+      if (possessedCreature) {
+        releaseSoulBond();
+      } else {
+        const candidate = selectedCreature || creatures.find(c => c.legendary) || creatures.slice().sort((a, b) => b.age - a.age)[0] || creatures[0];
+        if (candidate) possessCreature(candidate);
+        else showToast("No hay criaturas vivas en el terrario");
+      }
+    });
+  }
 
   const togAudioBtn = document.getElementById("togAudio");
   togAudioBtn.addEventListener("click", () => {
@@ -3067,6 +3892,84 @@
       selectedCreature.energy = selectedCreature.maxEnergy;
       selectedCreature.water = selectedCreature.maxWater;
       selectedCreature.setEmote("✨🍖", 50);
+    }
+  });
+
+  const btnFollowCam = document.getElementById("btnFollowCam");
+  if (btnFollowCam) {
+    btnFollowCam.addEventListener("click", () => {
+      if (selectedCreature) {
+        followingCreature = (followingCreature === selectedCreature ? null : selectedCreature);
+        btnFollowCam.textContent = followingCreature ? "🎯 Siguiendo" : "🎯 Centrar";
+        showToast(followingCreature ? `🎯 Cámara centrada en ${selectedCreature.name}` : "🎯 Cámara liberada");
+      }
+    });
+  }
+
+  const btnPossessInsp = document.getElementById("btnPossessInsp");
+  if (btnPossessInsp) {
+    btnPossessInsp.addEventListener("click", () => {
+      if (possessedCreature && possessedCreature === selectedCreature) {
+        releaseSoulBond();
+      } else if (selectedCreature) {
+        possessCreature(selectedCreature);
+      }
+    });
+  }
+
+  const btnPossAbility = document.getElementById("btnPossAbility");
+  if (btnPossAbility) {
+    btnPossAbility.addEventListener("click", triggerPossessionAbility);
+  }
+
+  const btnPossAutopilot = document.getElementById("btnPossAutopilot");
+  if (btnPossAutopilot) {
+    btnPossAutopilot.addEventListener("click", () => {
+      possessionAutopilot = !possessionAutopilot;
+      updatePossessionUI();
+      showToast(possessionAutopilot ? "🤖 Instinto autónomo activado" : "🎮 Control manual activado (WASD/Flechas)");
+    });
+  }
+
+  const btnPossRelease = document.getElementById("btnPossRelease");
+  if (btnPossRelease) {
+    btnPossRelease.addEventListener("click", releaseSoulBond);
+  }
+
+  window.addEventListener("keydown", (e) => {
+    if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight", "ShiftLeft", "ShiftRight"].includes(e.code)) {
+      if (possessedCreature) {
+        possessionKeys[e.code] = true;
+        if (possessionAutopilot && (e.code.startsWith("Key") || e.code.startsWith("Arrow"))) {
+          possessionAutopilot = false;
+          updatePossessionUI();
+        }
+      }
+    }
+    if (e.code === "Space" && possessedCreature) {
+      e.preventDefault();
+      triggerPossessionAbility();
+    }
+    if (e.code === "KeyA" && possessedCreature && !e.ctrlKey && !e.metaKey && !possessionKeys.KeyW && !possessionKeys.KeyS) {
+      possessionAutopilot = !possessionAutopilot;
+      updatePossessionUI();
+      showToast(possessionAutopilot ? "🤖 Instinto autónomo activado" : "🎮 Control manual activado");
+    }
+    if (e.code === "Escape") {
+      if (possessedCreature) releaseSoulBond();
+    }
+    if (e.code === "KeyE" && !e.ctrlKey && !e.metaKey) {
+      if (possessedCreature) {
+        releaseSoulBond();
+      } else if (selectedCreature) {
+        possessCreature(selectedCreature);
+      }
+    }
+  });
+
+  window.addEventListener("keyup", (e) => {
+    if (possessionKeys[e.code] !== undefined) {
+      possessionKeys[e.code] = false;
     }
   });
 

@@ -1156,6 +1156,238 @@
   .panel::-webkit-scrollbar { width: 6px; }
   .panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
 
+  /* AURORA BOREAL INDICATOR */
+  .aurora-icon {
+    display: inline-block;
+    transition: transform 0.3s ease, filter 0.3s ease;
+  }
+  .aurora-icon.active {
+    animation: auroraWaveGlow 2.8s infinite ease-in-out;
+  }
+  @keyframes auroraWaveGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px #00ffa2) drop-shadow(0 0 10px #9d4edd); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 9px #38bdf8) drop-shadow(0 0 16px #f43f5e); transform: scale(1.18); }
+  }
+
+  /* BOTÓN ENCARNAR EN INSPECTOR */
+  .btn-possess-insp {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    border-color: rgba(167, 139, 250, 0.4) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 0 14px rgba(124, 58, 237, 0.35);
+  }
+  .btn-possess-insp:hover {
+    box-shadow: 0 0 20px rgba(167, 139, 250, 0.6);
+    transform: translateY(-1px);
+  }
+
+  /* HUD DE VÍNCULO DEL ALMA (MODO ENCARNACIÓN) */
+  .possession-hud {
+    position: fixed;
+    bottom: calc(75px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%) translateY(140%) scale(0.94);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 150;
+    width: min(880px, calc(100vw - 32px));
+    background: linear-gradient(180deg, rgba(12, 16, 30, 0.88) 0%, rgba(6, 8, 18, 0.94) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(167, 139, 250, 0.28);
+    border-radius: 16px;
+    padding: 16px 20px 14px;
+    color: #e2e8f0;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px -10px rgba(124, 58, 237, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .possession-hud.active {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .possession-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 10px;
+  }
+
+  .possession-host {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .possession-avatar {
+    font-size: 28px;
+    line-height: 1;
+    filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.5));
+  }
+  .possession-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .possession-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .possession-name {
+    font-family: "Fraunces", serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #f8fafc;
+  }
+  .possession-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(167, 139, 250, 0.18);
+    color: #c4b5fd;
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .possession-stats-micro {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  .possession-biometrics {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 6px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .heartbeat-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .heart-icon {
+    font-size: 15px;
+    display: inline-block;
+    animation: heartBeatPulse 0.9s infinite ease-in-out;
+  }
+  @keyframes heartBeatPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(244, 63, 94, 0.4)); }
+    15% { transform: scale(1.35); filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.8)); }
+    30% { transform: scale(1.1); }
+    45% { transform: scale(1.25); filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.6)); }
+  }
+  .heart-bpm {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #f43f5e;
+    min-width: 62px;
+  }
+  .ecg-canvas {
+    width: 130px;
+    height: 32px;
+    border-radius: 4px;
+    background: rgba(10, 15, 25, 0.7);
+  }
+
+  .possession-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .poss-btn {
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: #e2e8f0;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .poss-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+  }
+  .poss-btn.ability {
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.22) 0%, rgba(245, 158, 11, 0.3) 100%);
+    border-color: rgba(245, 158, 11, 0.5);
+    color: #fef08a;
+  }
+  .poss-btn.ability:hover {
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+    border-color: rgba(245, 158, 11, 0.8);
+  }
+  .poss-btn.ability.ready {
+    animation: abilityPulseReady 2s infinite ease-in-out;
+  }
+  @keyframes abilityPulseReady {
+    0%, 100% { box-shadow: 0 0 8px rgba(234, 179, 8, 0.3); }
+    50% { box-shadow: 0 0 18px rgba(234, 179, 8, 0.7), inset 0 0 10px rgba(253, 224, 71, 0.25); }
+  }
+  .poss-btn.danger {
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+  }
+  .poss-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.6);
+    color: #fee2e2;
+  }
+
+  .possession-mind {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mind-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a78bfa;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mind-keys {
+    font-size: 10px;
+    opacity: 0.65;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .mind-text {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: #f1f5f9;
+    min-height: 22px;
+    text-shadow: 0 0 14px rgba(167, 139, 250, 0.25);
+    transition: opacity 0.3s ease;
+  }
+
   @media (max-width: 768px) {
     .panel {
       left: calc(10px + env(safe-area-inset-left, 0px));
@@ -1177,5 +1409,23 @@
       left: 10px;
       width: auto;
       bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+    }
+    .possession-hud {
+      bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+      padding: 12px 14px;
+      gap: 10px;
+    }
+    .possession-header {
+      gap: 10px;
+    }
+    .possession-biometrics {
+      padding: 4px 10px;
+      gap: 8px;
+    }
+    .ecg-canvas {
+      width: 90px;
+    }
+    .mind-text {
+      font-size: 13px;
     }
   }
