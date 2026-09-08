@@ -1039,9 +1039,545 @@
     .constellation-canvas { height: 40vh; }
   }
 
+  /* SAGAS LEGENDARIAS */
+  .saga-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 6, 2, 0.65);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 24px;
+  }
+  .saga-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .saga-scroll {
+    position: relative;
+    max-width: 640px;
+    width: 100%;
+    max-height: 84vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #1c1408 0%, #120d05 100%);
+    color: #f3e4bb;
+    border-radius: 10px;
+    padding: 36px 32px 28px;
+    box-shadow: 0 30px 90px -20px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255, 213, 79, 0.25), 0 0 60px -15px rgba(255, 213, 79, 0.18);
+    font-family: "Fraunces", serif;
+    transform: scale(0.96) translateY(10px);
+    transition: transform 0.35s ease;
+  }
+  .saga-overlay.open .saga-scroll { transform: scale(1) translateY(0); }
+  .saga-scroll h2 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    background: linear-gradient(90deg, #ffd54f, #fff3d0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .saga-intro {
+    font-style: italic;
+    opacity: 0.8;
+    font-size: 13px;
+    margin: 0 0 6px;
+  }
+  .saga-count-label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+    margin: 0 0 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed rgba(255, 213, 79, 0.25);
+  }
+  .saga-entry {
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px dashed rgba(255, 213, 79, 0.18);
+  }
+  .saga-entry:last-child { border-bottom: none; }
+  .saga-name {
+    display: block;
+    font-weight: 700;
+    font-size: 15px;
+    color: #ffd54f;
+    margin-bottom: 6px;
+  }
+  .saga-species {
+    font-weight: 400;
+    font-style: italic;
+    opacity: 0.65;
+    font-size: 12.5px;
+    color: #f3e4bb;
+  }
+  .saga-text {
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0 0 8px;
+    color: #f3e4bb;
+  }
+  .saga-stats {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.55;
+  }
+  .saga-empty {
+    font-style: italic;
+    opacity: 0.6;
+    font-size: 14px;
+  }
+  .saga-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    color: #d9bf80;
+    cursor: pointer;
+    line-height: 1;
+    padding: 6px;
+  }
+  .saga-close:hover { color: #ffd54f; }
+  .saga-scroll::-webkit-scrollbar { width: 8px; }
+  .saga-scroll::-webkit-scrollbar-thumb { background: rgba(255, 213, 79, 0.3); border-radius: 4px; }
+
   /* SCROLLBAR */
   .panel::-webkit-scrollbar { width: 6px; }
   .panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+  /* AURORA BOREAL INDICATOR */
+  .aurora-icon {
+    display: inline-block;
+    transition: transform 0.3s ease, filter 0.3s ease;
+  }
+  .aurora-icon.active {
+    animation: auroraWaveGlow 2.8s infinite ease-in-out;
+  }
+  @keyframes auroraWaveGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px #00ffa2) drop-shadow(0 0 10px #9d4edd); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 9px #38bdf8) drop-shadow(0 0 16px #f43f5e); transform: scale(1.18); }
+  }
+
+  /* BOTÓN ENCARNAR EN INSPECTOR */
+  .btn-possess-insp {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    border-color: rgba(167, 139, 250, 0.4) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 0 14px rgba(124, 58, 237, 0.35);
+  }
+  .btn-possess-insp:hover {
+    box-shadow: 0 0 20px rgba(167, 139, 250, 0.6);
+    transform: translateY(-1px);
+  }
+
+  /* HUD DE VÍNCULO DEL ALMA (MODO ENCARNACIÓN) */
+  .possession-hud {
+    position: fixed;
+    bottom: calc(75px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%) translateY(140%) scale(0.94);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 150;
+    width: min(880px, calc(100vw - 32px));
+    background: linear-gradient(180deg, rgba(12, 16, 30, 0.88) 0%, rgba(6, 8, 18, 0.94) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(167, 139, 250, 0.28);
+    border-radius: 16px;
+    padding: 16px 20px 14px;
+    color: #e2e8f0;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px -10px rgba(124, 58, 237, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .possession-hud.active {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .possession-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 10px;
+  }
+
+  .possession-host {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .possession-avatar {
+    font-size: 28px;
+    line-height: 1;
+    filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.5));
+  }
+  .possession-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .possession-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .possession-name {
+    font-family: "Fraunces", serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #f8fafc;
+  }
+  .possession-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(167, 139, 250, 0.18);
+    color: #c4b5fd;
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .possession-stats-micro {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  .possession-biometrics {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 6px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .heartbeat-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .heart-icon {
+    font-size: 15px;
+    display: inline-block;
+    animation: heartBeatPulse 0.9s infinite ease-in-out;
+  }
+  @keyframes heartBeatPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(244, 63, 94, 0.4)); }
+    15% { transform: scale(1.35); filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.8)); }
+    30% { transform: scale(1.1); }
+    45% { transform: scale(1.25); filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.6)); }
+  }
+  .heart-bpm {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #f43f5e;
+    min-width: 62px;
+  }
+  .ecg-canvas {
+    width: 130px;
+    height: 32px;
+    border-radius: 4px;
+    background: rgba(10, 15, 25, 0.7);
+  }
+
+  .possession-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .poss-btn {
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: #e2e8f0;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .poss-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+  }
+  .poss-btn.ability {
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.22) 0%, rgba(245, 158, 11, 0.3) 100%);
+    border-color: rgba(245, 158, 11, 0.5);
+    color: #fef08a;
+  }
+  .poss-btn.ability:hover {
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+    border-color: rgba(245, 158, 11, 0.8);
+  }
+  .poss-btn.ability.ready {
+    animation: abilityPulseReady 2s infinite ease-in-out;
+  }
+  @keyframes abilityPulseReady {
+    0%, 100% { box-shadow: 0 0 8px rgba(234, 179, 8, 0.3); }
+    50% { box-shadow: 0 0 18px rgba(234, 179, 8, 0.7), inset 0 0 10px rgba(253, 224, 71, 0.25); }
+  }
+  .poss-btn.danger {
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+  }
+  .poss-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.6);
+    color: #fee2e2;
+  }
+
+  .possession-mind {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mind-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a78bfa;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mind-keys {
+    font-size: 10px;
+    opacity: 0.65;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .mind-text {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: #f1f5f9;
+    min-height: 22px;
+    text-shadow: 0 0 14px rgba(167, 139, 250, 0.25);
+    transition: opacity 0.3s ease;
+  }
+
+  /* ECLIPSE ICON ANIMATION */
+  .eclipse-icon {
+    display: inline-block;
+    transition: transform 0.4s ease, filter 0.4s ease;
+  }
+  .eclipse-icon.active {
+    transform: scale(1.25);
+    filter: drop-shadow(0 0 8px #c084fc);
+    animation: eclipsePulse 2.4s ease-in-out infinite;
+  }
+  @keyframes eclipsePulse {
+    0%, 100% { transform: scale(1.15) rotate(0deg); filter: drop-shadow(0 0 6px #a855f7); }
+    50% { transform: scale(1.3) rotate(10deg); filter: drop-shadow(0 0 14px #e879f9); }
+  }
+
+  /* TOOLBAR ELEMENTAL TOOLS ACCENTS */
+  .tool-item[data-tool="lightning"]:hover, .tool-item[data-tool="lightning"].active {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(168, 85, 247, 0.3));
+    border-color: #38bdf8;
+    color: #38bdf8;
+  }
+  .tool-item[data-tool="vortex"]:hover, .tool-item[data-tool="vortex"].active {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.25), rgba(56, 189, 248, 0.3));
+    border-color: #34d399;
+    color: #34d399;
+  }
+  .tool-item[data-tool="blessing"]:hover, .tool-item[data-tool="blessing"].active {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(244, 114, 182, 0.3));
+    border-color: #fbbf24;
+    color: #fbbf24;
+  }
+
+  /* MODAL EL ÁRBOL ANCESTRAL (YGGDRASIL) */
+  .tree-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 210;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 16, 12, 0.72);
+    backdrop-filter: blur(8px) saturate(1.2);
+    -webkit-backdrop-filter: blur(8px) saturate(1.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    padding: 24px;
+  }
+  .tree-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .tree-scroll {
+    position: relative;
+    max-width: 580px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #0d2117 0%, #06120c 100%);
+    color: #e2f1e8;
+    border-radius: 14px;
+    padding: 34px 30px 28px;
+    box-shadow: 0 30px 90px -20px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(74, 224, 181, 0.3), 0 0 70px -15px rgba(52, 211, 153, 0.22);
+    font-family: "Libre Franklin", sans-serif;
+    transform: scale(0.95) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+  }
+  .tree-overlay.open .tree-scroll {
+    transform: scale(1) translateY(0);
+  }
+  .tree-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: rgba(226, 241, 232, 0.6);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .tree-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .tree-emblem {
+    font-size: 42px;
+    margin-bottom: 8px;
+    display: inline-block;
+    filter: drop-shadow(0 0 16px rgba(52, 211, 153, 0.6));
+    animation: treePulse 3s ease-in-out infinite;
+  }
+  @keyframes treePulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(52, 211, 153, 0.5)); }
+    50% { transform: scale(1.08); filter: drop-shadow(0 0 24px rgba(251, 191, 36, 0.7)); }
+  }
+  .tree-scroll h2 {
+    margin: 0 0 8px;
+    font-family: "Fraunces", serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    background: linear-gradient(90deg, #4ade80, #fbbf24, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tree-quote {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #bbf7d0;
+    opacity: 0.88;
+    margin: 0 auto 22px;
+    max-width: 460px;
+  }
+  .tree-vital-card {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(74, 224, 181, 0.2);
+    border-radius: 10px;
+    padding: 14px 10px;
+    margin-bottom: 22px;
+  }
+  .tree-vital-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .tree-stat-label {
+    font-size: 10px;
+    font-family: "JetBrains Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #86efac;
+    opacity: 0.8;
+  }
+  .tree-stat-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .tree-ring-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  #treeRingCanvas {
+    background: radial-gradient(circle, rgba(16, 42, 30, 0.8) 0%, rgba(6, 18, 12, 0.95) 75%);
+    border: 1px solid rgba(74, 224, 181, 0.25);
+    border-radius: 50%;
+    box-shadow: 0 0 30px -5px rgba(52, 211, 153, 0.25);
+  }
+  .tree-ring-legend {
+    margin-top: 10px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: #a7f3d0;
+    opacity: 0.75;
+  }
+  .tree-actions {
+    margin-top: 10px;
+  }
+  .tree-bloom-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #0284c7 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 12px 24px !important;
+    border-radius: 26px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    box-shadow: 0 8px 24px -6px rgba(16, 185, 129, 0.6), 0 0 20px rgba(56, 189, 248, 0.3) !important;
+    cursor: pointer;
+    transition: all 0.25s ease !important;
+  }
+  .tree-bloom-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 30px -4px rgba(16, 185, 129, 0.8), 0 0 30px rgba(56, 189, 248, 0.5) !important;
+  }
 
   @media (max-width: 768px) {
     .panel {
@@ -1064,5 +1600,23 @@
       left: 10px;
       width: auto;
       bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+    }
+    .possession-hud {
+      bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+      padding: 12px 14px;
+      gap: 10px;
+    }
+    .possession-header {
+      gap: 10px;
+    }
+    .possession-biometrics {
+      padding: 4px 10px;
+      gap: 8px;
+    }
+    .ecg-canvas {
+      width: 90px;
+    }
+    .mind-text {
+      font-size: 13px;
     }
   }

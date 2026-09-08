@@ -19,7 +19,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v4.2 — Firmamento de las Almas</span>
+    <span class="eyebrow-label">Ecosistema Vivo v9.0 — El Árbol Ancestral & Gran Eclipse</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -29,6 +29,12 @@
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span class="tod-icon mood-icon" id="moodIcon" title="Clima emocional del terrario">🌾</span>
       <span id="moodLabel">Calma</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon aurora-icon" id="auroraIcon" title="Aurora Boreal">✨</span>
+      <span id="auroraLabel">Velo Calmo</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon eclipse-icon" id="eclipseIcon" title="Gran Eclipse">🌑</span>
+      <span id="eclipseLabel">Alineación</span>
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span id="timeElapsed">0:00</span>
     </span>
@@ -56,6 +62,10 @@
       <dt>Nacimientos totales</dt><dd id="stBirths">0</dd>
       <dt>Cazas exitosas</dt><dd id="stKills">0</dd>
       <dt>💀 Almas recordadas</dt><dd id="stMemory">0</dd>
+      <dt>🌌 Aurora Boreal</dt><dd id="stAurora">Inactiva</dd>
+      <dt>🌳 Árbol Ancestral</dt><dd id="stTree">Vigor 100%</dd>
+      <dt>🌑 Gran Eclipse</dt><dd id="stEclipse">Alineación</dd>
+      <dt>👁️ Vínculo de Alma</dt><dd id="stPossession">Libre</dd>
     </dl>
 
     <hr class="divider">
@@ -80,31 +90,40 @@
       <button class="toggle-btn active" id="togDayNight">🌙 Ciclo Auto</button>
       <button class="toggle-btn" id="togAudio">🔊 Audio Vivo</button>
       <button class="toggle-btn" id="togDream">🌀 Modo Onírico</button>
+      <button class="toggle-btn active" id="togCymatics">🌊 Cimática</button>
     </div>
 
     <div class="btnrow">
       <button class="primary" id="btnPause">Pausar</button>
       <button id="btnRain">🌧️ Lluvia Fértil</button>
       <button id="btnMeteor">☄️ Meteoritos</button>
+      <button id="btnAurora">✨ Aurora</button>
+      <button id="btnEclipse">🌑 Eclipse</button>
+      <button id="btnTree">🌳 Yggdrasil</button>
+      <button id="btnPossess">👁️ Encarnar</button>
       <button id="btnReset">Reiniciar</button>
       <button id="btnChronicle">📜 Crónicas</button>
       <button id="btnOracle">🔮 Oráculo</button>
       <button id="btnPostal">🖼️ Postal</button>
       <button id="btnConstellation">🌌 Firmamento</button>
+      <button id="btnSagas">📖 Sagas</button>
     </div>
   </div>
 </div>
 
 <!-- BARRA DE HERRAMIENTAS / SPAWN INFERIOR -->
 <div class="toolbar" id="toolbar">
-  <button class="tool-item active" data-tool="food">🌿 Sembrar Alimento</button>
-  <button class="tool-item" data-tool="herb_agile">🦌 Ciervo Ágil</button>
+  <button class="tool-item active" data-tool="food">🌿 Alimento</button>
+  <button class="tool-item" data-tool="herb_agile">🦌 Ciervo</button>
   <button class="tool-item" data-tool="herb_mega">🦏 Titán</button>
   <button class="tool-item" data-tool="carn_pack">🐺 Cazador</button>
   <button class="tool-item" data-tool="carn_apex">🦖 Apex</button>
   <button class="tool-item" data-tool="scavenger">🦅 Carroñero</button>
   <button class="tool-item" data-tool="pollinator">✨ Polinizador</button>
   <button class="tool-item" data-tool="water">💧 Oasis</button>
+  <button class="tool-item" data-tool="lightning">⚡ Rayo</button>
+  <button class="tool-item" data-tool="vortex">💨 Vórtice</button>
+  <button class="tool-item" data-tool="blessing">🌟 Bendecir</button>
 </div>
 
 <!-- TARJETA INSPECTOR DE CRIATURA -->
@@ -134,6 +153,7 @@
 
   <div class="insp-actions">
     <button class="primary" id="btnFollowCam">🎯 Centrar</button>
+    <button class="primary btn-possess-insp" id="btnPossessInsp">👁️ Encarnar Alma</button>
     <button id="btnFeedSelected">🍖 Alimentar</button>
     <button id="btnLineage">🌳 Linaje</button>
   </div>
@@ -191,6 +211,90 @@
     <p class="constellation-intro">Cada criatura que ha muerto en este terrario se convierte en una estrella. <span id="constellationCount">0</span> almas brillan aquí, para siempre. Toca una estrella para leer su epitafio.</p>
     <canvas id="constellationCanvas" class="constellation-canvas"></canvas>
     <div class="constellation-epitaph" id="constellationEpitaph">Elige una estrella entre las constelaciones.</div>
+  </div>
+</div>
+
+<div class="saga-overlay" id="sagaOverlay">
+  <div class="saga-scroll">
+    <button class="saga-close" id="sagaClose" aria-label="Cerrar sagas">✕</button>
+    <h2>📖 Sagas Legendarias</h2>
+    <p class="saga-intro" id="sagaIntro"></p>
+    <p class="saga-count-label">Leyendas en el libro: <span id="sagaCount">0</span></p>
+    <div id="sagaEntries"></div>
+  </div>
+</div>
+
+<div class="tree-overlay" id="treeOverlay">
+  <div class="tree-scroll">
+    <button class="tree-close" id="treeClose" aria-label="Cerrar Árbol Ancestral">✕</button>
+    <div class="tree-emblem" aria-hidden="true">🌳</div>
+    <h2>El Árbol Ancestral (Yggdrasil)</h2>
+    <p class="tree-quote" id="treeQuote">«En sus raíces habitan las almas que un día corrieron por este valle; en sus ramas florece la memoria viva de cada era.»</p>
+    
+    <div class="tree-vital-card">
+      <div class="tree-vital-stat">
+        <span class="tree-stat-label">Edad del Árbol</span>
+        <span class="tree-stat-val" id="treeAge">Ciclo 1</span>
+      </div>
+      <div class="tree-vital-stat">
+        <span class="tree-stat-label">Almas en Raíces</span>
+        <span class="tree-stat-val" id="treeSouls">0</span>
+      </div>
+      <div class="tree-vital-stat">
+        <span class="tree-stat-label">Frutos Sagrados</span>
+        <span class="tree-stat-val" id="treeFruits">0</span>
+      </div>
+      <div class="tree-vital-stat">
+        <span class="tree-stat-label">Vigor de Vida</span>
+        <span class="tree-stat-val" id="treeVitality">100%</span>
+      </div>
+    </div>
+
+    <div class="tree-ring-display">
+      <canvas id="treeRingCanvas" width="220" height="220"></canvas>
+      <div class="tree-ring-legend" id="treeRingLegend">
+        Anillos de Crecimiento & Sabiduría Cósmica
+      </div>
+    </div>
+
+    <div class="tree-actions">
+      <button class="primary tree-bloom-btn" id="btnTreeBloom">🌸 Desatar Gran Floración Cósmica</button>
+    </div>
+  </div>
+</div>
+
+<!-- HUD DE VÍNCULO DEL ALMA / MODO ENCARNACIÓN -->
+<div class="possession-hud" id="possessionHUD" aria-live="polite">
+  <div class="possession-header">
+    <div class="possession-host">
+      <span class="possession-avatar" id="possAvatar">🦌</span>
+      <div class="possession-info">
+        <div class="possession-name-row">
+          <span class="possession-name" id="possName">Criatura</span>
+          <span class="possession-badge" id="possBadge">Especie</span>
+        </div>
+        <div class="possession-stats-micro" id="possMicroStats">Gen 1 · 0 crías · 0 cazas</div>
+      </div>
+    </div>
+
+    <div class="possession-biometrics">
+      <div class="heartbeat-box" id="possHeartBox">
+        <span class="heart-icon" id="possHeartIcon">❤️</span>
+        <span class="heart-bpm" id="possBPM">74 BPM</span>
+      </div>
+      <canvas id="ecgCanvas" class="ecg-canvas" width="130" height="32" title="Monitor electrocardiograma en tiempo real"></canvas>
+    </div>
+
+    <div class="possession-actions">
+      <button class="poss-btn ability" id="btnPossAbility" type="button" title="Activar instinto primordial (Barra Espaciadora)">⚡ <span id="possAbilityLabel">Habilidad</span></button>
+      <button class="poss-btn" id="btnPossAutopilot" type="button" title="Alternar instinto automático vs control manual (Tecla A)">🤖 <span id="possAutopilotLabel">Auto: ON</span></button>
+      <button class="poss-btn danger" id="btnPossRelease" type="button" title="Desconectar alma y despertar (Escape)">✕ Despertar</button>
+    </div>
+  </div>
+
+  <div class="possession-mind">
+    <div class="mind-label">👁️ Flujo Telepático de Consciencia <span class="mind-keys">(WASD/Flechas: Mover · Espacio: Habilidad · Esc: Despertar)</span></div>
+    <div class="mind-text" id="possThoughts">Sintiendo el latido del suelo...</div>
   </div>
 </div>
 
