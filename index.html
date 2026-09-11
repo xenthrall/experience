@@ -19,7 +19,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v9.0 — El Árbol Ancestral & Gran Eclipse</span>
+    <span class="eyebrow-label">Ecosistema Vivo v10.0 — El Crisol de Quimeras & Geodas Prismáticas</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -36,6 +36,12 @@
       <span class="tod-icon eclipse-icon" id="eclipseIcon" title="Gran Eclipse">🌑</span>
       <span id="eclipseLabel">Alineación</span>
       <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon crystal-icon" id="crystalIcon" title="Geodas de Cristal">💎</span>
+      <span id="crystalLabel">3 Geodas</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon chimera-icon" id="chimeraIcon" title="Quimeras Legendarias">🧬</span>
+      <span id="chimeraLabel">0 Quimeras</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span id="timeElapsed">0:00</span>
     </span>
     <button class="toggle" id="panelToggle" type="button" aria-expanded="false" aria-controls="panelBody" aria-label="Mostrar panel">
@@ -43,7 +49,7 @@
     </button>
   </div>
   <h1>Terrario Digital</h1>
-  <p class="sub">Vida artificial, instintos de supervivencia y selección natural en tiempo real.</p>
+  <p class="sub">Vida artificial, instintos de supervivencia, alquimia genética y selección natural.</p>
 
   <div class="panel-body" id="panelBody">
     <div class="chart-container" title="Poblaciones en el tiempo">
@@ -62,6 +68,8 @@
       <dt>Nacimientos totales</dt><dd id="stBirths">0</dd>
       <dt>Cazas exitosas</dt><dd id="stKills">0</dd>
       <dt>💀 Almas recordadas</dt><dd id="stMemory">0</dd>
+      <dt>💎 Geodas de Cristal</dt><dd id="stCrystals">0</dd>
+      <dt>🧬 Quimeras Vivas</dt><dd id="stChimeras">0</dd>
       <dt>🌌 Aurora Boreal</dt><dd id="stAurora">Inactiva</dd>
       <dt>🌳 Árbol Ancestral</dt><dd id="stTree">Vigor 100%</dd>
       <dt>🌑 Gran Eclipse</dt><dd id="stEclipse">Alineación</dd>
@@ -99,6 +107,7 @@
       <button id="btnMeteor">☄️ Meteoritos</button>
       <button id="btnAurora">✨ Aurora</button>
       <button id="btnEclipse">🌑 Eclipse</button>
+      <button id="btnChimera">🧬 Quimeras</button>
       <button id="btnTree">🌳 Yggdrasil</button>
       <button id="btnPossess">👁️ Encarnar</button>
       <button id="btnReset">Reiniciar</button>
@@ -120,6 +129,8 @@
   <button class="tool-item" data-tool="carn_apex">🦖 Apex</button>
   <button class="tool-item" data-tool="scavenger">🦅 Carroñero</button>
   <button class="tool-item" data-tool="pollinator">✨ Polinizador</button>
+  <button class="tool-item" data-tool="crystal">💎 Cristal</button>
+  <button class="tool-item" data-tool="chimera">🧬 Quimera</button>
   <button class="tool-item" data-tool="water">💧 Oasis</button>
   <button class="tool-item" data-tool="lightning">⚡ Rayo</button>
   <button class="tool-item" data-tool="vortex">💨 Vórtice</button>
@@ -154,6 +165,7 @@
   <div class="insp-actions">
     <button class="primary" id="btnFollowCam">🎯 Centrar</button>
     <button class="primary btn-possess-insp" id="btnPossessInsp">👁️ Encarnar Alma</button>
+    <button id="btnTransmute">🧬 Transmutar</button>
     <button id="btnFeedSelected">🍖 Alimentar</button>
     <button id="btnLineage">🌳 Linaje</button>
   </div>
@@ -259,6 +271,45 @@
 
     <div class="tree-actions">
       <button class="primary tree-bloom-btn" id="btnTreeBloom">🌸 Desatar Gran Floración Cósmica</button>
+    </div>
+  </div>
+</div>
+
+<div class="chimera-overlay" id="chimeraOverlay">
+  <div class="chimera-scroll">
+    <button class="chimera-close" id="chimeraClose" aria-label="Cerrar Crisol de Quimeras">✕</button>
+    <div class="chimera-emblem" aria-hidden="true">🧬</div>
+    <h2>El Crisol de Quimeras</h2>
+    <p class="chimera-quote" id="chimeraQuote">«Cuando los hilos de la vida se entrelazan más allá del instinto, nacen las criaturas del mito y la luz primordial.»</p>
+
+    <!-- Selector de Quimeras -->
+    <div class="chimera-tabs" id="chimeraTabs">
+      <button class="chimera-tab active" data-chimera="chimera_celestial">🦌✨ Ciervo Alado</button>
+      <button class="chimera-tab" data-chimera="chimera_behemoth">🦏🌋 Behemoth</button>
+      <button class="chimera-tab" data-chimera="chimera_gryphon">🐺🦅 Grifo Umbrío</button>
+      <button class="chimera-tab" data-chimera="chimera_prism">✨💎 Prisma Viviente</button>
+    </div>
+
+    <!-- Previsualización Holográfica Procedural en Tiempo Real -->
+    <div class="chimera-preview-container">
+      <canvas id="chimeraPreviewCanvas" width="280" height="190"></canvas>
+      <div class="chimera-preview-name" id="chimeraPreviewName">Ciervo Alado de Luz</div>
+      <div class="chimera-preview-recipe" id="chimeraPreviewRecipe">🦌 Ciervo Ágil + ✨ Polinizador</div>
+    </div>
+
+    <div class="chimera-details-card">
+      <p class="chimera-desc" id="chimeraDesc">Ser etéreo de gracia celestial. Sus alas doradas le permiten surcar los cielos sobre el agua y los depredadores, esparciendo una lluvia de polvo estelar que fecunda la tierra a su paso.</p>
+      <div class="chimera-stats-grid">
+        <div class="chimera-stat-item"><span class="chimera-stat-label">Tipo</span><span class="chimera-stat-val" id="chimeraStatType">Aéreo Sagrado</span></div>
+        <div class="chimera-stat-item"><span class="chimera-stat-label">Velocidad</span><span class="chimera-stat-val" id="chimeraStatSpeed">2.3×</span></div>
+        <div class="chimera-stat-item"><span class="chimera-stat-label">Habilidad</span><span class="chimera-stat-val" id="chimeraStatAbility">Polvo Estelar</span></div>
+        <div class="chimera-stat-item"><span class="chimera-stat-label">Vivas</span><span class="chimera-stat-val" id="chimeraStatCount">0</span></div>
+      </div>
+    </div>
+
+    <div class="chimera-actions">
+      <button class="primary chimera-spawn-btn" id="btnSpawnChimera">✨ Engendrar Quimera</button>
+      <button class="chimera-transmute-btn" id="btnTransmuteSelected">🧬 Transmutar Criatura Seleccionada</button>
     </div>
   </div>
 </div>
