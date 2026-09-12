@@ -1842,6 +1842,164 @@
     transform: translateY(-2px);
   }
 
+  @keyframes myceliumGlow {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.7)); }
+    50% { transform: scale(1.12); filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.9)); }
+  }
+
+  .mycelium-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 216;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 20, 16, 0.82);
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    padding: 24px;
+  }
+  .mycelium-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .mycelium-scroll {
+    position: relative;
+    max-width: 580px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #07271e 0%, #03140e 100%);
+    color: #e6fffa;
+    border-radius: 18px;
+    padding: 32px 28px 28px;
+    box-shadow: 0 30px 90px -20px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(52, 211, 153, 0.35), 0 0 80px -15px rgba(16, 185, 129, 0.25);
+    font-family: "Libre Franklin", sans-serif;
+    transform: scale(0.95) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+  }
+  .mycelium-overlay.open .mycelium-scroll {
+    transform: scale(1) translateY(0);
+  }
+  .mycelium-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: rgba(230, 255, 250, 0.6);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .mycelium-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .mycelium-emblem {
+    font-size: 44px;
+    margin-bottom: 6px;
+    display: inline-block;
+    animation: myceliumGlow 3.5s ease-in-out infinite;
+  }
+  .mycelium-scroll h2 {
+    margin: 0 0 8px;
+    font-family: "Fraunces", serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    background: linear-gradient(90deg, #34d399, #22d3ee, #c084fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .mycelium-quote {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #a7f3d0;
+    opacity: 0.9;
+    margin: 0 auto 18px;
+    max-width: 480px;
+  }
+  .mycelium-vital-card {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    background: rgba(6, 44, 34, 0.55);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    border-radius: 12px;
+    padding: 14px 10px;
+    margin-bottom: 18px;
+  }
+  .mycelium-vital-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mycelium-stat-label {
+    font-size: 11px;
+    color: #6ee7b7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .mycelium-stat-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .mycelium-canvas-container {
+    background: rgba(3, 20, 14, 0.85);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.6);
+  }
+  #myceliumCanvas {
+    width: 280px;
+    height: 190px;
+    border-radius: 8px;
+    background: radial-gradient(circle at center, #063024 0%, #02120b 100%);
+  }
+  .mycelium-legend {
+    font-size: 12px;
+    color: #6ee7b7;
+    margin-top: 10px;
+    font-style: italic;
+  }
+  .mycelium-actions {
+    display: flex;
+    justify-content: center;
+  }
+  .mycelium-bloom-btn {
+    background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #2563eb 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(110, 231, 183, 0.5) !important;
+    padding: 12px 24px !important;
+    border-radius: 26px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4) !important;
+    cursor: pointer;
+    transition: all 0.25s ease !important;
+  }
+  .mycelium-bloom-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 24px rgba(34, 211, 238, 0.55) !important;
+  }
+
   @media (max-width: 768px) {
     .panel {
       left: calc(10px + env(safe-area-inset-left, 0px));

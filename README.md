@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v10.0: El Cenote de Cristal Prismático & El Crisol de Quimeras Trascendentes)
+# Terrario Digital — Ecosistema Vivo & Evolución (v11.0: La Red Micelial Sináptica & Los Vórtices del Espacio-Tiempo)
 
 Un simulador de vida artificial, selección natural y arte generativo que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — HTML, CSS y JS estáticos servidos como tres archivos (`index.html`, `styles.css`, `main.js`).
 
@@ -123,6 +123,24 @@ Un simulador de vida artificial, selección natural y arte generativo que corre 
 - **Síntesis FM Acústica Cuántica**: Emulación física de la armónica de cristal de Benjamin Franklin mediante un oscilador portador senoidal y un modulador acoplado a un ratio inarmónico de campana de cuarzo (`2.76:1`), con caída exponencial suave y reverberación estéreo.
 - **Vocalizaciones de Quimera**: Cada una de las 4 quimeras posee un timbre acústico bespoke: arpegios polifónicos de campana para el ciervo celestial, rugidos cavernosos modulados por FM sub-grave para el behemoth, chillidos chirriantes de alta velocidad para el grifo y glissandos cristalinos puros para el prisma viviente.
 
+## 🍄 La Red Micelial Sináptica & Colonias de Setas Astrales
+
+- **La "Wood-Wide Web" Subterránea**: Una red orgánica viva de hifas bioluminiscentes procedurales que corre por debajo del sustrato del terrario, conectando las raíces del Árbol Ancestral Yggdrasil, los oasis, las geodas de cristal y los cuerpos en descomposición.
+- **Potenciales de Acción Bioeléctricos**: Impulsos fotónicos de nutrientes que viajan activamente por las ramas de las hifas, emitiendo micro-arpegios eólicos y redistribuyendo energía por el ecosistema.
+- **3 Variedades de Setas Astrales**:
+  1. 🔮 **Amanita Astral (`astral`)**: Sombrero azul/cian con constelaciones de luz. Otorga levitación psíquica (desplaza la criatura sin fricción y multiplica su velocidad).
+  2. ☀️ **Chanterelle Solar (`solar`)**: Sombrero ámbar dorado. Sacia el hambre y la sed al 100%, recargando por completo la energía vital y resistencia.
+  3. 🌿 **Velo de Esmeralda (`emerald`)**: Hongo verde néon con faldón de encaje. Restaura la salud a 100% y desata una onda concéntrica curativa que sana a todas las criaturas en 140px.
+- **Éxtasis Fúngico (`fungalEcstasy`)**: Las criaturas que consumen setas entran en comunión con la red micelial: ganan auras bioluminiscentes de esporas, dejan brotes fértiles a su paso y en Modo Encarnación experimentan visiones telepáticas de la mente vegetal.
+- **Códice de la Mente Micelial (`🍄 Micelio` o Tecla `M`)**: Modal con previsualización procedural de la red sináptica en `#myceliumCanvas`, telemetría de biomasa e impulsos activos, y el botón **"🌌 Desatar Gran Esporulación Bioluminiscente"** que inunda el terrario de esporas cósmicas doradas.
+
+## 🌀 Los Vórtices del Espacio-Tiempo (Agujeros de Gusano Cuánticos)
+
+- **Portales Entrelazados Alfa & Omega**: Dos singularidades gravitacionales que curvan el espacio sobre el terrario. El Vórtice Alfa (Cian/Esmeralda) y el Vórtice Omega (Violeta/Magenta) poseen discos de acreción en contrarrotación, anillos de fotones brillantes y un horizonte de sucesos negro abisal.
+- **Física del Salto Espacio-Temporal**: Cualquier criatura o entidad que toque el horizonte de sucesos es engullida en una implosión cuántica y eyectada por el portal gemelo con aceleración cinética direccional, estallido de partículas y ecos temporales cuánticos (`spawnQuantumEcho`).
+- **Saga Legendaria del "Caminante de Dimensiones"**: Aquellas criaturas que logran saltar 3 veces a través de los vórtices sin perecer quedan consagradas para siempre en el libro de las Sagas Legendarias con un halo orbital cuántico perpetuo.
+- **Herramienta en la Barra Inferior (`🌀 Portal`)**: Permite al observador hacer clic en cualquier punto del mundo para recolocar los vórtices Alfa y Omega a voluntad.
+
 ## ⚡ Poderes Elementales de Creación
 
 - **⚡ Rayo Celestial (`data-tool="lightning"`)**: Lanza un arco voltaico procedural ramificado desde las alturas con relámpago de pantalla, sonido de trueno envolvente e ionización de suelo que genera un cráter místico super-fértil.
@@ -156,6 +174,7 @@ Un simulador de vida artificial, selección natural y arte generativo que corre 
   - `Espacio`: Desatar habilidad única de la criatura / quimera poseída.
   - `A`: Alternar entre instinto autónomo y control manual en modo posesión.
   - `C`: Abrir / Cerrar el Códice de Quimeras Trascendentes.
+  - `M`: Abrir / Cerrar el Códice de la Red Micelial Sináptica.
   - `X`: Generar una Geoda de Cuarzo Resonante en el mundo.
   - `T`: Consultar la Sabiduría Ancestral del Gran Árbol Yggdrasil.
   - `O`: Desatar el Gran Eclipse Cósmico e ingravidez.
