@@ -237,6 +237,10 @@
   .swatch.carn-apex { background: var(--carn-apex); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
   .swatch.scavenger { border-radius: 50%; background: var(--scavenger); }
   .swatch.pollinator { border-radius: 50%; background: var(--pollinator); box-shadow: 0 0 6px var(--pollinator); }
+  .swatch.chimera-celestial { border-radius: 50%; background: #38bdf8; box-shadow: 0 0 7px #38bdf8; }
+  .swatch.chimera-behemoth { border-radius: 2px; background: #ea580c; box-shadow: 0 0 7px #ea580c; }
+  .swatch.chimera-gryphon { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); background: #9333ea; box-shadow: 0 0 7px #9333ea; }
+  .swatch.chimera-prism { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); background: #ec4899; box-shadow: 0 0 9px #ec4899; }
   .swatch.food { border-radius: 50%; background: hsl(42, 90%, 55%); }
 
   /* SLIDERS & CONTROLS */
@@ -1576,7 +1580,424 @@
   }
   .tree-bloom-btn:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 12px 30px -4px rgba(16, 185, 129, 0.8), 0 0 30px rgba(56, 189, 248, 0.5) !important;
+    box-shadow: 0 12px 30px -4px rgba(160, 185, 129, 0.8), 0 0 30px rgba(56, 189, 248, 0.5) !important;
+  }
+
+  /* ==========================================
+     CRISOL DE QUIMERAS & ALQUIMIA GENÉTICA
+     ========================================== */
+  #btnTransmute {
+    background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 14px -3px rgba(168, 85, 247, 0.5) !important;
+    transition: all 0.2s ease !important;
+  }
+  #btnTransmute:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -2px rgba(192, 38, 211, 0.7) !important;
+  }
+
+  .crystal-icon.active {
+    animation: crystalPulse 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px #38bdf8);
+  }
+  .chimera-icon.active {
+    animation: chimeraPulse 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px #c084fc);
+  }
+  @keyframes crystalPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.18); filter: drop-shadow(0 0 12px #38bdf8); }
+  }
+  @keyframes chimeraPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); filter: drop-shadow(0 0 12px #f43f5e); }
+  }
+
+  .chimera-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 215;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(12, 6, 22, 0.78);
+    backdrop-filter: blur(10px) saturate(1.3);
+    -webkit-backdrop-filter: blur(10px) saturate(1.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    padding: 24px;
+  }
+  .chimera-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .chimera-scroll {
+    position: relative;
+    max-width: 620px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #1b0e2b 0%, #0c0517 100%);
+    color: #f3e8ff;
+    border-radius: 16px;
+    padding: 32px 28px 28px;
+    box-shadow: 0 30px 90px -20px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(192, 132, 252, 0.35), 0 0 80px -15px rgba(236, 72, 153, 0.25);
+    font-family: "Libre Franklin", sans-serif;
+    transform: scale(0.95) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+  }
+  .chimera-overlay.open .chimera-scroll {
+    transform: scale(1) translateY(0);
+  }
+  .chimera-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: rgba(243, 232, 255, 0.6);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .chimera-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .chimera-emblem {
+    font-size: 42px;
+    margin-bottom: 6px;
+    display: inline-block;
+    filter: drop-shadow(0 0 18px rgba(192, 132, 252, 0.7));
+    animation: chimeraPulse 3s ease-in-out infinite;
+  }
+  .chimera-scroll h2 {
+    margin: 0 0 8px;
+    font-family: "Fraunces", serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    background: linear-gradient(90deg, #38bdf8, #c084fc, #f43f5e);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .chimera-quote {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #e9d5ff;
+    opacity: 0.88;
+    margin: 0 auto 18px;
+    max-width: 480px;
+  }
+  .chimera-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .chimera-tab {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 10px;
+    padding: 8px 6px;
+    color: #d8b4fe;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chimera-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: rgba(192, 132, 252, 0.45);
+  }
+  .chimera-tab.active {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.5) 0%, rgba(219, 39, 119, 0.4) 100%);
+    border-color: #c084fc;
+    color: #ffffff;
+    box-shadow: 0 4px 16px -3px rgba(192, 132, 252, 0.4);
+  }
+  .chimera-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  #chimeraPreviewCanvas {
+    background: radial-gradient(circle, rgba(30, 14, 48, 0.9) 0%, rgba(12, 5, 20, 0.98) 80%);
+    border: 1px solid rgba(192, 132, 252, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 0 35px -5px rgba(168, 85, 247, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.6);
+  }
+  .chimera-preview-name {
+    margin-top: 10px;
+    font-family: "Fraunces", serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: #f5d0fe;
+  }
+  .chimera-preview-recipe {
+    margin-top: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.05em;
+    color: #a5f3fc;
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    padding: 3px 10px;
+    border-radius: 12px;
+    display: inline-block;
+  }
+  .chimera-details-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  .chimera-desc {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #e2e8f0;
+  }
+  .chimera-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 10px;
+  }
+  .chimera-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .chimera-stat-label {
+    font-size: 9.5px;
+    font-family: "JetBrains Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #d8b4fe;
+    opacity: 0.8;
+  }
+  .chimera-stat-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .chimera-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .chimera-spawn-btn {
+    background: linear-gradient(135deg, #0284c7 0%, #7c3aed 50%, #db2777 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    padding: 11px 22px !important;
+    border-radius: 26px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 8px 24px -6px rgba(124, 58, 237, 0.6), 0 0 20px rgba(56, 189, 248, 0.35) !important;
+    cursor: pointer;
+    transition: all 0.25s ease !important;
+  }
+  .chimera-spawn-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 30px -4px rgba(124, 58, 237, 0.8), 0 0 30px rgba(219, 39, 119, 0.5) !important;
+  }
+  .chimera-transmute-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f5d0fe !important;
+    border: 1px solid rgba(192, 132, 252, 0.35) !important;
+    padding: 11px 20px !important;
+    border-radius: 26px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.25s ease !important;
+  }
+  .chimera-transmute-btn:hover {
+    background: rgba(192, 132, 252, 0.2) !important;
+    color: #fff !important;
+    border-color: #c084fc !important;
+    transform: translateY(-2px);
+  }
+
+  @keyframes myceliumGlow {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.7)); }
+    50% { transform: scale(1.12); filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.9)); }
+  }
+
+  .mycelium-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 216;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 20, 16, 0.82);
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    padding: 24px;
+  }
+  .mycelium-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .mycelium-scroll {
+    position: relative;
+    max-width: 580px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #07271e 0%, #03140e 100%);
+    color: #e6fffa;
+    border-radius: 18px;
+    padding: 32px 28px 28px;
+    box-shadow: 0 30px 90px -20px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(52, 211, 153, 0.35), 0 0 80px -15px rgba(16, 185, 129, 0.25);
+    font-family: "Libre Franklin", sans-serif;
+    transform: scale(0.95) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+  }
+  .mycelium-overlay.open .mycelium-scroll {
+    transform: scale(1) translateY(0);
+  }
+  .mycelium-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: rgba(230, 255, 250, 0.6);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .mycelium-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .mycelium-emblem {
+    font-size: 44px;
+    margin-bottom: 6px;
+    display: inline-block;
+    animation: myceliumGlow 3.5s ease-in-out infinite;
+  }
+  .mycelium-scroll h2 {
+    margin: 0 0 8px;
+    font-family: "Fraunces", serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    background: linear-gradient(90deg, #34d399, #22d3ee, #c084fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .mycelium-quote {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #a7f3d0;
+    opacity: 0.9;
+    margin: 0 auto 18px;
+    max-width: 480px;
+  }
+  .mycelium-vital-card {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    background: rgba(6, 44, 34, 0.55);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    border-radius: 12px;
+    padding: 14px 10px;
+    margin-bottom: 18px;
+  }
+  .mycelium-vital-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mycelium-stat-label {
+    font-size: 11px;
+    color: #6ee7b7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .mycelium-stat-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .mycelium-canvas-container {
+    background: rgba(3, 20, 14, 0.85);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.6);
+  }
+  #myceliumCanvas {
+    width: 280px;
+    height: 190px;
+    border-radius: 8px;
+    background: radial-gradient(circle at center, #063024 0%, #02120b 100%);
+  }
+  .mycelium-legend {
+    font-size: 12px;
+    color: #6ee7b7;
+    margin-top: 10px;
+    font-style: italic;
+  }
+  .mycelium-actions {
+    display: flex;
+    justify-content: center;
+  }
+  .mycelium-bloom-btn {
+    background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #2563eb 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(110, 231, 183, 0.5) !important;
+    padding: 12px 24px !important;
+    border-radius: 26px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4) !important;
+    cursor: pointer;
+    transition: all 0.25s ease !important;
+  }
+  .mycelium-bloom-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 24px rgba(34, 211, 238, 0.55) !important;
   }
 
   @media (max-width: 768px) {

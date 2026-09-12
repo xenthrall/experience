@@ -27,6 +27,12 @@
       ancientTree.y = H * 0.44;
       buildTreeStructure();
     }
+    if (wormholes) {
+      wormholes.alpha.x = clamp(wormholes.alpha.x, 80, W - 80);
+      wormholes.alpha.y = clamp(wormholes.alpha.y, 80, H - 80);
+      wormholes.omega.x = clamp(wormholes.omega.x, 80, W - 80);
+      wormholes.omega.y = clamp(wormholes.omega.y, 80, H - 80);
+    }
   }
   window.addEventListener("resize", resize);
 
@@ -121,6 +127,62 @@
       reproAge: 180,
       reproFrac: 0.70,
       cap: 35
+    },
+    CHIMERA_CELESTIAL: {
+      id: "chimera_celestial",
+      name: "Ciervo Alado de Luz",
+      swatch: "#38bdf8",
+      baseSpeed: 2.3,
+      baseSense: 185,
+      baseSize: 6.2,
+      maxAge: 8500,
+      reproAge: 700,
+      reproFrac: 0.85,
+      cap: 12,
+      isChimera: true,
+      chimeraType: "celestial"
+    },
+    CHIMERA_BEHEMOTH: {
+      id: "chimera_behemoth",
+      name: "Behemoth de Obsidiana",
+      swatch: "#ea580c",
+      baseSpeed: 0.85,
+      baseSense: 140,
+      baseSize: 18.0,
+      maxAge: 12000,
+      reproAge: 1200,
+      reproFrac: 0.90,
+      cap: 6,
+      isChimera: true,
+      chimeraType: "behemoth"
+    },
+    CHIMERA_GRYPHON: {
+      id: "chimera_gryphon",
+      name: "Grifo Umbrío",
+      swatch: "#9333ea",
+      baseSpeed: 2.1,
+      baseSense: 210,
+      baseSize: 8.5,
+      maxAge: 7500,
+      reproAge: 650,
+      reproFrac: 0.85,
+      cap: 10,
+      isChimera: true,
+      chimeraType: "gryphon"
+    },
+    CHIMERA_PRISM: {
+      id: "chimera_prism",
+      name: "Prisma Viviente",
+      swatch: "#ec4899",
+      baseSpeed: 1.4,
+      baseSense: 240,
+      baseSize: 4.8,
+      maxAge: 99999,
+      reproAge: 1500,
+      reproFrac: 0.80,
+      cap: 8,
+      isChimera: true,
+      chimeraType: "prism"
     }
   };
   const SPECIES_BY_ID = {};
@@ -135,6 +197,65 @@
   let particles = [];
   let alarmWaves = [];
   let popHistory = [];
+  let crystalNodes = [];
+  let quantumEchoes = [];
+  let chimerasAwakened = 0;
+  let activeChimeraTab = "chimera_celestial";
+  let chimeraPreviewRAF = null;
+  let lastCrystalHarmonicTs = 0;
+  let mushrooms = [];
+  let myceliumNodes = [];
+  let myceliumHyphae = [];
+  let actionPotentials = [];
+  let wormholes = null;
+  let wormholeJumps = 0;
+  let myceliumBiomass = 100;
+  let lastWormholePlacement = "alpha";
+  let myceliumCanvasRAF = null;
+  let lastMyceliumPulseTs = 0;
+
+  const CHIMERA_DEFINITIONS = {
+    chimera_celestial: {
+      id: "chimera_celestial",
+      name: "Ciervo Alado de Luz",
+      recipe: "🦌 Ciervo Ágil + ✨ Polinizador",
+      desc: "Ser etéreo de gracia celestial. Sus alas doradas le permiten surcar los cielos sobre el agua y los depredadores, esparciendo una lluvia de polvo estelar que fecunda la tierra a su paso.",
+      type: "Aéreo Sagrado",
+      speed: "2.3×",
+      ability: "Polvo Estelar",
+      swatch: "#38bdf8"
+    },
+    chimera_behemoth: {
+      id: "chimera_behemoth",
+      name: "Behemoth de Obsidiana",
+      recipe: "🦏 Titán Acorazado + 🦖 Apex",
+      desc: "Coloso telúrico forjado en basalto y magma primordial. Sus pisadas estremecen la tierra ahuyentando a cualquier depredador y abriendo fallas geotérmicas con vapor regenerativo.",
+      type: "Titán Volcánico",
+      speed: "0.85×",
+      ability: "Falla Geotérmica",
+      swatch: "#ea580c"
+    },
+    chimera_gryphon: {
+      id: "chimera_gryphon",
+      name: "Grifo Umbrío",
+      recipe: "🐺 Cazador + 🦅 Carroñero",
+      desc: "Depredador del crepúsculo. Envuelta en un manto de niebla del vacío, esta criatura desciende en picados hipersónicos invisibles que desintegran la guardia de sus presas.",
+      type: "Depredador Abisal",
+      speed: "2.1×",
+      ability: "Picado Umbrío",
+      swatch: "#9333ea"
+    },
+    chimera_prism: {
+      id: "chimera_prism",
+      name: "Prisma Viviente",
+      recipe: "✨ Polinizador + 💎 Cristal Resonante",
+      desc: "Entidad cristalina viva que levita sintonizando la red geométrica de cuarzos del terrario. Irradia ondas cromáticas armónicas que sanan y nutren a todos los seres a su alrededor.",
+      type: "Entidad Cósmica",
+      speed: "1.4×",
+      ability: "Nova de Refracción",
+      swatch: "#ec4899"
+    }
+  };
 
   let births = 0, totalKills = 0, maxGen = 0, nextCreatureId = 1;
   let running = true, foodRate = 0.5, speedMult = 1.0;
@@ -443,7 +564,7 @@
   }
 
   function isLegendary(c) {
-    return (c.kills || 0) >= LEGEND_KILLS || (c.kids || 0) >= LEGEND_KIDS || (c.gen || 0) >= LEGEND_GEN;
+    return (c.kills || 0) >= LEGEND_KILLS || (c.kids || 0) >= LEGEND_KIDS || (c.gen || 0) >= LEGEND_GEN || (c.wormholeJumps || 0) >= 3;
   }
 
   const SAGA_OPENERS = [
@@ -480,6 +601,10 @@
     parts.push(SAGA_OPENERS[Math.floor(rnd() * SAGA_OPENERS.length)](name, spName));
     if (c.kills > 0) parts.push(SAGA_DEEDS[Math.floor(rnd() * SAGA_DEEDS.length)](name, c.kills));
     if (c.kids > 0) parts.push(SAGA_LEGACY[Math.floor(rnd() * SAGA_LEGACY.length)](name, c.kids));
+
+    if ((c.wormholeJumps || 0) >= 3) {
+      parts.push(`Desafió el tejido mismo del espacio-tiempo saltando a través de los Vórtices Cuánticos ${c.wormholeJumps} veces, ganándose el título de "Caminante de Dimensiones".`);
+    }
 
     const chain = buildLineageChain(c.id);
     if (chain.length > 2) {
@@ -1166,6 +1291,76 @@
         ping(1174.66, 0.9, "sine", 0.05, 0, x);
         ping(1760.00, 1.2, "triangle", 0.04, 0.08, x);
       },
+      crystalHarmonica(freq = 1046.50, dur = 1.8, panX) {
+        if (!ctx) return;
+        const t0 = ctx.currentTime;
+        const carrier = ctx.createOscillator();
+        const modulator = ctx.createOscillator();
+        const modGain = ctx.createGain();
+        const carGain = ctx.createGain();
+
+        carrier.type = "sine";
+        modulator.type = "sine";
+        carrier.frequency.setValueAtTime(freq, t0);
+        modulator.frequency.setValueAtTime(freq * 2.76, t0);
+
+        modGain.gain.setValueAtTime(freq * 0.9, t0);
+        modGain.gain.exponentialRampToValueAtTime(1, t0 + dur);
+
+        modulator.connect(modGain);
+        modGain.connect(carrier.frequency);
+
+        carGain.gain.setValueAtTime(0, t0);
+        carGain.gain.linearRampToValueAtTime(0.12, t0 + 0.03);
+        carGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+        carrier.connect(carGain);
+
+        if (panX !== undefined && panX !== null && ctx.createStereoPanner && W > 0) {
+          try {
+            const panner = ctx.createStereoPanner();
+            const panVal = Math.max(-0.85, Math.min(0.85, (panX / W) * 2 - 1));
+            panner.pan.setValueAtTime(panVal, t0);
+            carGain.connect(panner);
+            panner.connect(master);
+          } catch (e) {
+            carGain.connect(master);
+          }
+        } else {
+          carGain.connect(master);
+        }
+
+        carrier.start(t0);
+        modulator.start(t0);
+        carrier.stop(t0 + dur + 0.05);
+        modulator.stop(t0 + dur + 0.05);
+      },
+      chimeraRoar(chimeraType, panX) {
+        if (!ctx) return;
+        switch (chimeraType) {
+          case "celestial":
+            [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((f, i) => {
+              ping(f, 1.4, "sine", 0.06, i * 0.08, panX);
+              ping(f * 2, 0.9, "triangle", 0.02, i * 0.08 + 0.02, panX);
+            });
+            break;
+          case "behemoth":
+            ping(40, 1.8, "sawtooth", 0.32, 0, panX);
+            ping(28, 2.2, "sine", 0.45, 0.04, panX);
+            ping(75, 1.2, "triangle", 0.22, 0.08, panX);
+            break;
+          case "gryphon":
+            ping(880, 0.6, "sawtooth", 0.18, 0, panX);
+            ping(440, 1.1, "sine", 0.24, 0.08, panX);
+            ping(220, 1.4, "triangle", 0.18, 0.16, panX);
+            break;
+          case "prism":
+            [880, 1108.73, 1318.51, 1760].forEach((f, i) => {
+              ping(f, 2.0, "sine", 0.08, i * 0.1, panX);
+            });
+            break;
+        }
+      },
       celestaArp(x) {
         const notes = [1046.50, 1318.51, 1567.98];
         notes.forEach((f, i) => ping(f, 0.6, "sine", 0.04, i * 0.07, x));
@@ -1258,6 +1453,54 @@
           g.connect(master);
         }
         o.start(t0); o.stop(t0 + 0.6);
+      },
+      myceliumPulse(freq = 880, panX) {
+        ping(freq, 0.45, "sine", 0.05, 0, panX);
+        ping(freq * 1.5, 0.35, "triangle", 0.02, 0.03, panX);
+      },
+      mushroomChime(panX) {
+        if (!ctx) return;
+        const notes = [659.25, 830.61, 987.77, 1318.51];
+        notes.forEach((f, i) => {
+          ping(f, 0.8, "sine", 0.07, i * 0.07, panX);
+        });
+      },
+      wormholeJump(panX) {
+        if (!ctx) return;
+        const t0 = ctx.currentTime;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        const f = ctx.createBiquadFilter();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(65, t0);
+        o.frequency.exponentialRampToValueAtTime(880, t0 + 0.35);
+        o.frequency.exponentialRampToValueAtTime(110, t0 + 0.65);
+        f.type = "bandpass";
+        f.frequency.setValueAtTime(400, t0);
+        f.frequency.linearRampToValueAtTime(2400, t0 + 0.3);
+        f.frequency.linearRampToValueAtTime(300, t0 + 0.65);
+        f.Q.value = 4.0;
+        g.gain.setValueAtTime(0.001, t0);
+        g.gain.linearRampToValueAtTime(0.24, t0 + 0.15);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.65);
+        o.connect(f); f.connect(g);
+        if (panX !== undefined && panX !== null && ctx.createStereoPanner && W > 0) {
+          try {
+            const panner = ctx.createStereoPanner();
+            panner.pan.setValueAtTime(Math.max(-0.85, Math.min(0.85, (panX / W) * 2 - 1)), t0);
+            g.connect(panner); panner.connect(master);
+          } catch (e) { g.connect(master); }
+        } else { g.connect(master); }
+        o.start(t0); o.stop(t0 + 0.7);
+      },
+      sporeBloom() {
+        if (!ctx) return;
+        const chord = [220, 277.18, 329.63, 415.30, 554.37, 659.25, 830.61];
+        chord.forEach((f, i) => {
+          const pan = (i / (chord.length - 1)) * (W || 800);
+          ping(f, 2.6, "sine", 0.08, i * 0.09, pan);
+          ping(f * 2, 1.8, "triangle", 0.03, i * 0.09 + 0.04, pan);
+        });
       }
     };
   })();
@@ -1489,6 +1732,10 @@
       this.lastTrailY = y;
       this.camouflageBoost = 0;
       this.celestialAscent = 0;
+      this.fungalEcstasy = 0;
+      this.fungalType = null;
+      this.wormholeJumps = 0;
+      this.teleportCooldown = 0;
 
       registerLineage(this, parentId);
     }
@@ -1586,6 +1833,7 @@
       if (this.attackCooldown > 0) this.attackCooldown -= dt;
       if (this.camouflageBoost > 0) this.camouflageBoost -= dt;
       if (this.celestialAscent > 0) this.celestialAscent -= dt;
+      if (this.teleportCooldown > 0) this.teleportCooldown -= dt;
 
       if (!this.legendary && isLegendary(this)) {
         this.legendary = true;
@@ -1593,6 +1841,38 @@
       }
 
       this.checkBushCover();
+
+      // Éxtasis Fúngico y biorritmo micelial
+      if (this.fungalEcstasy > 0) {
+        this.fungalEcstasy -= dt;
+        this.stamina = Math.min(this.maxStamina, this.stamina + 0.4 * dt);
+        if (this.fungalType === "solar") {
+          this.energy = Math.min(this.maxEnergy, this.energy + 0.18 * dt);
+          this.water = Math.min(this.maxWater, this.water + 0.18 * dt);
+        } else if (this.fungalType === "emerald") {
+          this.health = Math.min(100, this.health + 0.25 * dt);
+        }
+        if (Math.random() < 0.22 * dt) {
+          feedMyceliumAt(this.x, this.y, 0.35);
+          particles.push({
+            x: this.x + spread(this.radius() * 1.3),
+            y: this.y + spread(this.radius() * 1.3),
+            vx: spread(0.5), vy: -rand(0.2, 0.9),
+            r: rand(1.2, 2.6), alpha: 0.85,
+            color: this.fungalType === "astral" ? "#38bdf8" : (this.fungalType === "solar" ? "#fbbf24" : "#34d399")
+          });
+        }
+      }
+
+      // Consumo de Setas Astrales al pasar cerca
+      for (let mi = mushrooms.length - 1; mi >= 0; mi--) {
+        const m = mushrooms[mi];
+        const mdSq = distSq(this.x, this.y, m.x, m.y);
+        if (mdSq < (this.radius() + m.radius) * (this.radius() + m.radius)) {
+          consumeMushroom(this, m, mi);
+          break;
+        }
+      }
 
       // Generación de estelas de feromonas bioluminiscentes
       const dTrailSq = distSq(this.x, this.y, this.lastTrailX, this.lastTrailY);
@@ -1667,6 +1947,26 @@
         }
       }
 
+      // Sintonía Cristalina (Geodas Resonantes)
+      if (this.crystalTuned > 0) {
+        this.crystalTuned -= dt;
+        this.stamina = Math.min(this.maxStamina, this.stamina + 0.35 * dt);
+        if (Math.random() < 0.2 * dt) {
+          particles.push({
+            x: this.x + spread(this.radius() * 1.2),
+            y: this.y + spread(this.radius() * 1.2),
+            r: rand(1.2, 2.5), alpha: 0.85, color: "#38bdf8"
+          });
+        }
+      }
+
+      // Ecos Cuánticos Temporales (desplazamiento cromático)
+      if (this.isChimera || this.blessed || this.crystalTuned > 0 || (this.isSprinting && Math.random() < 0.35)) {
+        if (Math.random() < 0.26 * dt) {
+          spawnQuantumEcho(this);
+        }
+      }
+
       // Desgaste metabólico
       const baseMetabolism = (0.035 * this.genes.size + 0.05 * this.genes.speed);
       const sprintCost = this.isSprinting ? 2.2 / this.genes.staminaEfficiency : 1.0;
@@ -1717,6 +2017,18 @@
           break;
         case "pollinator":
           this.updatePollinator(dt);
+          break;
+        case "chimera_celestial":
+          this.updateChimeraCelestial(dt);
+          break;
+        case "chimera_behemoth":
+          this.updateChimeraBehemoth(dt);
+          break;
+        case "chimera_gryphon":
+          this.updateChimeraGryphon(dt);
+          break;
+        case "chimera_prism":
+          this.updateChimeraPrism(dt);
           break;
       }
 
@@ -2021,6 +2333,157 @@
       }
     }
 
+    updateChimeraCelestial(dt) {
+      this.flightPhase = (this.flightPhase || 0) + 0.08 * dt;
+      const senseR = this.genes.sense * 1.25;
+
+      if (Math.random() < 0.045 * dt) {
+        spawnFood(this.x + spread(24), this.y + spread(24));
+        particles.push({
+          x: this.x + spread(12), y: this.y + spread(12),
+          r: rand(1.5, 3.2), alpha: 0.9, color: "#38bdf8",
+          vx: spread(0.4), vy: rand(0.5, 1.8)
+        });
+      }
+
+      if (this.energy < this.maxEnergy * 0.45) {
+        const plant = plantGrid.nearest(this.x, this.y, senseR);
+        if (plant) {
+          this.state = "GRAZE";
+          this.steerToward(plant.x, plant.y, dt, 0.25, 1.3);
+          if (distSq(this.x, this.y, plant.x, plant.y) < 20 * 20) {
+            this.energy = Math.min(this.maxEnergy, this.energy + plant.nutrition * 1.5);
+            this.setEmote("✨🌿", 40);
+            const pIdx = plants.indexOf(plant);
+            if (pIdx >= 0) plants.splice(pIdx, 1);
+          }
+          return;
+        }
+      }
+
+      if (this.water < 32) {
+        const p = this.findNearestWater();
+        if (p) {
+          this.steerToward(p.x, p.y, dt, 0.22, 1.1);
+          if (distSq(this.x, this.y, p.x, p.y) < (p.radius + 15) * (p.radius + 15)) {
+            this.water = this.maxWater;
+            this.setEmote("💧✨", 40);
+          }
+          return;
+        }
+      }
+
+      this.wander(dt, 0.09, 1.15);
+    }
+
+    updateChimeraBehemoth(dt) {
+      const carn = creatureGrid.nearest(this.x, this.y, 150, (c) => c.speciesId.startsWith("carn_"));
+      if (carn) {
+        carn.steerAway(this.x, this.y, dt, 0.4, 2.0);
+        carn.setEmote("😱🌋", 50);
+      }
+
+      if (Math.random() < 0.12 * dt) {
+        particles.push({
+          x: this.x + spread(14), y: this.y + spread(14),
+          vx: spread(0.25), vy: spread(0.25),
+          r: rand(2.5, 5), alpha: 0.9, color: Math.random() < 0.5 ? "#f97316" : "#ef4444"
+        });
+      }
+
+      if (this.energy < this.maxEnergy * 0.55) {
+        const bush = this.findNearestBush();
+        if (bush) {
+          this.steerToward(bush.x, bush.y, dt, 0.1, 0.85);
+          if (distSq(this.x, this.y, bush.x, bush.y) < (bush.radius + 20) * (bush.radius + 20)) {
+            this.energy = Math.min(this.maxEnergy, this.energy + 40);
+            bush.berries = Math.max(0, bush.berries - 2);
+            this.setEmote("🌋🍇", 50);
+          }
+          return;
+        }
+      }
+
+      if (this.water < 30) {
+        const p = this.findNearestWater();
+        if (p) {
+          this.steerToward(p.x, p.y, dt, 0.08, 0.85);
+          if (distSq(this.x, this.y, p.x, p.y) < (p.radius + 25) * (p.radius + 25)) {
+            this.water = this.maxWater;
+            this.setEmote("💧🌋", 40);
+          }
+          return;
+        }
+      }
+
+      this.wander(dt, 0.04, 0.8);
+    }
+
+    updateChimeraGryphon(dt) {
+      const senseR = this.genes.sense * 1.35;
+      const target = creatureGrid.nearest(this.x, this.y, senseR, (c) => {
+        if (c === this || c.isChimera) return false;
+        return c.speciesId.startsWith("herb_") || c.speciesId === "scavenger";
+      });
+
+      if (target && this.energy < this.maxEnergy * 0.75) {
+        this.state = "CHASE";
+        this.isSprinting = true;
+        this.steerToward(target.x, target.y, dt, 0.35, 1.9);
+        if (distSq(this.x, this.y, target.x, target.y) < 24 * 24) {
+          target.health -= 70;
+          if (target.health <= 0) {
+            this.energy = this.maxEnergy;
+            this.kills++;
+            totalKills++;
+            this.setEmote("🦅🩸", 60);
+            Sound.chimeraRoar("gryphon", this.x);
+          }
+        }
+        return;
+      }
+
+      const carcass = this.findNearestCarcass();
+      if (carcass && this.energy < this.maxEnergy * 0.6) {
+        this.steerToward(carcass.x, carcass.y, dt, 0.22, 1.25);
+        if (distSq(this.x, this.y, carcass.x, carcass.y) < 25 * 25) {
+          this.energy = Math.min(this.maxEnergy, this.energy + 30);
+          carcass.meat -= 15;
+          this.setEmote("🥩✨", 40);
+        }
+        return;
+      }
+
+      this.wander(dt, 0.12, 1.35);
+    }
+
+    updateChimeraPrism(dt) {
+      this.flightPhase = (this.flightPhase || 0) + 0.05 * dt;
+
+      const friends = creatureGrid.queryRadius(this.x, this.y, 150, (c) => c !== this);
+      for (let f of friends) {
+        f.health = Math.min(100, f.health + 0.25 * dt);
+        f.stamina = Math.min(f.maxStamina, f.stamina + 0.5 * dt);
+        f.crystalTuned = Math.max(f.crystalTuned, 70);
+      }
+
+      if (crystalNodes.length > 0) {
+        let nearestC = null, minD = 999999;
+        for (let cr of crystalNodes) {
+          const d = distSq(this.x, this.y, cr.x, cr.y);
+          if (d < minD) { minD = d; nearestC = cr; }
+        }
+        if (nearestC && minD > 70 * 70) {
+          this.steerToward(nearestC.x, nearestC.y, dt, 0.12, 1.1);
+          return;
+        }
+      }
+
+      this.energy = this.maxEnergy;
+      this.water = this.maxWater;
+      this.wander(dt, 0.08, 1.0);
+    }
+
     checkReproduction() {
       if (creatures.filter(c => c.speciesId === this.speciesId).length >= this.spec.cap) return;
       if (this.age < this.spec.reproAge) return;
@@ -2258,9 +2721,206 @@
           ctx.fill();
           break;
         }
+
+        case "chimera_celestial": {
+          const wingPhase = Math.sin(simTime * 0.02 + this.seed);
+          ctx.save();
+          ctx.fillStyle = "rgba(56, 189, 248, 0.45)";
+          ctx.strokeStyle = "#a5f3fc";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.2, -r * 0.4);
+          ctx.quadraticCurveTo(-r * 1.8, -r * 2.6 + wingPhase * 10, -r * 0.2, -r * 1.2);
+          ctx.quadraticCurveTo(-r * 0.8, -r * 1.8 + wingPhase * 8, -r * 0.2, -r * 0.4);
+          ctx.fill(); ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.2, r * 0.4);
+          ctx.quadraticCurveTo(-r * 1.8, r * 2.6 - wingPhase * 10, -r * 0.2, r * 1.2);
+          ctx.quadraticCurveTo(-r * 0.8, r * 1.8 - wingPhase * 8, -r * 0.2, r * 0.4);
+          ctx.fill(); ctx.stroke();
+          ctx.restore();
+
+          ctx.fillStyle = `hsl(${195 + this.genes.hueOffset}, 80%, ${55 + energyFrac * 15}%)`;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * 1.35, r * 0.7, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#bae6fd";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          ctx.strokeStyle = "#fef08a";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(r * 0.7, -r * 0.3); ctx.lineTo(r * 1.4, -r * 1.0);
+          ctx.lineTo(r * 1.6, -r * 0.7);
+          ctx.moveTo(r * 1.1, -r * 0.7); ctx.lineTo(r * 1.4, -r * 1.3);
+          ctx.moveTo(r * 0.7, r * 0.3); ctx.lineTo(r * 1.4, r * 1.0);
+          ctx.lineTo(r * 1.6, r * 0.7);
+          ctx.moveTo(r * 1.1, r * 0.7); ctx.lineTo(r * 1.4, r * 1.3);
+          ctx.stroke();
+
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(r * 0.85, -r * 0.25, Math.max(1.5, r * 0.2), 0, Math.PI * 2);
+          ctx.arc(r * 0.85, r * 0.25, Math.max(1.5, r * 0.2), 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case "chimera_behemoth": {
+          const stompWave = Math.sin(simTime * 0.006 + this.seed) * 2;
+          ctx.fillStyle = "#1c1917";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * 1.25, r * 0.95, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#44403c";
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          const magmaPulse = 0.5 + 0.5 * Math.sin(simTime * 0.008 + this.seed);
+          ctx.strokeStyle = `rgba(249, 115, 22, ${0.7 + magmaPulse * 0.3})`;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.8, -r * 0.4); ctx.lineTo(0, 0); ctx.lineTo(r * 0.7, -r * 0.3);
+          ctx.moveTo(-r * 0.6, r * 0.5); ctx.lineTo(0, 0); ctx.lineTo(r * 0.6, r * 0.4);
+          ctx.stroke();
+
+          ctx.fillStyle = "#7c2d12";
+          for (let i = -2; i <= 2; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * r * 0.35, -r * 0.85);
+            ctx.lineTo(i * r * 0.35 + 4, -r * 1.35 + stompWave);
+            ctx.lineTo(i * r * 0.35 + 8, -r * 0.85);
+            ctx.fill();
+          }
+
+          ctx.fillStyle = "#fdba74";
+          ctx.beginPath();
+          ctx.moveTo(r * 0.9, -r * 0.5); ctx.lineTo(r * 1.5, -r * 0.8); ctx.lineTo(r * 1.1, -r * 0.3);
+          ctx.moveTo(r * 0.9, r * 0.5); ctx.lineTo(r * 1.5, r * 0.8); ctx.lineTo(r * 1.1, r * 0.3);
+          ctx.fill();
+
+          ctx.fillStyle = "#f97316";
+          ctx.shadowColor = "#ea580c";
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(r * 0.95, -r * 0.3, Math.max(2, r * 0.16), 0, Math.PI * 2);
+          ctx.arc(r * 0.95, r * 0.3, Math.max(2, r * 0.16), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          break;
+        }
+
+        case "chimera_gryphon": {
+          const flap = Math.sin(simTime * 0.028 + this.seed);
+          ctx.save();
+          ctx.fillStyle = "#3b0764";
+          ctx.strokeStyle = "#a855f7";
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.2, 0);
+          ctx.lineTo(-r * 0.8, -r * 2.2 + flap * 6);
+          ctx.lineTo(r * 0.4, -r * 1.0);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.2, 0);
+          ctx.lineTo(-r * 0.8, r * 2.2 - flap * 6);
+          ctx.lineTo(r * 0.4, r * 1.0);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.restore();
+
+          ctx.fillStyle = `hsl(${275 + this.genes.hueOffset}, 70%, ${28 + energyFrac * 16}%)`;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * 1.3, r * 0.65, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#c084fc";
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+
+          ctx.fillStyle = "#eab308";
+          ctx.beginPath();
+          ctx.moveTo(r * 0.9, -r * 0.3);
+          ctx.lineTo(r * 1.6, 0);
+          ctx.lineTo(r * 0.9, r * 0.3);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = "#facc15";
+          ctx.beginPath();
+          ctx.arc(r * 0.8, -r * 0.25, Math.max(1.8, r * 0.18), 0, Math.PI * 2);
+          ctx.arc(r * 0.8, r * 0.25, Math.max(1.8, r * 0.18), 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case "chimera_prism": {
+          const rotAngle = simTime * 0.003 + this.seed;
+          ctx.save();
+          ctx.strokeStyle = `hsla(${(simTime * 0.1) % 360}, 90%, 65%, 0.8)`;
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 1.7, 0, Math.PI * 2);
+          ctx.stroke();
+
+          const points = [
+            { x: 0, y: -r * 1.6 },
+            { x: Math.cos(rotAngle) * r * 1.3, y: -Math.sin(rotAngle) * r * 0.5 },
+            { x: Math.cos(rotAngle + Math.PI * 0.5) * r * 1.3, y: -Math.sin(rotAngle + Math.PI * 0.5) * r * 0.5 },
+            { x: Math.cos(rotAngle + Math.PI) * r * 1.3, y: -Math.sin(rotAngle + Math.PI) * r * 0.5 },
+            { x: Math.cos(rotAngle + Math.PI * 1.5) * r * 1.3, y: -Math.sin(rotAngle + Math.PI * 1.5) * r * 0.5 },
+            { x: 0, y: r * 1.6 }
+          ];
+
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.2;
+
+          for (let i = 1; i <= 4; i++) {
+            const next = i === 4 ? 1 : i + 1;
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            ctx.lineTo(points[i].x, points[i].y);
+            ctx.lineTo(points[next].x, points[next].y);
+            ctx.closePath();
+            ctx.fillStyle = `hsla(${(i * 70 + simTime * 0.05) % 360}, 85%, 65%, 0.4)`;
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(points[5].x, points[5].y);
+            ctx.lineTo(points[i].x, points[i].y);
+            ctx.lineTo(points[next].x, points[next].y);
+            ctx.closePath();
+            ctx.fillStyle = `hsla(${(i * 70 + 40 + simTime * 0.05) % 360}, 85%, 65%, 0.35)`;
+            ctx.fill();
+            ctx.stroke();
+          }
+
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          break;
+        }
       }
 
       ctx.restore();
+
+      if (this.crystalTuned > 0) {
+        const cPulse = 0.5 + 0.5 * Math.sin(simTime * 0.008 + this.seed);
+        ctx.save();
+        ctx.strokeStyle = "#38bdf8";
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 12 + cPulse * 8;
+        ctx.lineWidth = 1.6;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, r + 8 + cPulse * 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
 
       if (this.legendary) {
         const pulse = 0.5 + 0.5 * Math.sin(simTime * 0.004 + this.seed);
@@ -2291,6 +2951,34 @@
         ctx.lineWidth = 1.6;
         ctx.beginPath();
         ctx.ellipse(this.x, this.y - r - 12, r * 0.85 + 3, (r * 0.85 + 3) * 0.35, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (this.fungalEcstasy > 0) {
+        const fColor = this.fungalType === "astral" ? "#38bdf8" : (this.fungalType === "solar" ? "#fbbf24" : "#34d399");
+        const fPulse = 0.5 + 0.5 * Math.sin(simTime * 0.01 + this.seed);
+        ctx.save();
+        ctx.strokeStyle = fColor;
+        ctx.shadowColor = fColor;
+        ctx.shadowBlur = 12 + fPulse * 8;
+        ctx.lineWidth = 1.6;
+        ctx.setLineDash([4, 2]);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, r + 6 + fPulse * 2.5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if ((this.wormholeJumps || 0) >= 3 || this.teleportCooldown > 20) {
+        const qPulse = 0.5 + 0.5 * Math.sin(simTime * 0.008 + this.seed);
+        ctx.save();
+        ctx.strokeStyle = "#c084fc";
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, r + 7 + qPulse * 2, (r + 7 + qPulse * 2) * 0.45, simTime * 0.002, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       }
@@ -2398,6 +3086,1295 @@
   }
 
   // ==========================================
+  // GEODAS DE CRISTAL RESONANTE & RED PRISMÁTICA
+  // ==========================================
+  function initCrystals() {
+    crystalNodes = [];
+    const numCrystals = W > 800 ? 4 : 3;
+    for (let i = 0; i < numCrystals; i++) {
+      const ang = (i / numCrystals) * Math.PI * 2 + 0.35;
+      const rDist = rand(150, Math.min(W, H) * 0.38);
+      const cx = (ancientTree ? ancientTree.x : W * 0.5) + Math.cos(ang) * rDist;
+      const cy = (ancientTree ? ancientTree.y : H * 0.45) + Math.sin(ang) * (rDist * 0.85);
+      spawnCrystal(clamp(cx, 75, W - 75), clamp(cy, 75, H - 75), false);
+    }
+  }
+
+  function spawnCrystal(x, y, notify = true) {
+    const hues = [195, 280, 330, 48, 160];
+    const baseHue = hues[crystalNodes.length % hues.length];
+    const node = {
+      x, y,
+      height: rand(34, 52),
+      width: rand(15, 22),
+      baseHue,
+      seed: rand(0, 1000),
+      charge: 1.0,
+      soundNote: [523.25, 659.25, 783.99, 1046.50, 1318.51][crystalNodes.length % 5]
+    };
+    crystalNodes.push(node);
+
+    for (let i = 0; i < 20; i++) {
+      particles.push({
+        x: x + spread(12), y: y + spread(12),
+        vx: spread(1.8), vy: spread(1.8),
+        r: rand(1.5, 3.5), alpha: 0.95, color: `hsl(${baseHue}, 90%, 70%)`
+      });
+    }
+
+    Sound.crystalHarmonica(node.soundNote, 1.8, x);
+    if (notify) showToast("💎 ¡Geoda de Cuarzo Resonante despertada en el valle!");
+  }
+
+  function updateCrystals(dt) {
+    const now = performance.now();
+    for (let i = 0; i < crystalNodes.length; i++) {
+      const cr = crystalNodes[i];
+      cr.charge = Math.min(1.0, cr.charge + 0.002 * dt);
+
+      const nearby = creatureGrid.queryRadius(cr.x, cr.y, 45);
+      for (let c of nearby) {
+        if (c.crystalTuned <= 10) {
+          c.crystalTuned = 240;
+          c.stamina = c.maxStamina;
+          c.setEmote("💎✨", 60);
+          if (now - lastCrystalHarmonicTs > 400) {
+            lastCrystalHarmonicTs = now;
+            Sound.crystalHarmonica(cr.soundNote, 1.2, cr.x);
+          }
+        }
+      }
+    }
+  }
+
+  function drawCrystalGeodes(gctx) {
+    if (crystalNodes.length === 0) return;
+    const t = simTime * 0.001;
+
+    gctx.save();
+
+    // Red de Rayos Láser y Refracción Cáustica entre Cristales
+    const maxLinkDistSq = 290 * 290;
+    for (let i = 0; i < crystalNodes.length; i++) {
+      const a = crystalNodes[i];
+      for (let j = i + 1; j < crystalNodes.length; j++) {
+        const b = crystalNodes[j];
+        const dSq = distSq(a.x, a.y, b.x, b.y);
+        if (dSq < maxLinkDistSq) {
+          const d = Math.sqrt(dSq);
+          const alpha = (1 - d / 290) * 0.85;
+
+          gctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.7})`;
+          gctx.lineWidth = 1.8;
+          gctx.beginPath();
+          gctx.moveTo(a.x, a.y - a.height * 0.5);
+          gctx.lineTo(b.x, b.y - b.height * 0.5);
+          gctx.stroke();
+
+          gctx.strokeStyle = `rgba(236, 72, 153, ${alpha * 0.85})`;
+          gctx.lineWidth = 1.0;
+          gctx.beginPath();
+          gctx.moveTo(a.x, a.y - a.height * 0.5);
+          gctx.lineTo(b.x, b.y - b.height * 0.5);
+          gctx.stroke();
+
+          const travelFrac = (t * 0.8 + i * 0.3) % 1.0;
+          const px = a.x + (b.x - a.x) * travelFrac;
+          const py = (a.y - a.height * 0.5) + ((b.y - b.height * 0.5) - (a.y - a.height * 0.5)) * travelFrac;
+          gctx.fillStyle = "#ffffff";
+          gctx.shadowColor = "#38bdf8";
+          gctx.shadowBlur = 8;
+          gctx.beginPath();
+          gctx.arc(px, py, 2.8, 0, Math.PI * 2);
+          gctx.fill();
+          gctx.shadowBlur = 0;
+        }
+      }
+    }
+
+    // Renderizado de cada Espira de Cuarzo
+    for (let cr of crystalNodes) {
+      gctx.save();
+      gctx.translate(cr.x, cr.y);
+
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2 + cr.seed);
+      const auraGrad = gctx.createRadialGradient(0, 0, 4, 0, 0, cr.width * 2.5);
+      auraGrad.addColorStop(0, `hsla(${cr.baseHue}, 85%, 65%, ${0.45 + pulse * 0.3})`);
+      auraGrad.addColorStop(1, "rgba(0,0,0,0)");
+      gctx.fillStyle = auraGrad;
+      gctx.beginPath();
+      gctx.ellipse(0, 4, cr.width * 2.2, cr.width * 1.2, 0, 0, Math.PI * 2);
+      gctx.fill();
+
+      const hw = cr.width * 0.5;
+      const h = cr.height;
+
+      gctx.fillStyle = `hsl(${cr.baseHue}, 75%, 45%)`;
+      gctx.beginPath();
+      gctx.moveTo(0, -h);
+      gctx.lineTo(-hw, -h * 0.65);
+      gctx.lineTo(-hw * 0.7, 0);
+      gctx.lineTo(0, 4);
+      gctx.closePath();
+      gctx.fill();
+      gctx.strokeStyle = `hsl(${cr.baseHue}, 90%, 75%)`;
+      gctx.lineWidth = 1;
+      gctx.stroke();
+
+      gctx.fillStyle = `hsl(${cr.baseHue}, 85%, 60%)`;
+      gctx.beginPath();
+      gctx.moveTo(0, -h);
+      gctx.lineTo(hw, -h * 0.65);
+      gctx.lineTo(hw * 0.7, 0);
+      gctx.lineTo(0, 4);
+      gctx.closePath();
+      gctx.fill();
+      gctx.stroke();
+
+      gctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+      gctx.lineWidth = 1.2;
+      gctx.beginPath();
+      gctx.moveTo(0, -h);
+      gctx.lineTo(0, 4);
+      gctx.stroke();
+
+      if (pulse > 0.6) {
+        gctx.fillStyle = "#ffffff";
+        gctx.beginPath();
+        gctx.arc(0, -h, 2.5, 0, Math.PI * 2);
+        gctx.fill();
+      }
+
+      gctx.restore();
+    }
+
+    gctx.restore();
+  }
+
+  // ==========================================
+  // LA RED MICELIAL SINÁPTICA & SETAS ASTRALES BIOLUMINISCENTES
+  // ==========================================
+  const MUSHROOM_TYPES = {
+    astral: {
+      id: "astral",
+      name: "Amanita Astral",
+      capColor: "#38bdf8",
+      glowColor: "#22d3ee",
+      dotColor: "#ffffff",
+      stemColor: "#e0f2fe",
+      bonus: "Levitación Psíquica (+velocidad y agilidad)",
+      swatch: "#38bdf8"
+    },
+    solar: {
+      id: "solar",
+      name: "Chanterelle Solar",
+      capColor: "#f59e0b",
+      glowColor: "#fbbf24",
+      dotColor: "#fef08a",
+      stemColor: "#fef3c7",
+      bonus: "Saturación Pránica (energía y sed al 100%)",
+      swatch: "#f59e0b"
+    },
+    emerald: {
+      id: "emerald",
+      name: "Velo de Esmeralda",
+      capColor: "#10b981",
+      glowColor: "#34d399",
+      dotColor: "#a7f3d0",
+      stemColor: "#d1fae5",
+      bonus: "Sanación del Bosque (salud 100% y onda curativa)",
+      swatch: "#10b981"
+    }
+  };
+
+  function initMycelium() {
+    mushrooms = [];
+    myceliumNodes = [];
+    myceliumHyphae = [];
+    actionPotentials = [];
+    myceliumBiomass = 100;
+
+    // Nodo Raíz Central en el Árbol Ancestral
+    if (ancientTree) {
+      myceliumNodes.push({
+        id: "root",
+        x: ancientTree.x,
+        y: ancientTree.y + 12,
+        r: 18,
+        pulse: 1.0,
+        type: "tree"
+      });
+    } else {
+      myceliumNodes.push({ id: "root", x: W * 0.5, y: H * 0.44, r: 18, pulse: 1.0, type: "tree" });
+    }
+
+    // Nodos en Geodas de Cristal
+    for (let cr of crystalNodes) {
+      myceliumNodes.push({
+        id: `crystal_${cr.seed}`,
+        x: cr.x,
+        y: cr.y,
+        r: 12,
+        pulse: 0.8,
+        type: "crystal"
+      });
+    }
+
+    // Nodos en masas de agua y arbustos
+    for (let p of waterBodies) {
+      myceliumNodes.push({
+        id: `water_${p.seed}`,
+        x: p.x,
+        y: p.y,
+        r: 14,
+        pulse: 0.7,
+        type: "water"
+      });
+    }
+    for (let b of bushes) {
+      if (Math.random() < 0.75) {
+        myceliumNodes.push({
+          id: `bush_${b.seed}`,
+          x: b.x,
+          y: b.y,
+          r: 10,
+          pulse: 0.6,
+          type: "bush"
+        });
+      }
+    }
+
+    // Tejer hifas conectando nodos cercanos
+    rebuildMyceliumHyphae();
+
+    // Sembrar 5 setas iniciales en distintos cuadrantes
+    const types = ["astral", "solar", "emerald"];
+    for (let i = 0; i < 5; i++) {
+      const type = types[i % types.length];
+      const ang = (i / 5) * Math.PI * 2 + rand(0, 0.4);
+      const dist = rand(120, Math.min(W, H) * 0.35);
+      const sx = clamp((ancientTree ? ancientTree.x : W * 0.5) + Math.cos(ang) * dist, 70, W - 70);
+      const sy = clamp((ancientTree ? ancientTree.y : H * 0.45) + Math.sin(ang) * dist, 70, H - 70);
+      spawnMushroom(sx, sy, type, false);
+    }
+  }
+
+  function rebuildMyceliumHyphae() {
+    myceliumHyphae = [];
+    const maxLinkSq = 320 * 320;
+    for (let i = 0; i < myceliumNodes.length; i++) {
+      const a = myceliumNodes[i];
+      let links = 0;
+      for (let j = i + 1; j < myceliumNodes.length; j++) {
+        const b = myceliumNodes[j];
+        const dSq = distSq(a.x, a.y, b.x, b.y);
+        if (dSq < maxLinkSq && links < 3) {
+          // Curvatura procedural orgánica
+          const mx = (a.x + b.x) * 0.5 + spread(28);
+          const my = (a.y + b.y) * 0.5 + spread(28);
+          myceliumHyphae.push({
+            a, b, mx, my,
+            seed: rand(0, 1000),
+            length: Math.sqrt(dSq),
+            activity: rand(0.4, 1.0)
+          });
+          links++;
+        }
+      }
+    }
+  }
+
+  function spawnMushroom(x, y, forcedType = null, notify = true) {
+    const types = ["astral", "solar", "emerald"];
+    const type = forcedType || types[Math.floor(Math.random() * types.length)];
+    const def = MUSHROOM_TYPES[type];
+
+    const m = {
+      x, y,
+      type,
+      def,
+      radius: rand(10, 16),
+      stemH: rand(12, 18),
+      seed: rand(0, 1000),
+      age: 0,
+      vitality: 1.0,
+      sporeCooldown: rand(40, 90)
+    };
+    mushrooms.push(m);
+
+    // Integrar nodo a la red micelial
+    const node = { id: `shroom_${m.seed}`, x, y, r: 8, pulse: 1.0, type: "mushroom" };
+    myceliumNodes.push(node);
+    if (myceliumNodes.length > 50) myceliumNodes.splice(1, 1);
+    rebuildMyceliumHyphae();
+
+    // Partículas de germinación
+    for (let i = 0; i < 18; i++) {
+      particles.push({
+        x: x + spread(8), y: y + spread(8),
+        vx: spread(1.2), vy: -rand(0.5, 2.0),
+        r: rand(1.5, 3.2), alpha: 0.9, color: def.glowColor
+      });
+    }
+
+    Sound.myceliumPulse(1046.50, x);
+    if (notify) showToast(`🍄 ¡Colonia de ${def.name} germinada en el sustrato!`);
+    return m;
+  }
+
+  function feedMyceliumAt(x, y, amount = 0.5) {
+    myceliumBiomass = Math.min(100, myceliumBiomass + amount * 0.4);
+    if (myceliumHyphae.length === 0) return;
+
+    // Disparar impulso sináptico en la hifa más cercana
+    let closestHypha = null, minD = Infinity;
+    for (let h of myceliumHyphae) {
+      const d = distSq(x, y, h.mx, h.my);
+      if (d < minD) { minD = d; closestHypha = h; }
+    }
+    if (closestHypha && minD < 200 * 200 && actionPotentials.length < 25) {
+      actionPotentials.push({
+        hypha: closestHypha,
+        progress: 0,
+        speed: rand(0.012, 0.024),
+        forward: Math.random() < 0.5,
+        color: Math.random() < 0.5 ? "#22d3ee" : "#34d399",
+        size: rand(2.5, 4.5)
+      });
+    }
+  }
+
+  function consumeMushroom(c, m, index) {
+    c.fungalEcstasy = 340;
+    c.fungalType = m.type;
+    c.setEmote("🍄✨", 85);
+
+    if (m.type === "solar") {
+      c.energy = c.maxEnergy;
+      c.water = c.maxWater;
+      c.stamina = c.maxStamina;
+      showToast(`☀️ ¡${c.name} ha ingerido Chanterelle Solar! Vigor y energía saciados`);
+    } else if (m.type === "emerald") {
+      c.health = 100;
+      c.stamina = c.maxStamina;
+      alarmWaves.push({ x: c.x, y: c.y, r: 8, maxR: 160, alpha: 0.9, color: "#10b981" });
+      const nearby = creatureGrid.queryRadius(c.x, c.y, 140);
+      for (let nb of nearby) {
+        nb.health = Math.min(100, nb.health + 40);
+        nb.stamina = nb.maxStamina;
+        nb.setEmote("💚✨", 60);
+      }
+      showToast(`🌿 ¡${c.name} ha ingerido Velo de Esmeralda! Onda sanadora emitida`);
+    } else if (m.type === "astral") {
+      c.stamina = c.maxStamina;
+      c.celestialAscent = 180;
+      showToast(`✨ ¡${c.name} ha ingerido Amanita Astral! Levitación psíquica desatada`);
+    }
+
+    Sound.mushroomChime(c.x);
+
+    // Partículas de absorción
+    for (let i = 0; i < 24; i++) {
+      particles.push({
+        x: m.x, y: m.y,
+        vx: spread(2.2), vy: spread(2.2),
+        r: rand(2, 4), alpha: 1, color: m.def.glowColor
+      });
+    }
+
+    feedMyceliumAt(m.x, m.y, 1.5);
+    mushrooms.splice(index, 1);
+    updateUI();
+  }
+
+  function updateMycelium(dt) {
+    const now = performance.now();
+
+    // Actualizar potenciales de acción (impulsos eléctricos)
+    for (let i = actionPotentials.length - 1; i >= 0; i--) {
+      const ap = actionPotentials[i];
+      ap.progress += ap.speed * dt;
+      if (ap.progress >= 1.0) {
+        const destNode = ap.forward ? ap.hypha.b : ap.hypha.a;
+        particles.push({
+          x: destNode.x, y: destNode.y,
+          r: 3.5, alpha: 0.8, color: ap.color
+        });
+        destNode.pulse = 1.2;
+        actionPotentials.splice(i, 1);
+      }
+    }
+
+    // Disparar impulsos espontáneos desde el Árbol Ancestral o Geodas
+    if (now - lastMyceliumPulseTs > 1100 && actionPotentials.length < 20 && myceliumHyphae.length > 0) {
+      lastMyceliumPulseTs = now;
+      const h = myceliumHyphae[Math.floor(Math.random() * myceliumHyphae.length)];
+      actionPotentials.push({
+        hypha: h,
+        progress: 0,
+        speed: rand(0.01, 0.02),
+        forward: Math.random() < 0.5,
+        color: Math.random() < 0.6 ? "#34d399" : "#38bdf8",
+        size: rand(2.5, 4)
+      });
+      if (Math.random() < 0.25) {
+        Sound.myceliumPulse(rand(700, 1100), h.mx);
+      }
+    }
+
+    // Actualizar colonias de setas
+    for (let m of mushrooms) {
+      m.age += dt;
+      m.sporeCooldown -= dt;
+      if (m.sporeCooldown <= 0) {
+        m.sporeCooldown = rand(60, 130);
+        if (particles.length < 180) {
+          particles.push({
+            x: m.x + spread(m.radius * 0.7),
+            y: m.y - m.stemH + spread(4),
+            vx: spread(0.4),
+            vy: -rand(0.3, 0.9),
+            r: rand(1.2, 2.5),
+            alpha: 0.8,
+            color: m.def.glowColor
+          });
+        }
+      }
+    }
+
+    // Germinación natural de setas si el clima es propicio
+    if (mushrooms.length < 10 && Math.random() < 0.0018 * dt * (seasonIdx === 0 || seasonIdx === 2 ? 1.6 : 0.8)) {
+      const rx = rand(60, W - 60), ry = rand(60, H - 60);
+      spawnMushroom(rx, ry, null, false);
+    }
+  }
+
+  function drawMyceliumNet(mctx) {
+    if (myceliumHyphae.length === 0) return;
+    const t = simTime * 0.0015;
+
+    mctx.save();
+
+    // Dibujar hifas con curvas cuadráticas
+    for (let h of myceliumHyphae) {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2 + h.seed);
+      const alpha = 0.16 + pulse * 0.18;
+
+      mctx.strokeStyle = `rgba(52, 211, 153, ${alpha * 0.75})`;
+      mctx.lineWidth = 1.4;
+      mctx.beginPath();
+      mctx.moveTo(h.a.x, h.a.y);
+      mctx.quadraticCurveTo(h.mx, h.my, h.b.x, h.b.y);
+      mctx.stroke();
+
+      // Línea fina secundaria fluorescente
+      mctx.strokeStyle = `rgba(34, 211, 238, ${alpha * 0.9})`;
+      mctx.lineWidth = 0.7;
+      mctx.beginPath();
+      mctx.moveTo(h.a.x, h.a.y);
+      mctx.quadraticCurveTo(h.mx, h.my, h.b.x, h.b.y);
+      mctx.stroke();
+    }
+
+    // Dibujar potenciales de acción (fotones viajando por las hifas)
+    for (let ap of actionPotentials) {
+      const h = ap.hypha;
+      const prog = ap.forward ? ap.progress : (1.0 - ap.progress);
+      const inv = 1.0 - prog;
+      const px = inv * inv * h.a.x + 2 * inv * prog * h.mx + prog * prog * h.b.x;
+      const py = inv * inv * h.a.y + 2 * inv * prog * h.my + prog * prog * h.b.y;
+
+      mctx.fillStyle = "#ffffff";
+      mctx.shadowColor = ap.color;
+      mctx.shadowBlur = 9;
+      mctx.beginPath();
+      mctx.arc(px, py, ap.size, 0, Math.PI * 2);
+      mctx.fill();
+      mctx.shadowBlur = 0;
+    }
+
+    // Dibujar nodos sinápticos
+    for (let n of myceliumNodes) {
+      const nPulse = 0.5 + 0.5 * Math.sin(t * 3 + (n.pulse || 1));
+      mctx.fillStyle = `rgba(52, 211, 153, ${0.35 + nPulse * 0.3})`;
+      mctx.beginPath();
+      mctx.arc(n.x, n.y, n.r * 0.6, 0, Math.PI * 2);
+      mctx.fill();
+
+      mctx.fillStyle = "#ffffff";
+      mctx.beginPath();
+      mctx.arc(n.x, n.y, 2, 0, Math.PI * 2);
+      mctx.fill();
+    }
+
+    mctx.restore();
+  }
+
+  function drawMushrooms(mctx) {
+    if (mushrooms.length === 0) return;
+    const t = simTime * 0.002;
+
+    for (let m of mushrooms) {
+      mctx.save();
+      mctx.translate(m.x, m.y);
+
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2 + m.seed);
+      const def = m.def;
+
+      // Halo bioluminiscente en el suelo
+      const aura = mctx.createRadialGradient(0, 0, 2, 0, 0, m.radius * 2.8);
+      aura.addColorStop(0, `${def.glowColor}55`);
+      aura.addColorStop(1, "rgba(0,0,0,0)");
+      mctx.fillStyle = aura;
+      mctx.beginPath();
+      mctx.ellipse(0, 2, m.radius * 2.5, m.radius * 1.2, 0, 0, Math.PI * 2);
+      mctx.fill();
+
+      // Tallo translúcido
+      mctx.fillStyle = def.stemColor;
+      mctx.beginPath();
+      mctx.moveTo(-m.radius * 0.22, 0);
+      mctx.quadraticCurveTo(-m.radius * 0.15, -m.stemH * 0.6, -m.radius * 0.18, -m.stemH);
+      mctx.lineTo(m.radius * 0.18, -m.stemH);
+      mctx.quadraticCurveTo(m.radius * 0.15, -m.stemH * 0.6, m.radius * 0.22, 0);
+      mctx.closePath();
+      mctx.fill();
+
+      // Sombrero de seta abovedado
+      mctx.save();
+      mctx.translate(0, -m.stemH);
+      mctx.shadowColor = def.glowColor;
+      mctx.shadowBlur = 10 + pulse * 6;
+
+      const capGrad = mctx.createLinearGradient(0, -m.radius * 1.1, 0, 0);
+      capGrad.addColorStop(0, def.capColor);
+      capGrad.addColorStop(1, def.glowColor);
+      mctx.fillStyle = capGrad;
+
+      mctx.beginPath();
+      mctx.moveTo(-m.radius, 0);
+      mctx.quadraticCurveTo(-m.radius * 0.9, -m.radius * 1.2, 0, -m.radius * 1.2);
+      mctx.quadraticCurveTo(m.radius * 0.9, -m.radius * 1.2, m.radius, 0);
+      mctx.closePath();
+      mctx.fill();
+      mctx.shadowBlur = 0;
+
+      // Puntos estelares bioluminiscentes en el sombrero
+      mctx.fillStyle = def.dotColor;
+      const dotCoords = [
+        { x: 0, y: -m.radius * 0.8 },
+        { x: -m.radius * 0.45, y: -m.radius * 0.55 },
+        { x: m.radius * 0.45, y: -m.radius * 0.55 },
+        { x: -m.radius * 0.22, y: -m.radius * 0.25 },
+        { x: m.radius * 0.22, y: -m.radius * 0.25 }
+      ];
+      for (let pt of dotCoords) {
+        mctx.beginPath();
+        mctx.arc(pt.x, pt.y, 1.6, 0, Math.PI * 2);
+        mctx.fill();
+      }
+
+      // Velo o reborde inferior
+      mctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+      mctx.lineWidth = 1;
+      mctx.beginPath();
+      mctx.moveTo(-m.radius, 0);
+      mctx.quadraticCurveTo(0, 3, m.radius, 0);
+      mctx.stroke();
+
+      mctx.restore();
+      mctx.restore();
+    }
+  }
+
+  function triggerSporeBloom() {
+    Sound.sporeBloom();
+    myceliumBiomass = 100;
+
+    // Destello esmeralda en el flash overlay
+    const fl = document.getElementById("flashOverlay");
+    if (fl) {
+      fl.style.background = "rgba(52, 211, 153, 0.35)";
+      fl.classList.add("active");
+      setTimeout(() => {
+        fl.classList.remove("active");
+        fl.style.background = "";
+      }, 500);
+    }
+
+    // Inundación masiva de esporas cósmicas
+    for (let i = 0; i < 90; i++) {
+      particles.push({
+        x: rand(0, W), y: rand(0, H),
+        vx: spread(1.5), vy: -rand(1.0, 3.5),
+        r: rand(2, 5), alpha: 0.95,
+        color: i % 3 === 0 ? "#34d399" : (i % 3 === 1 ? "#38bdf8" : "#fef08a")
+      });
+    }
+
+    // Bendecir e infundir éxtasis en todas las criaturas
+    for (let c of creatures) {
+      c.energy = Math.min(c.maxEnergy, c.energy + 45);
+      c.health = Math.min(100, c.health + 45);
+      c.stamina = c.maxStamina;
+      c.fungalEcstasy = 300;
+      c.fungalType = ["astral", "solar", "emerald"][Math.floor(Math.random() * 3)];
+      c.setEmote("🍄✨", 90);
+    }
+
+    // Sembrar 4 nuevas colonias de setas
+    for (let i = 0; i < 4; i++) {
+      spawnMushroom(rand(70, W - 70), rand(70, H - 70), null, false);
+    }
+
+    showToast("🌌 ¡Gran Esporulación Bioluminiscente! La mente micelial despierta el terrario");
+    updateUI();
+  }
+
+  function openMyceliumModal() {
+    const ov = document.getElementById("myceliumOverlay");
+    if (!ov) return;
+    ov.classList.add("open");
+    updateMyceliumModalStats();
+    startMyceliumCanvasLoop();
+    Sound.myceliumPulse(987.77, W * 0.5);
+  }
+
+  function closeMyceliumModal() {
+    const ov = document.getElementById("myceliumOverlay");
+    if (ov) ov.classList.remove("open");
+    if (myceliumCanvasRAF) {
+      cancelAnimationFrame(myceliumCanvasRAF);
+      myceliumCanvasRAF = null;
+    }
+  }
+
+  function updateMyceliumModalStats() {
+    const bEl = document.getElementById("mycBiomass");
+    if (bEl) bEl.textContent = `${Math.round(myceliumBiomass)}%`;
+    const nEl = document.getElementById("mycNodes");
+    if (nEl) nEl.textContent = myceliumNodes.length;
+    const pEl = document.getElementById("mycPulses");
+    if (pEl) pEl.textContent = actionPotentials.length;
+    const mEl = document.getElementById("mycMushrooms");
+    if (mEl) mEl.textContent = mushrooms.length;
+  }
+
+  function startMyceliumCanvasLoop() {
+    const mc = document.getElementById("myceliumCanvas");
+    if (!mc) return;
+    const mctx = mc.getContext("2d");
+    const mw = mc.width, mh = mc.height;
+
+    function renderModalMycelium() {
+      if (!document.getElementById("myceliumOverlay").classList.contains("open")) return;
+      mctx.clearRect(0, 0, mw, mh);
+
+      const t = performance.now() * 0.002;
+      const cx = mw * 0.5, cy = mh * 0.5;
+
+      const numNodes = 14;
+      const nodeCoords = [];
+      nodeCoords.push({ x: cx, y: cy });
+
+      for (let i = 0; i < numNodes; i++) {
+        const ang = (i / numNodes) * Math.PI * 2 + Math.sin(t * 0.5 + i) * 0.2;
+        const rad = 40 + (i % 3) * 32;
+        nodeCoords.push({
+          x: cx + Math.cos(ang) * rad,
+          y: cy + Math.sin(ang) * (rad * 0.75)
+        });
+      }
+
+      mctx.strokeStyle = "rgba(52, 211, 153, 0.4)";
+      mctx.lineWidth = 1.2;
+      for (let i = 1; i < nodeCoords.length; i++) {
+        mctx.beginPath();
+        mctx.moveTo(nodeCoords[0].x, nodeCoords[0].y);
+        mctx.quadraticCurveTo(
+          (nodeCoords[0].x + nodeCoords[i].x) * 0.5 + Math.sin(t + i) * 10,
+          (nodeCoords[0].y + nodeCoords[i].y) * 0.5 + Math.cos(t + i) * 10,
+          nodeCoords[i].x, nodeCoords[i].y
+        );
+        mctx.stroke();
+
+        const next = (i % (nodeCoords.length - 1)) + 1;
+        mctx.beginPath();
+        mctx.moveTo(nodeCoords[i].x, nodeCoords[i].y);
+        mctx.lineTo(nodeCoords[next].x, nodeCoords[next].y);
+        mctx.strokeStyle = "rgba(34, 211, 238, 0.25)";
+        mctx.stroke();
+      }
+
+      for (let i = 0; i < nodeCoords.length; i++) {
+        const pt = nodeCoords[i];
+        const pulse = 0.5 + 0.5 * Math.sin(t * 3 + i);
+        mctx.fillStyle = i === 0 ? "#38bdf8" : (i % 2 === 0 ? "#34d399" : "#c084fc");
+        mctx.shadowColor = mctx.fillStyle;
+        mctx.shadowBlur = 8;
+        mctx.beginPath();
+        mctx.arc(pt.x, pt.y, i === 0 ? 5 : 3.5 + pulse * 1.5, 0, Math.PI * 2);
+        mctx.fill();
+      }
+      mctx.shadowBlur = 0;
+
+      updateMyceliumModalStats();
+      myceliumCanvasRAF = requestAnimationFrame(renderModalMycelium);
+    }
+
+    if (myceliumCanvasRAF) cancelAnimationFrame(myceliumCanvasRAF);
+    myceliumCanvasRAF = requestAnimationFrame(renderModalMycelium);
+  }
+
+  // ==========================================
+  // LOS VÓRTICES DEL ESPACIO-TIEMPO (AGUJEROS DE GUSANO CUÁNTICOS)
+  // ==========================================
+  function initWormholes() {
+    wormholes = {
+      alpha: {
+        id: "alpha",
+        name: "Vórtice Alfa",
+        x: clamp(W * 0.22, 100, W - 100),
+        y: clamp(H * 0.32, 100, H - 100),
+        radius: 30,
+        angle: 0,
+        rotSpeed: 0.038,
+        baseHue: 175,
+        pulse: 1.0
+      },
+      omega: {
+        id: "omega",
+        name: "Vórtice Omega",
+        x: clamp(W * 0.78, 100, W - 100),
+        y: clamp(H * 0.68, 100, H - 100),
+        radius: 30,
+        angle: 0,
+        rotSpeed: -0.038,
+        baseHue: 285,
+        pulse: 1.0
+      }
+    };
+  }
+
+  function updateWormholes(dt) {
+    if (!wormholes) return;
+    const { alpha, omega } = wormholes;
+
+    alpha.angle += alpha.rotSpeed * dt;
+    omega.angle += omega.rotSpeed * dt;
+    alpha.pulse = 0.5 + 0.5 * Math.sin(simTime * 0.005);
+    omega.pulse = 0.5 + 0.5 * Math.sin(simTime * 0.005 + Math.PI);
+
+    // Partículas cuánticas orbitando en espiral hacia el horizonte de sucesos
+    for (let portal of [alpha, omega]) {
+      if (Math.random() < 0.45 * dt) {
+        const orbitAng = rand(0, Math.PI * 2);
+        const orbitR = rand(portal.radius * 0.8, portal.radius * 2.2);
+        particles.push({
+          x: portal.x + Math.cos(orbitAng) * orbitR,
+          y: portal.y + Math.sin(orbitAng) * orbitR,
+          vx: -Math.sin(orbitAng) * 1.5 - Math.cos(orbitAng) * 0.8,
+          vy: Math.cos(orbitAng) * 1.5 - Math.sin(orbitAng) * 0.8,
+          r: rand(1.2, 2.8),
+          alpha: 0.85,
+          color: portal.id === "alpha" ? "#22d3ee" : "#c084fc"
+        });
+      }
+    }
+
+    // Comprobación de teletransportación física para criaturas
+    for (let c of creatures) {
+      if (c.teleportCooldown > 0) continue;
+
+      for (let portal of [alpha, omega]) {
+        const dSq = distSq(c.x, c.y, portal.x, portal.y);
+        if (dSq < (portal.radius * 0.85) * (portal.radius * 0.85)) {
+          const dest = portal === alpha ? omega : alpha;
+
+          // Eyección en destino
+          c.x = dest.x + Math.cos(dest.angle) * (dest.radius + 18);
+          c.y = dest.y + Math.sin(dest.angle) * (dest.radius + 18);
+          c.heading = dest.angle;
+          c.teleportCooldown = 80;
+          c.wormholeJumps = (c.wormholeJumps || 0) + 1;
+          wormholeJumps++;
+
+          spawnQuantumEcho(c);
+          Sound.wormholeJump(dest.x);
+
+          // Implosión en origen
+          for (let i = 0; i < 20; i++) {
+            particles.push({
+              x: portal.x, y: portal.y,
+              vx: spread(3.2), vy: spread(3.2),
+              r: rand(2, 4), alpha: 1, color: portal.id === "alpha" ? "#22d3ee" : "#c084fc"
+            });
+          }
+          // Explosión cuántica en destino
+          for (let i = 0; i < 24; i++) {
+            particles.push({
+              x: dest.x, y: dest.y,
+              vx: Math.cos(i * 0.26) * rand(2, 5.5), vy: Math.sin(i * 0.26) * rand(2, 5.5),
+              r: rand(2, 4.5), alpha: 1, color: dest.id === "alpha" ? "#22d3ee" : "#c084fc"
+            });
+          }
+
+          c.setEmote("🌀✨", 75);
+
+          if (c === possessedCreature) {
+            const fl = document.getElementById("flashOverlay");
+            if (fl) {
+              fl.style.background = dest.id === "alpha" ? "rgba(34, 211, 238, 0.4)" : "rgba(192, 132, 252, 0.4)";
+              fl.classList.add("active");
+              setTimeout(() => { fl.classList.remove("active"); fl.style.background = ""; }, 400);
+            }
+            showToast(`🌀 ¡Salto Cuántico! Has atravesado el abismo hacia ${dest.name}`);
+          }
+
+          if (c.wormholeJumps >= 3 && !c.legendary) {
+            c.legendary = true;
+            showToast(`⚔️ ¡${c.name} ha cruzado el Espacio-Tiempo 3 veces y se consagra como Caminante de Dimensiones!`);
+          }
+
+          updateUI();
+          break;
+        }
+      }
+    }
+  }
+
+  function drawWormholes(wctx) {
+    if (!wormholes) return;
+    const { alpha, omega } = wormholes;
+
+    wctx.save();
+
+    // Hilo de entrelazamiento cuántico entre Alfa y Omega
+    const t = simTime * 0.001;
+    const mx = (alpha.x + omega.x) * 0.5 + Math.sin(t * 2) * 35;
+    const my = (alpha.y + omega.y) * 0.5 + Math.cos(t * 2) * 35;
+    const entangleAlpha = 0.25 + 0.15 * Math.sin(t * 3);
+
+    wctx.strokeStyle = `rgba(168, 85, 247, ${entangleAlpha * 0.7})`;
+    wctx.lineWidth = 1.6;
+    wctx.setLineDash([6, 8]);
+    wctx.beginPath();
+    wctx.moveTo(alpha.x, alpha.y);
+    wctx.quadraticCurveTo(mx, my, omega.x, omega.y);
+    wctx.stroke();
+    wctx.setLineDash([]);
+
+    // Partícula viajando a través del túnel cuántico
+    const tunnelProgress = (t * 0.9) % 1.0;
+    const invT = 1.0 - tunnelProgress;
+    const tx = invT * invT * alpha.x + 2 * invT * tunnelProgress * mx + tunnelProgress * tunnelProgress * omega.x;
+    const ty = invT * invT * alpha.y + 2 * invT * tunnelProgress * my + tunnelProgress * tunnelProgress * omega.y;
+    wctx.fillStyle = "#ffffff";
+    wctx.shadowColor = "#38bdf8";
+    wctx.shadowBlur = 10;
+    wctx.beginPath();
+    wctx.arc(tx, ty, 3.2, 0, Math.PI * 2);
+    wctx.fill();
+    wctx.shadowBlur = 0;
+
+    // Renderizado de cada Portal
+    for (let portal of [alpha, omega]) {
+      wctx.save();
+      wctx.translate(portal.x, portal.y);
+
+      const r = portal.radius;
+      const glowGrad = wctx.createRadialGradient(0, 0, r * 0.5, 0, 0, r * 2.4);
+      const isAlpha = portal.id === "alpha";
+      glowGrad.addColorStop(0, isAlpha ? "rgba(34, 211, 238, 0.45)" : "rgba(192, 132, 252, 0.45)");
+      glowGrad.addColorStop(0.7, isAlpha ? "rgba(16, 185, 129, 0.2)" : "rgba(236, 72, 153, 0.2)");
+      glowGrad.addColorStop(1, "rgba(0,0,0,0)");
+      wctx.fillStyle = glowGrad;
+      wctx.beginPath();
+      wctx.arc(0, 0, r * 2.4, 0, Math.PI * 2);
+      wctx.fill();
+
+      // Disco de acreción giratorio con arcos espirales
+      wctx.rotate(portal.angle);
+      for (let i = 0; i < 4; i++) {
+        const arcAng = (i * Math.PI) / 2;
+        wctx.strokeStyle = isAlpha
+          ? (i % 2 === 0 ? "rgba(34, 211, 238, 0.85)" : "rgba(52, 211, 153, 0.75)")
+          : (i % 2 === 0 ? "rgba(192, 132, 252, 0.85)" : "rgba(244, 114, 182, 0.75)");
+        wctx.lineWidth = 2.4;
+        wctx.beginPath();
+        wctx.arc(0, 0, r * 1.15, arcAng, arcAng + 0.85);
+        wctx.stroke();
+
+        wctx.lineWidth = 1.4;
+        wctx.beginPath();
+        wctx.arc(0, 0, r * 1.55, arcAng + 0.3, arcAng + 1.1);
+        wctx.stroke();
+      }
+
+      // Horizonte de sucesos abisal (negro profundo)
+      wctx.fillStyle = "#030712";
+      wctx.beginPath();
+      wctx.arc(0, 0, r * 0.75, 0, Math.PI * 2);
+      wctx.fill();
+
+      // Anillo de fotones brillante en el borde
+      wctx.strokeStyle = "#ffffff";
+      wctx.lineWidth = 2.0;
+      wctx.shadowColor = isAlpha ? "#22d3ee" : "#c084fc";
+      wctx.shadowBlur = 12;
+      wctx.beginPath();
+      wctx.arc(0, 0, r * 0.75, 0, Math.PI * 2);
+      wctx.stroke();
+      wctx.shadowBlur = 0;
+
+      // Núcleo de singularidad
+      wctx.fillStyle = isAlpha ? "#a5f3fc" : "#f5d0fe";
+      wctx.beginPath();
+      wctx.arc(0, 0, 3 + portal.pulse * 2, 0, Math.PI * 2);
+      wctx.fill();
+
+      wctx.restore();
+    }
+
+    wctx.restore();
+  }
+
+  function setWormholePosition(x, y) {
+    if (!wormholes) initWormholes();
+    if (lastWormholePlacement === "alpha") {
+      wormholes.alpha.x = x;
+      wormholes.alpha.y = y;
+      lastWormholePlacement = "omega";
+      showToast("🌀 Vórtice Alfa reubicado en el mapa");
+    } else {
+      wormholes.omega.x = x;
+      wormholes.omega.y = y;
+      lastWormholePlacement = "alpha";
+      showToast("🌀 Vórtice Omega reubicado en el mapa");
+    }
+    Sound.wormholeJump(x);
+    for (let i = 0; i < 22; i++) {
+      particles.push({
+        x, y,
+        vx: spread(2.5), vy: spread(2.5),
+        r: rand(2, 4), alpha: 0.9,
+        color: lastWormholePlacement === "omega" ? "#22d3ee" : "#c084fc"
+      });
+    }
+  }
+
+  // ==========================================
+  // ECOS TEMPORALES CUÁNTICOS (CHRONO-AFTERIMAGES)
+  // ==========================================
+  function spawnQuantumEcho(c) {
+    if (quantumEchoes.length > 50) quantumEchoes.shift();
+    quantumEchoes.push({
+      x: c.x,
+      y: c.y,
+      vx: Math.cos(c.heading) * (c.genes.speed || 1.5),
+      vy: Math.sin(c.heading) * (c.genes.speed || 1.5),
+      radius: c.radius(),
+      speciesId: c.speciesId,
+      alpha: 0.65,
+      decay: 0.035
+    });
+  }
+
+  function updateQuantumEchoes(dt) {
+    for (let i = quantumEchoes.length - 1; i >= 0; i--) {
+      const e = quantumEchoes[i];
+      e.alpha -= e.decay * dt;
+      if (e.alpha <= 0) quantumEchoes.splice(i, 1);
+    }
+  }
+
+  function drawQuantumEchoes(gctx) {
+    if (quantumEchoes.length === 0) return;
+    gctx.save();
+    gctx.globalCompositeOperation = "screen";
+
+    for (let e of quantumEchoes) {
+      gctx.fillStyle = `rgba(56, 189, 248, ${e.alpha * 0.45})`;
+      gctx.beginPath();
+      gctx.arc(e.x - e.vx * 2, e.y - e.vy * 2, e.radius, 0, Math.PI * 2);
+      gctx.fill();
+
+      gctx.fillStyle = `rgba(236, 72, 153, ${e.alpha * 0.45})`;
+      gctx.beginPath();
+      gctx.arc(e.x + e.vx * 2, e.y + e.vy * 2, e.radius, 0, Math.PI * 2);
+      gctx.fill();
+    }
+
+    gctx.restore();
+  }
+
+  // ==========================================
+  // CRISOL DE QUIMERAS & TRANSMUTACIÓN GENÉTICA
+  // ==========================================
+  function spawnChimera(chimeraType, x, y) {
+    const spX = x !== undefined && x !== null ? x : rand(W * 0.25, W * 0.75);
+    const spY = y !== undefined && y !== null ? y : rand(H * 0.25, H * 0.75);
+    const c = new Creature(spX, spY, chimeraType, null, maxGen + 1);
+    c.energy = c.maxEnergy;
+    c.health = 100;
+    c.stamina = c.maxStamina;
+    c.setEmote("✨🧬", 90);
+    creatures.push(c);
+    chimerasAwakened++;
+
+    for (let i = 0; i < 35; i++) {
+      particles.push({
+        x: spX, y: spY,
+        vx: Math.cos(i * 0.18) * rand(2, 6),
+        vy: Math.sin(i * 0.18) * rand(2, 6),
+        r: rand(2.5, 5), alpha: 1, color: c.spec.swatch
+      });
+    }
+
+    Sound.chimeraRoar(c.spec.chimeraType, spX);
+    Sound.crystalHarmonica(1318.51, 2.0, spX);
+    showToast(`🧬 ¡${c.spec.name} (${c.name}) ha despertado en el Terrario!`);
+    updateUI();
+    return c;
+  }
+
+  function transmuteCreature(c, chimeraType) {
+    if (!c) return;
+    const oldName = c.name;
+    const oldSpec = c.spec.name;
+    c.speciesId = chimeraType;
+    c.spec = SPECIES[chimeraType.toUpperCase()] || SPECIES.HERB_AGILE;
+    c.isChimera = true;
+    c.chimeraType = c.spec.chimeraType;
+    c.energy = c.maxEnergy;
+    c.health = 100;
+    c.stamina = c.maxStamina;
+    c.gen++;
+    if (c.gen > maxGen) maxGen = c.gen;
+    c.setEmote("🧬🌌", 100);
+    chimerasAwakened++;
+
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: c.x, y: c.y,
+        vx: spread(4), vy: spread(4),
+        r: rand(2, 5), alpha: 1, color: c.spec.swatch
+      });
+    }
+
+    Sound.chimeraRoar(c.chimeraType, c.x);
+    Sound.crystalHarmonica(1567.98, 2.2, c.x);
+    showToast(`✨ ¡Transmutación completada! ${oldName} (${oldSpec}) ahora es un ${c.spec.name}`);
+    updateUI();
+  }
+
+  const chimeraOverlay = document.getElementById("chimeraOverlay");
+  const chimeraPreviewCanvas = document.getElementById("chimeraPreviewCanvas");
+  const chimeraPreviewCtx = chimeraPreviewCanvas ? chimeraPreviewCanvas.getContext("2d") : null;
+
+  function updateChimeraDetails(type) {
+    activeChimeraTab = type;
+    const def = CHIMERA_DEFINITIONS[type];
+    if (!def) return;
+
+    document.querySelectorAll(".chimera-tab").forEach(tab => {
+      tab.classList.toggle("active", tab.dataset.chimera === type);
+    });
+
+    const nameEl = document.getElementById("chimeraPreviewName");
+    if (nameEl) nameEl.textContent = def.name;
+    const recipeEl = document.getElementById("chimeraPreviewRecipe");
+    if (recipeEl) recipeEl.textContent = def.recipe;
+    const descEl = document.getElementById("chimeraDesc");
+    if (descEl) descEl.textContent = def.desc;
+
+    const typeEl = document.getElementById("chimeraStatType");
+    if (typeEl) typeEl.textContent = def.type;
+    const spdEl = document.getElementById("chimeraStatSpeed");
+    if (spdEl) spdEl.textContent = def.speed;
+    const abilEl = document.getElementById("chimeraStatAbility");
+    if (abilEl) abilEl.textContent = def.ability;
+
+    const count = creatures.filter(c => c.speciesId === type).length;
+    const countEl = document.getElementById("chimeraStatCount");
+    if (countEl) countEl.textContent = count;
+  }
+
+  function drawChimeraPreviewFrame(ts) {
+    if (!chimeraPreviewCtx) return;
+    const pw = chimeraPreviewCanvas.width, ph = chimeraPreviewCanvas.height;
+    chimeraPreviewCtx.clearRect(0, 0, pw, ph);
+
+    const t = ts / 1000;
+    const cx = pw / 2, cy = ph / 2;
+
+    chimeraPreviewCtx.save();
+    chimeraPreviewCtx.translate(cx, cy);
+
+    for (let i = 0; i < 16; i++) {
+      const sx = Math.sin(i * 12 + 1) * (pw * 0.45);
+      const sy = Math.cos(i * 17 + 2) * (ph * 0.42);
+      const tw = 0.5 + 0.5 * Math.sin(t * 2 + i);
+      chimeraPreviewCtx.fillStyle = `rgba(255, 255, 255, ${0.4 * tw})`;
+      chimeraPreviewCtx.beginPath();
+      chimeraPreviewCtx.arc(sx, sy, 1.2, 0, Math.PI * 2);
+      chimeraPreviewCtx.fill();
+    }
+
+    const previewR = 18;
+
+    switch (activeChimeraTab) {
+      case "chimera_celestial": {
+        const wFlap = Math.sin(t * 4);
+        chimeraPreviewCtx.fillStyle = "rgba(56, 189, 248, 0.5)";
+        chimeraPreviewCtx.strokeStyle = "#bae6fd";
+        chimeraPreviewCtx.lineWidth = 1.4;
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.moveTo(-previewR * 0.3, -previewR * 0.3);
+        chimeraPreviewCtx.quadraticCurveTo(-previewR * 2.2, -previewR * 3.2 + wFlap * 14, 0, -previewR * 1.5);
+        chimeraPreviewCtx.closePath(); chimeraPreviewCtx.fill(); chimeraPreviewCtx.stroke();
+
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.moveTo(-previewR * 0.3, previewR * 0.3);
+        chimeraPreviewCtx.quadraticCurveTo(-previewR * 2.2, previewR * 3.2 - wFlap * 14, 0, previewR * 1.5);
+        chimeraPreviewCtx.closePath(); chimeraPreviewCtx.fill(); chimeraPreviewCtx.stroke();
+
+        chimeraPreviewCtx.fillStyle = "#38bdf8";
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.ellipse(0, 0, previewR * 1.4, previewR * 0.75, 0, 0, Math.PI * 2);
+        chimeraPreviewCtx.fill();
+        chimeraPreviewCtx.strokeStyle = "#e0f2fe";
+        chimeraPreviewCtx.stroke();
+
+        chimeraPreviewCtx.strokeStyle = "#fef08a";
+        chimeraPreviewCtx.lineWidth = 2;
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.moveTo(previewR * 0.8, -previewR * 0.3); chimeraPreviewCtx.lineTo(previewR * 1.8, -previewR * 1.2);
+        chimeraPreviewCtx.moveTo(previewR * 0.8, previewR * 0.3); chimeraPreviewCtx.lineTo(previewR * 1.8, previewR * 1.2);
+        chimeraPreviewCtx.stroke();
+        break;
+      }
+
+      case "chimera_behemoth": {
+        const bPulse = 0.5 + 0.5 * Math.sin(t * 3);
+        chimeraPreviewCtx.fillStyle = "#1c1917";
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.ellipse(0, 0, previewR * 1.5, previewR * 1.1, 0, 0, Math.PI * 2);
+        chimeraPreviewCtx.fill();
+        chimeraPreviewCtx.strokeStyle = "#44403c";
+        chimeraPreviewCtx.lineWidth = 3;
+        chimeraPreviewCtx.stroke();
+
+        chimeraPreviewCtx.strokeStyle = `rgba(249, 115, 22, ${0.8 + bPulse * 0.2})`;
+        chimeraPreviewCtx.lineWidth = 2.5;
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.moveTo(-previewR * 0.9, -previewR * 0.4); chimeraPreviewCtx.lineTo(0, 0); chimeraPreviewCtx.lineTo(previewR * 0.8, -previewR * 0.2);
+        chimeraPreviewCtx.stroke();
+
+        chimeraPreviewCtx.fillStyle = "#ea580c";
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.arc(previewR * 1.1, 0, 4, 0, Math.PI * 2);
+        chimeraPreviewCtx.fill();
+        break;
+      }
+
+      case "chimera_gryphon": {
+        const flap = Math.sin(t * 5);
+        chimeraPreviewCtx.fillStyle = "#3b0764";
+        chimeraPreviewCtx.strokeStyle = "#c084fc";
+        chimeraPreviewCtx.lineWidth = 1.6;
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.moveTo(0, 0);
+        chimeraPreviewCtx.lineTo(-previewR * 1.2, -previewR * 2.6 + flap * 8);
+        chimeraPreviewCtx.lineTo(previewR * 0.6, -previewR * 1.0);
+        chimeraPreviewCtx.closePath(); chimeraPreviewCtx.fill(); chimeraPreviewCtx.stroke();
+
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.moveTo(0, 0);
+        chimeraPreviewCtx.lineTo(-previewR * 1.2, previewR * 2.6 - flap * 8);
+        chimeraPreviewCtx.lineTo(previewR * 0.6, previewR * 1.0);
+        chimeraPreviewCtx.closePath(); chimeraPreviewCtx.fill(); chimeraPreviewCtx.stroke();
+
+        chimeraPreviewCtx.fillStyle = "#6b21a8";
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.ellipse(0, 0, previewR * 1.35, previewR * 0.7, 0, 0, Math.PI * 2);
+        chimeraPreviewCtx.fill();
+        chimeraPreviewCtx.stroke();
+
+        chimeraPreviewCtx.fillStyle = "#eab308";
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.moveTo(previewR * 0.9, -previewR * 0.3);
+        chimeraPreviewCtx.lineTo(previewR * 1.8, 0);
+        chimeraPreviewCtx.lineTo(previewR * 0.9, previewR * 0.3);
+        chimeraPreviewCtx.closePath(); chimeraPreviewCtx.fill();
+        break;
+      }
+
+      case "chimera_prism": {
+        const rot = t * 1.2;
+        const pts = [
+          { x: 0, y: -previewR * 1.8 },
+          { x: Math.cos(rot) * previewR * 1.4, y: -Math.sin(rot) * previewR * 0.6 },
+          { x: Math.cos(rot + Math.PI * 0.5) * previewR * 1.4, y: -Math.sin(rot + Math.PI * 0.5) * previewR * 0.6 },
+          { x: Math.cos(rot + Math.PI) * previewR * 1.4, y: -Math.sin(rot + Math.PI) * previewR * 0.6 },
+          { x: Math.cos(rot + Math.PI * 1.5) * previewR * 1.4, y: -Math.sin(rot + Math.PI * 1.5) * previewR * 0.6 },
+          { x: 0, y: previewR * 1.8 }
+        ];
+
+        chimeraPreviewCtx.strokeStyle = "#ffffff";
+        chimeraPreviewCtx.lineWidth = 1.4;
+
+        for (let i = 1; i <= 4; i++) {
+          const next = i === 4 ? 1 : i + 1;
+          chimeraPreviewCtx.beginPath();
+          chimeraPreviewCtx.moveTo(pts[0].x, pts[0].y);
+          chimeraPreviewCtx.lineTo(pts[i].x, pts[i].y);
+          chimeraPreviewCtx.lineTo(pts[next].x, pts[next].y);
+          chimeraPreviewCtx.closePath();
+          chimeraPreviewCtx.fillStyle = `hsla(${(i * 80 + t * 40) % 360}, 90%, 65%, 0.45)`;
+          chimeraPreviewCtx.fill(); chimeraPreviewCtx.stroke();
+
+          chimeraPreviewCtx.beginPath();
+          chimeraPreviewCtx.moveTo(pts[5].x, pts[5].y);
+          chimeraPreviewCtx.lineTo(pts[i].x, pts[i].y);
+          chimeraPreviewCtx.lineTo(pts[next].x, pts[next].y);
+          chimeraPreviewCtx.closePath();
+          chimeraPreviewCtx.fillStyle = `hsla(${(i * 80 + 40 + t * 40) % 360}, 90%, 65%, 0.38)`;
+          chimeraPreviewCtx.fill(); chimeraPreviewCtx.stroke();
+        }
+
+        chimeraPreviewCtx.fillStyle = "#ffffff";
+        chimeraPreviewCtx.beginPath();
+        chimeraPreviewCtx.arc(0, 0, 5, 0, Math.PI * 2);
+        chimeraPreviewCtx.fill();
+        break;
+      }
+    }
+
+    chimeraPreviewCtx.restore();
+    chimeraPreviewRAF = requestAnimationFrame(drawChimeraPreviewFrame);
+  }
+
+  function openChimeraModal(chimeraType = "chimera_celestial") {
+    if (!chimeraOverlay) return;
+    updateChimeraDetails(chimeraType);
+    chimeraOverlay.classList.add("open");
+    Sound.crystalHarmonica(1046.50, 1.2);
+    if (!chimeraPreviewRAF) {
+      chimeraPreviewRAF = requestAnimationFrame(drawChimeraPreviewFrame);
+    }
+  }
+
+  function closeChimeraModal() {
+    if (!chimeraOverlay) return;
+    chimeraOverlay.classList.remove("open");
+    if (chimeraPreviewRAF) {
+      cancelAnimationFrame(chimeraPreviewRAF);
+      chimeraPreviewRAF = null;
+    }
+  }
+
+  // ==========================================
   // REINICIO Y POBLACIÓN INICIAL
   // ==========================================
   function seedWorld() {
@@ -2445,11 +4422,22 @@
     soulWisps = [];
     lightningBolts = [];
     vortices = [];
+    crystalNodes = [];
+    quantumEchoes = [];
+    mushrooms = [];
+    myceliumNodes = [];
+    myceliumHyphae = [];
+    actionPotentials = [];
+    wormholeJumps = 0;
+    myceliumBiomass = 100;
     camX = W / 2;
     camY = H / 2;
     camZoom = 1.0;
 
     initBiomes();
+    initCrystals();
+    initMycelium();
+    initWormholes();
 
     for (let i = 0; i < 60; i++) spawnFood(rand(0, W), rand(0, H));
 
@@ -2459,6 +4447,9 @@
     for (let i = 0; i < 2; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "carn_apex", null, 0));
     for (let i = 0; i < 6; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "scavenger", null, 0));
     for (let i = 0; i < 8; i++) creatures.push(new Creature(rand(0, W), rand(0, H), "pollinator", null, 0));
+
+    // Despertar la primera Quimera Mítica como guardián celestial
+    spawnChimera("chimera_celestial", W * 0.5 + spread(60), H * 0.38 + spread(40));
 
     showToast("Terrario reiniciado con éxito");
   }
@@ -2565,6 +4556,10 @@
       if (c.decay >= 100 || (c.bones && c.decay >= 40)) {
         spawnFood(c.x, c.y);
         spawnFood(c.x + 8, c.y - 6);
+        feedMyceliumAt(c.x, c.y, 1.2);
+        if (Math.random() < 0.35 && mushrooms.length < 18) {
+          spawnMushroom(c.x, c.y, null, false);
+        }
         carcasses.splice(i, 1);
       }
     }
@@ -2595,6 +4590,10 @@
     updateAncientTree(dt);
     updateEclipse(dt);
     updateElementalPowers(dt);
+    updateCrystals(dt);
+    updateMycelium(dt);
+    updateWormholes(dt);
+    updateQuantumEchoes(dt);
     if (cymaticPulse > 0) cymaticPulse = Math.max(0, cymaticPulse - 0.012 * dt);
 
     if (options.dreamMode) {
@@ -2617,10 +4616,14 @@
       carn_pack: "#f87171",
       carn_apex: "#c084fc",
       scavenger: "#38bdf8",
-      pollinator: "#fef08a"
+      pollinator: "#fef08a",
+      chimera_celestial: "#38bdf8",
+      chimera_behemoth: "#ea580c",
+      chimera_gryphon: "#9333ea",
+      chimera_prism: "#ec4899"
     };
     const col = colors[c.speciesId] || "#a7f3d0";
-    const rad = c.speciesId === "herb_mega" ? 3.4 : (c.speciesId === "pollinator" ? 1.6 : 2.2);
+    const rad = c.speciesId === "chimera_behemoth" || c.speciesId === "herb_mega" ? 3.8 : (c.speciesId === "pollinator" ? 1.6 : 2.4);
     bioTrails.push({
       x: c.x,
       y: c.y,
@@ -2786,6 +4789,26 @@
       (c, ctx) => `La luz solar me llena de dicha. El mundo es un tapiz de colores vivos y néctar que nunca se agota.`,
       (c, ctx) => `Mi cuerpo es diminuto, pero sin mi danza este terrario caería en un desierto estéril.`,
       (c, ctx) => `Vuelo hacia los destellos de las flores cósmicas. La existencia es un zumbido radiante de creación.`
+    ],
+    chimera_celestial: [
+      (c, ctx) => `Mis alas de luz rasgan las corrientes celestes. El valle entero florece allí donde el polvo de mis plumas roza el suelo.`,
+      (c, ctx) => `Vuelo por encima de los dientes de los cazadores y los abismos. El cielo no tiene límites para mi estirpe sagrada.`,
+      (c, ctx) => `Siento la vibración de las constelaciones en mi cornamenta. Cada salto mío es una bendición de vida para la tierra.`
+    ],
+    chimera_behemoth: [
+      (c, ctx) => `El magma primordial late en el fondo de mis venas. La corteza terrestre cede con reverencia a cada paso que doy.`,
+      (c, ctx) => `Ningún depredador osa mirarme a los ojos; el calor de mi coraza fundiría sus colmillos al menor intento.`,
+      (c, ctx) => `Soy el ancla tectónica de esta era. Cuando brama mi garganta, la tierra abre géiseres de fertilidad eterna.`
+    ],
+    chimera_gryphon: [
+      (c, ctx) => `La sombra y la tormenta me visten por igual. Mi vuelo en picado cruza la frontera de lo invisible.`,
+      (c, ctx) => `Cazo desde el crepúsculo del vacío; antes de que la presa oiga el batir de mis alas, su ciclo ya ha concluido.`,
+      (c, ctx) => `Ni ave pura ni bestia ciega: soy la cúspide alada que equilibra la luz y la tiniebla del valle.`
+    ],
+    chimera_prism: [
+      (c, ctx) => `La luz solar no me ilumina: me refracta. Cada fotón que me atraviesa se convierte en un acorde cromático de sanación.`,
+      (c, ctx) => `Me comunico en frecuencias puras con las geodas de cuarzo del suelo; somos una sola red geométrica y consciente.`,
+      (c, ctx) => `No conozco el hambre ni el miedo a la muerte; soy una chispa eterna del prisma que originó este universo.`
     ]
   };
 
@@ -2793,9 +4816,22 @@
     const p = c.findNearestWater();
     const distWater = p ? Math.round(Math.sqrt(distSq(c.x, c.y, p.x, p.y))) : 999;
     let distPrey = 999;
-    if (c.speciesId === "carn_pack" || c.speciesId === "carn_apex") {
+    if (c.speciesId === "carn_pack" || c.speciesId === "carn_apex" || c.speciesId === "chimera_gryphon") {
       const target = creatureGrid.nearest(c.x, c.y, 250, (o) => o.speciesId.startsWith("herb_"));
       if (target) distPrey = Math.round(Math.sqrt(distSq(c.x, c.y, target.x, target.y)));
+    }
+
+    if (c.teleportCooldown > 30) {
+      return `“¡El tejido del espacio-tiempo se ha plegado bajo mis pies! Mis átomos han cruzado el abismo interestelar en un solo latido.”`;
+    }
+    if (c.fungalEcstasy > 0) {
+      const sporeThoughts = [
+        "“Siento los mil millones de hifas del terrario respirando bajo mis pisadas... soy uno con la mente vegetal.”",
+        "“El tiempo se pliega en círculos de luz; veo las memorias de las bestias que descansan en el suelo fértil.”",
+        "“La savia primordial recorre mis sentidos. No hay separación entre mi cuerpo y el sustrato del mundo.”",
+        "“Las esporas susurran secretos ancestrales en mi mente... la muerte no es un final, solo savia que renace.”"
+      ];
+      return sporeThoughts[Math.floor(Math.random() * sporeThoughts.length)];
     }
 
     if (c.energy < c.maxEnergy * 0.28) {
@@ -2856,7 +4892,11 @@
       carn_pack: "🐺",
       carn_apex: "🦖",
       scavenger: "🦅",
-      pollinator: "✨"
+      pollinator: "✨",
+      chimera_celestial: "🦌✨",
+      chimera_behemoth: "🦏🌋",
+      chimera_gryphon: "🐺🦅",
+      chimera_prism: "✨💎"
     };
 
     const possAvatar = document.getElementById("possAvatar");
@@ -2884,7 +4924,11 @@
       carn_pack: "Acometida Voraz",
       carn_apex: "Rugido Real",
       scavenger: "Ascenso Celestial",
-      pollinator: "Eclosión de Polen"
+      pollinator: "Eclosión de Polen",
+      chimera_celestial: "Lluvia Astral",
+      chimera_behemoth: "Falla Geotérmica",
+      chimera_gryphon: "Picado Umbrío",
+      chimera_prism: "Nova de Refracción"
     };
 
     if (possAbilityLabel) {
@@ -2906,6 +4950,34 @@
     if (!possessedCreature || possessionAbilityCooldown > 0) return;
     const c = possessedCreature;
     possessionAbilityCooldown = possessionAbilityMaxCooldown;
+
+    if (c.fungalEcstasy > 0) {
+      alarmWaves.push({ x: c.x, y: c.y, r: 12, maxR: 240, alpha: 1.0, color: "#34d399" });
+      Sound.mushroomChime(c.x);
+      for (let i = 0; i < 36; i++) {
+        particles.push({
+          x: c.x, y: c.y,
+          r: rand(2.5, 5), alpha: 1,
+          color: i % 3 === 0 ? "#34d399" : (i % 3 === 1 ? "#38bdf8" : "#c084fc"),
+          vx: Math.cos(i * 0.18) * rand(2, 6), vy: Math.sin(i * 0.18) * rand(2, 6)
+        });
+      }
+      const predators = creatureGrid.queryRadius(c.x, c.y, 220, (o) => o.speciesId.startsWith("carn_"));
+      for (let pred of predators) {
+        pred.state = "SLEEP";
+        pred.setEmote("🍄💤", 90);
+      }
+      const allies = creatureGrid.queryRadius(c.x, c.y, 220, (o) => !o.speciesId.startsWith("carn_"));
+      for (let al of allies) {
+        al.health = Math.min(100, al.health + 35);
+        al.stamina = al.maxStamina;
+        al.fungalEcstasy = 220;
+        al.setEmote("✨💖", 70);
+      }
+      feedMyceliumAt(c.x, c.y, 2.0);
+      showToast("🍄✨ ¡Explosión de Esporas Psicotrópicas! Depredadores hipnotizados y red micelial expandida");
+      return;
+    }
 
     switch (c.speciesId) {
       case "herb_agile": {
@@ -2990,6 +5062,94 @@
         c.setEmote("🌸💖", 70);
         Sound.chime();
         showToast("✨ ¡Eclosión de Polen! Arbustos madurados y semillas esparcidas");
+        break;
+      }
+
+      case "chimera_celestial": {
+        c.celestialAscent = 360;
+        c.stamina = c.maxStamina;
+        c.energy = Math.min(c.maxEnergy, c.energy + 35);
+        for (let i = 0; i < 8; i++) spawnFood(c.x + spread(60), c.y + spread(60));
+        for (let i = 0; i < 35; i++) {
+          particles.push({
+            x: c.x, y: c.y,
+            r: rand(2, 4.5), alpha: 1, color: i % 2 === 0 ? "#38bdf8" : "#fef08a",
+            vx: Math.cos(i * 0.18) * rand(1.5, 4.5), vy: Math.sin(i * 0.18) * rand(1.5, 4.5)
+          });
+        }
+        c.setEmote("✨🌟", 80);
+        Sound.chimeraRoar("celestial", c.x);
+        showToast("✨ ¡Lluvia Astral! El Ciervo Alado bendice la tierra con flores y luz");
+        break;
+      }
+
+      case "chimera_behemoth": {
+        c.stamina = Math.min(c.maxStamina, c.stamina + 50);
+        alarmWaves.push({ x: c.x, y: c.y, r: 16, maxR: 300, alpha: 1.0, color: "#f97316" });
+        const enemies = creatureGrid.queryRadius(c.x, c.y, 280, (o) => o !== c);
+        for (let e of enemies) {
+          e.steerAway(c.x, c.y, 1.2, 0.45, 2.2);
+          e.setEmote("💥😱", 60);
+        }
+        for (let i = 0; i < 30; i++) {
+          particles.push({
+            x: c.x + spread(25), y: c.y + spread(25),
+            vx: spread(2), vy: spread(2),
+            r: rand(3, 6), alpha: 0.95, color: Math.random() < 0.5 ? "#f97316" : "#7c2d12"
+          });
+        }
+        c.setEmote("🌋💥", 80);
+        Sound.chimeraRoar("behemoth", c.x);
+        showToast("🌋 ¡Falla Geotérmica! La tierra ruge y los depredadores huyen despavoridos");
+        break;
+      }
+
+      case "chimera_gryphon": {
+        c.camouflageBoost = 320;
+        const dashSpd = 5.2;
+        c.x += Math.cos(c.heading) * dashSpd * 18;
+        c.y += Math.sin(c.heading) * dashSpd * 18;
+        c.stamina = Math.min(c.maxStamina, c.stamina + 40);
+        alarmWaves.push({ x: c.x, y: c.y, r: 10, maxR: 240, alpha: 0.9, color: "#9333ea" });
+        for (let i = 0; i < 25; i++) {
+          particles.push({
+            x: c.x + spread(15), y: c.y + spread(15),
+            vx: spread(1.2), vy: spread(1.2),
+            r: rand(2, 4), alpha: 0.9, color: "#a855f7"
+          });
+        }
+        c.setEmote("🦅⚡", 80);
+        Sound.chimeraRoar("gryphon", c.x);
+        showToast("🦅 ¡Picado Umbrío! Vuelo hipersónico envuelto en sombras del abismo");
+        break;
+      }
+
+      case "chimera_prism": {
+        c.energy = c.maxEnergy;
+        c.water = c.maxWater;
+        c.stamina = c.maxStamina;
+        const allCreatures = creatureGrid.queryRadius(c.x, c.y, 300, () => true);
+        for (let cr of allCreatures) {
+          cr.health = 100;
+          cr.stamina = cr.maxStamina;
+          cr.crystalTuned = 180;
+          cr.setEmote("💖💎", 70);
+        }
+        for (let node of crystalNodes) {
+          node.charge = 1.0;
+        }
+        alarmWaves.push({ x: c.x, y: c.y, r: 12, maxR: 320, alpha: 1.0, color: "#ec4899" });
+        for (let i = 0; i < 40; i++) {
+          particles.push({
+            x: c.x, y: c.y,
+            vx: Math.cos(i * 0.16) * rand(2, 5), vy: Math.sin(i * 0.16) * rand(2, 5),
+            r: rand(2, 4.5), alpha: 1, color: `hsl(${(i * 9) % 360}, 90%, 65%)`
+          });
+        }
+        c.setEmote("💎🌈", 90);
+        Sound.chimeraRoar("prism", c.x);
+        Sound.crystalHarmonica(1760, 2.5, c.x);
+        showToast("💎 ¡Nova de Refracción! Armonía cósmica restaurada en todo el valle");
         break;
       }
     }
@@ -3170,6 +5330,44 @@
         sctx.font = "10px JetBrains Mono, monospace";
         sctx.fillStyle = "#f43f5e";
         sctx.fillText(`⚠️ PELIGRO ${Math.round(d)}m`, (c.x + pred.x) * 0.5, (c.y + pred.y) * 0.5 - 6);
+      }
+    }
+
+    let nearestMushroom = null, minMD = Infinity;
+    for (let m of mushrooms) {
+      const d = distSq(c.x, c.y, m.x, m.y);
+      if (d < minMD) { minMD = d; nearestMushroom = m; }
+    }
+    if (nearestMushroom && minMD < 360 * 360) {
+      const d = Math.sqrt(minMD);
+      sctx.strokeStyle = "rgba(52, 211, 153, 0.4)";
+      sctx.setLineDash([3, 5]);
+      sctx.beginPath();
+      sctx.moveTo(c.x, c.y);
+      sctx.lineTo(nearestMushroom.x, nearestMushroom.y);
+      sctx.stroke();
+      sctx.setLineDash([]);
+      sctx.font = "10px JetBrains Mono, monospace";
+      sctx.fillStyle = "#34d399";
+      sctx.fillText(`🍄 ${nearestMushroom.def.name} ${Math.round(d)}m`, (c.x + nearestMushroom.x) * 0.5, (c.y + nearestMushroom.y) * 0.5 - 6);
+    }
+
+    if (wormholes) {
+      for (let key of ["alpha", "omega"]) {
+        const portal = wormholes[key];
+        const d = Math.sqrt(distSq(c.x, c.y, portal.x, portal.y));
+        if (d < 320) {
+          sctx.strokeStyle = key === "alpha" ? "rgba(34, 211, 238, 0.4)" : "rgba(192, 132, 252, 0.4)";
+          sctx.setLineDash([2, 5]);
+          sctx.beginPath();
+          sctx.moveTo(c.x, c.y);
+          sctx.lineTo(portal.x, portal.y);
+          sctx.stroke();
+          sctx.setLineDash([]);
+          sctx.font = "10px JetBrains Mono, monospace";
+          sctx.fillStyle = key === "alpha" ? "#22d3ee" : "#c084fc";
+          sctx.fillText(`🌀 ${portal.name} ${Math.round(d)}m`, (c.x + portal.x) * 0.5, (c.y + portal.y) * 0.5 - 6);
+        }
       }
     }
     sctx.restore();
@@ -3910,6 +6108,7 @@
 
     drawCymatics(ctx);
     drawCraters(ctx);
+    drawMyceliumNet(ctx);
 
     for (let pond of waterBodies) {
       ctx.save();
@@ -4005,6 +6204,8 @@
       ctx.restore();
     }
 
+    drawMushrooms(ctx);
+
     for (let w of alarmWaves) {
       ctx.save();
       ctx.strokeStyle = w.color ? `rgba(142, 43, 136, ${w.alpha})` : `rgba(220, 60, 60, ${w.alpha})`;
@@ -4019,6 +6220,9 @@
     drawBioTrails(ctx);
     drawSoulWisps(ctx);
     drawElementalPowers(ctx);
+    drawCrystalGeodes(ctx);
+    drawWormholes(ctx);
+    drawQuantumEchoes(ctx);
 
     for (let c of creatures) {
       c.draw(ctx);
@@ -4397,6 +6601,47 @@
       stPossEl.textContent = possessedCreature ? `👁️ ${possessedCreature.name}` : "Libre";
     }
 
+    let chimerasCount = 0;
+    for (let c of creatures) {
+      if (c.speciesId.startsWith("chimera_")) chimerasCount++;
+    }
+    const stChimerasEl = document.getElementById("stChimeras");
+    if (stChimerasEl) stChimerasEl.textContent = chimerasCount;
+    const stCrystalsEl = document.getElementById("stCrystals");
+    if (stCrystalsEl) stCrystalsEl.textContent = crystalNodes.length;
+
+    const stMushroomsEl = document.getElementById("stMushrooms");
+    if (stMushroomsEl) stMushroomsEl.textContent = mushrooms.length;
+    const stMyceliumBioEl = document.getElementById("stMyceliumBio");
+    if (stMyceliumBioEl) stMyceliumBioEl.textContent = `${Math.round(myceliumBiomass)}%`;
+    const stWormholeJumpsEl = document.getElementById("stWormholeJumps");
+    if (stWormholeJumpsEl) stWormholeJumpsEl.textContent = wormholeJumps;
+
+    const myceliumIconEl = document.getElementById("myceliumIcon");
+    const myceliumLabelEl = document.getElementById("myceliumLabel");
+    if (myceliumIconEl && myceliumLabelEl) {
+      myceliumIconEl.classList.toggle("active", mushrooms.length > 0);
+      myceliumLabelEl.textContent = `${mushrooms.length} Setas`;
+    }
+    const wormholeIconEl = document.getElementById("wormholeIcon");
+    const wormholeLabelEl = document.getElementById("wormholeLabel");
+    if (wormholeIconEl && wormholeLabelEl) {
+      wormholeLabelEl.textContent = `${wormholeJumps} Saltos`;
+    }
+
+    const chimeraIconEl = document.getElementById("chimeraIcon");
+    const chimeraLabelEl = document.getElementById("chimeraLabel");
+    if (chimeraIconEl && chimeraLabelEl) {
+      chimeraIconEl.classList.toggle("active", chimerasCount > 0);
+      chimeraLabelEl.textContent = `${chimerasCount} Quimeras`;
+    }
+    const crystalIconEl = document.getElementById("crystalIcon");
+    const crystalLabelEl = document.getElementById("crystalLabel");
+    if (crystalIconEl && crystalLabelEl) {
+      crystalIconEl.classList.toggle("active", crystalNodes.length > 0);
+      crystalLabelEl.textContent = `${crystalNodes.length} Geodas`;
+    }
+
     const secs = Math.floor(realElapsedMs / 1000);
     const m = Math.floor(secs / 60), s2 = secs % 60;
     document.getElementById("timeElapsed").textContent = m + ":" + (s2 < 10 ? "0" : "") + s2;
@@ -4431,7 +6676,11 @@
         SCAVENGE: "🥩 Consumiendo carroña",
         DEFEND: "🛡️ Defendiéndose activamente"
       };
-      document.getElementById("inspState").textContent = stateTexts[c.state] || c.state;
+      if (c.fungalEcstasy > 0) {
+        document.getElementById("inspState").textContent = `🍄 Éxtasis Fúngico (${c.fungalType ? c.fungalType.toUpperCase() : "ASTRAL"})`;
+      } else {
+        document.getElementById("inspState").textContent = stateTexts[c.state] || c.state;
+      }
 
       document.getElementById("inspEnergy").style.width = Math.floor((c.energy / c.maxEnergy) * 100) + "%";
       document.getElementById("inspWater").style.width = Math.floor((c.water / c.maxWater) * 100) + "%";
@@ -4677,6 +6926,18 @@
       case "pollinator":
         creatures.push(new Creature(x, y, "pollinator"));
         break;
+      case "mushroom":
+        spawnMushroom(x, y);
+        break;
+      case "crystal":
+        spawnCrystal(x, y);
+        break;
+      case "chimera":
+        openChimeraModal();
+        break;
+      case "wormhole":
+        setWormholePosition(x, y);
+        break;
       case "water":
         waterBodies.push({ x: x, y: y, radius: rand(45, 75), seed: rand(0, 1000) });
         break;
@@ -4793,6 +7054,82 @@
     btnTreeBloom.addEventListener("click", () => {
       triggerTreeBloom();
       if (treeOverlay) treeOverlay.classList.remove("open");
+    });
+  }
+
+  const btnChimera = document.getElementById("btnChimera");
+  if (btnChimera) {
+    btnChimera.addEventListener("click", () => openChimeraModal());
+  }
+  const chimeraClose = document.getElementById("chimeraClose");
+  if (chimeraClose && chimeraOverlay) {
+    chimeraClose.addEventListener("click", closeChimeraModal);
+    chimeraOverlay.addEventListener("click", (e) => {
+      if (e.target === chimeraOverlay) closeChimeraModal();
+    });
+  }
+  const btnSpawnChimera = document.getElementById("btnSpawnChimera");
+  if (btnSpawnChimera) {
+    btnSpawnChimera.addEventListener("click", () => {
+      spawnChimera(activeChimeraTab);
+      updateChimeraDetails(activeChimeraTab);
+    });
+  }
+  const btnTransmuteSelected = document.getElementById("btnTransmuteSelected");
+  if (btnTransmuteSelected) {
+    btnTransmuteSelected.addEventListener("click", () => {
+      const target = selectedCreature || possessedCreature;
+      if (target) {
+        transmuteCreature(target, activeChimeraTab);
+        updateChimeraDetails(activeChimeraTab);
+      } else {
+        showToast("Selecciona primero una criatura viva en el terrario para transmutarla");
+      }
+    });
+  }
+  document.querySelectorAll(".chimera-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      updateChimeraDetails(tab.dataset.chimera);
+      Sound.pluck();
+    });
+  });
+  const btnTransmute = document.getElementById("btnTransmute");
+  if (btnTransmute) {
+    btnTransmute.addEventListener("click", () => {
+      if (selectedCreature) openChimeraModal();
+      else showToast("Selecciona una criatura primero");
+    });
+  }
+
+  const btnMycelium = document.getElementById("btnMycelium");
+  if (btnMycelium) {
+    btnMycelium.addEventListener("click", openMyceliumModal);
+  }
+  const myceliumClose = document.getElementById("myceliumClose");
+  const myceliumOverlay = document.getElementById("myceliumOverlay");
+  if (myceliumClose && myceliumOverlay) {
+    myceliumClose.addEventListener("click", closeMyceliumModal);
+    myceliumOverlay.addEventListener("click", (e) => {
+      if (e.target === myceliumOverlay) closeMyceliumModal();
+    });
+  }
+  const btnSporeBloom = document.getElementById("btnSporeBloom");
+  if (btnSporeBloom) {
+    btnSporeBloom.addEventListener("click", () => {
+      triggerSporeBloom();
+      closeMyceliumModal();
+    });
+  }
+  const btnWormhole = document.getElementById("btnWormhole");
+  if (btnWormhole) {
+    btnWormhole.addEventListener("click", () => {
+      if (!wormholes) initWormholes();
+      wormholes.alpha.x = rand(W * 0.15, W * 0.4);
+      wormholes.alpha.y = rand(H * 0.2, H * 0.8);
+      wormholes.omega.x = rand(W * 0.6, W * 0.85);
+      wormholes.omega.y = rand(H * 0.2, H * 0.8);
+      Sound.wormholeJump(W * 0.5);
+      showToast("🌀 Vórtices del Espacio-Tiempo realineados en el universo");
     });
   }
 
@@ -4932,6 +7269,8 @@
     }
     if (e.code === "Escape") {
       if (possessedCreature) releaseSoulBond();
+      if (chimeraOverlay && chimeraOverlay.classList.contains("open")) closeChimeraModal();
+      if (myceliumOverlay && myceliumOverlay.classList.contains("open")) closeMyceliumModal();
     }
     if (e.code === "KeyE" && !e.ctrlKey && !e.metaKey) {
       if (possessedCreature) {
@@ -4945,6 +7284,23 @@
     }
     if (e.code === "KeyO" && !e.ctrlKey && !e.metaKey && !possessedCreature) {
       triggerEclipse();
+    }
+    if (e.code === "KeyC" && !e.ctrlKey && !e.metaKey && !possessedCreature) {
+      if (chimeraOverlay && chimeraOverlay.classList.contains("open")) {
+        closeChimeraModal();
+      } else {
+        openChimeraModal();
+      }
+    }
+    if (e.code === "KeyM" && !e.ctrlKey && !e.metaKey && !possessedCreature) {
+      if (myceliumOverlay && myceliumOverlay.classList.contains("open")) {
+        closeMyceliumModal();
+      } else {
+        openMyceliumModal();
+      }
+    }
+    if (e.code === "KeyX" && !e.ctrlKey && !e.metaKey && !possessedCreature) {
+      spawnCrystal(rand(W * 0.15, W * 0.85), rand(H * 0.15, H * 0.85));
     }
   });
 

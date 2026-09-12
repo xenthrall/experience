@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v9.0: El Árbol Ancestral & El Gran Eclipse)
+# Terrario Digital — Ecosistema Vivo & Evolución (v11.0: La Red Micelial Sináptica & Los Vórtices del Espacio-Tiempo)
 
 Un simulador de vida artificial, selección natural y arte generativo que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — HTML, CSS y JS estáticos servidos como tres archivos (`index.html`, `styles.css`, `main.js`).
 
@@ -97,6 +97,49 @@ Un simulador de vida artificial, selección natural y arte generativo que corre 
   - 🔔 *Campanas de Cristal & Celesta*: Arpegios celestiales durante floraciones, auroras y mutaciones estelares.
   - ⚡ *Trueno Dinámico*: Convección de ruido blanco filtrado con sub-armónicos para rayos celestiales.
   - 🥣 *Cuenco Tibetano & Arpa Cósmica*: Osciladores senoidales puros en batimiento lento para eclipses y el Gran Árbol.
+## 💎 Las Geodas de Cristal Prismático & Red de Refracción Láser
+
+- **Geodas de Cuarzo Resonante (`data-tool="crystal"` o Tecla `X`)**: Espirales minerales facetadas de amatista y cuarzo que emergen de las profundidades de la tierra con núcleos palpitantes y anillos de resonancia armónica.
+- **Red de Refracción Láser Óptica**: Cuando dos o más geodas se encuentran a distancia de acoplamiento (`340px`), proyectan haces láser cromáticos continuos con dispersión espectral (cian y magenta), chispas fotónicas que viajan por el rayo y estallidos de destellos estelares en sus nodos.
+- **Sintonía Cristalina (`crystalTuned`)**: Las criaturas que cruzan la red de refracción o pastan junto a una geoda reciben la *Sintonía Cristalina*, obteniendo un halo orbital de gemas resplandecientes, restauración instantánea de fatiga/stamina y un impulso de agilidad del `+35%`.
+
+## 🧬 El Crisol de Quimeras Trascendentes (Alquimia Genética de Híbridos)
+
+- **Códice Alquímico Interactivo (`🧬 Quimeras` o Tecla `C`)**: Ventana modal con renderizado procedural tridimensional en tiempo real sobre `#chimeraPreviewCanvas`, pestañas para cada híbrido místico, recetas genéticas de transmutación y botones de invocación directa.
+- **4 Híbridos Mitológicos Trascendentes**:
+  1. 🌟 **Ciervo Alado de Luz (`chimera_celestial`)**: Fusión de *Ciervo Ágil* + *Polinizador*. Posee alas prismáticas con batido fluido, halo solar en sus astas y la habilidad *Lluvia Astral* (dispersa semillas divinas y bendice a la manada).
+  2. 🌋 **Behemoth de Obsidiana (`chimera_behemoth`)**: Fusión de *Titán Acorazado* + *Apex*. Cuerpo volcánico colosal con fisuras de magma palpitante y la habilidad *Falla Geotérmica* (impacto sísmico que aturde y crea un cráter fértil humeante).
+  3. 🦅 **Grifo Umbrío (`chimera_gryphon`)**: Fusión de *Cazador de Manada* + *Carroñero*. Plumaje de sombras abisales, ojos de obsidiana y la habilidad *Picado Umbrío* (vuelo supersónico fulgurante que derriba presas y deja una estela de vacío).
+  4. 🔮 **Prisma Viviente (`chimera_prism`)**: Manifestación pura de luz nacida de la radiación cristalina. Poliedro flotante con rotación procedural 3D y la habilidad *Nova de Refracción* (estallido de radiación cromática que cura y muta benéficamente a las criaturas circundantes).
+- **Transmutación Dirigida (`🧬 Transmutar`)**: Selecciona cualquier criatura viva del terrario y transmútala instantáneamente en cualquiera de las 4 quimeras, heredando su linaje y elevando su código genético a un estado mítico.
+
+## 🪞 Ecos Temporales Cuánticos (Desplazamiento Cromático Dinámico)
+
+- **Cronofotografía Fantasmal**: Toda criatura con *Sintonía Cristalina*, bendición cósmica o condición de quimera proyecta copias fantasmagóricas de sí misma a alta velocidad.
+- **Aberración Espectral RGB**: Los ecos cuánticos se descomponen en canales independientes rojo/cian con transparencia atenuada, registrando el pasado inmediato de la trayectoria y creando un efecto visual cinematográfico similar al cine experimental y la física cuántica de partículas.
+
+## 🎼 La Armónica de Cristal (Síntesis FM de Cuarzo & Canto Coral)
+
+- **Síntesis FM Acústica Cuántica**: Emulación física de la armónica de cristal de Benjamin Franklin mediante un oscilador portador senoidal y un modulador acoplado a un ratio inarmónico de campana de cuarzo (`2.76:1`), con caída exponencial suave y reverberación estéreo.
+- **Vocalizaciones de Quimera**: Cada una de las 4 quimeras posee un timbre acústico bespoke: arpegios polifónicos de campana para el ciervo celestial, rugidos cavernosos modulados por FM sub-grave para el behemoth, chillidos chirriantes de alta velocidad para el grifo y glissandos cristalinos puros para el prisma viviente.
+
+## 🍄 La Red Micelial Sináptica & Colonias de Setas Astrales
+
+- **La "Wood-Wide Web" Subterránea**: Una red orgánica viva de hifas bioluminiscentes procedurales que corre por debajo del sustrato del terrario, conectando las raíces del Árbol Ancestral Yggdrasil, los oasis, las geodas de cristal y los cuerpos en descomposición.
+- **Potenciales de Acción Bioeléctricos**: Impulsos fotónicos de nutrientes que viajan activamente por las ramas de las hifas, emitiendo micro-arpegios eólicos y redistribuyendo energía por el ecosistema.
+- **3 Variedades de Setas Astrales**:
+  1. 🔮 **Amanita Astral (`astral`)**: Sombrero azul/cian con constelaciones de luz. Otorga levitación psíquica (desplaza la criatura sin fricción y multiplica su velocidad).
+  2. ☀️ **Chanterelle Solar (`solar`)**: Sombrero ámbar dorado. Sacia el hambre y la sed al 100%, recargando por completo la energía vital y resistencia.
+  3. 🌿 **Velo de Esmeralda (`emerald`)**: Hongo verde néon con faldón de encaje. Restaura la salud a 100% y desata una onda concéntrica curativa que sana a todas las criaturas en 140px.
+- **Éxtasis Fúngico (`fungalEcstasy`)**: Las criaturas que consumen setas entran en comunión con la red micelial: ganan auras bioluminiscentes de esporas, dejan brotes fértiles a su paso y en Modo Encarnación experimentan visiones telepáticas de la mente vegetal.
+- **Códice de la Mente Micelial (`🍄 Micelio` o Tecla `M`)**: Modal con previsualización procedural de la red sináptica en `#myceliumCanvas`, telemetría de biomasa e impulsos activos, y el botón **"🌌 Desatar Gran Esporulación Bioluminiscente"** que inunda el terrario de esporas cósmicas doradas.
+
+## 🌀 Los Vórtices del Espacio-Tiempo (Agujeros de Gusano Cuánticos)
+
+- **Portales Entrelazados Alfa & Omega**: Dos singularidades gravitacionales que curvan el espacio sobre el terrario. El Vórtice Alfa (Cian/Esmeralda) y el Vórtice Omega (Violeta/Magenta) poseen discos de acreción en contrarrotación, anillos de fotones brillantes y un horizonte de sucesos negro abisal.
+- **Física del Salto Espacio-Temporal**: Cualquier criatura o entidad que toque el horizonte de sucesos es engullida en una implosión cuántica y eyectada por el portal gemelo con aceleración cinética direccional, estallido de partículas y ecos temporales cuánticos (`spawnQuantumEcho`).
+- **Saga Legendaria del "Caminante de Dimensiones"**: Aquellas criaturas que logran saltar 3 veces a través de los vórtices sin perecer quedan consagradas para siempre en el libro de las Sagas Legendarias con un halo orbital cuántico perpetuo.
+- **Herramienta en la Barra Inferior (`🌀 Portal`)**: Permite al observador hacer clic en cualquier punto del mundo para recolocar los vórtices Alfa y Omega a voluntad.
 
 ## ⚡ Poderes Elementales de Creación
 
@@ -120,11 +163,22 @@ Un simulador de vida artificial, selección natural y arte generativo que corre 
 
 ## 🛠️ Herramientas & Controles Interactivos
 
-- **Inspector de Criaturas**: Haz clic en cualquier criatura para ver su cerebro en vivo (estado actual, barras de necesidades, árbol genealógico y estadísticas genéticas).
-- **Barra de Spawn Inferior**: Siembra comida, invoca cualquiera de las 6 especies o crea nuevos estanques con un toque.
-- **Gráfico Histórico de Población**: Mini gráfica dinámica en tiempo real que muestra el equilibrio depredador-presa.
+- **Inspector de Criaturas**: Haz clic en cualquier criatura para ver su cerebro en vivo (estado actual, barras de necesidades, árbol genealógico, estadísticas genéticas y botón `🧬 Transmutar`).
+- **Barra de Herramientas & Spawn**: Siembra comida, invoca cualquiera de las 6 especies base, crea estanques, planta `💎 Geodas de Cristal`, genera `🧬 Quimeras` o desata rayos y vórtices elementales.
+- **Gráfico Histórico de Población**: Mini gráfica dinámica en tiempo real que muestra el equilibrio depredador-presa y población de quimeras.
 - **Clima & Lluvia Fértil**: Activa lluvias que nutren el terreno y aceleran el crecimiento botánico.
-- **Modos Visuales**: Alterna conos de visión, emociones flotantes (💭), barras de salud y ciclo día/noche automático.
+- **Modos Visuales**: Alterna conos de visión, emociones flotantes (💭), barras de salud, red cimática y ciclo día/noche automático.
+- **Atajos de Teclado**:
+  - `E`: Encarnar en criatura seleccionada / Liberar vínculo del alma.
+  - `WASD` / Flechas: Control cinético manual de la criatura poseída.
+  - `Espacio`: Desatar habilidad única de la criatura / quimera poseída.
+  - `A`: Alternar entre instinto autónomo y control manual en modo posesión.
+  - `C`: Abrir / Cerrar el Códice de Quimeras Trascendentes.
+  - `M`: Abrir / Cerrar el Códice de la Red Micelial Sináptica.
+  - `X`: Generar una Geoda de Cuarzo Resonante en el mundo.
+  - `T`: Consultar la Sabiduría Ancestral del Gran Árbol Yggdrasil.
+  - `O`: Desatar el Gran Eclipse Cósmico e ingravidez.
+  - `Escape`: Desactivar posesión o cerrar ventanas modales.
 
 ## 🚀 Desarrollo Local
 
