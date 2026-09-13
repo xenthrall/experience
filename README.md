@@ -1,4 +1,4 @@
-# Terrario Digital — Ecosistema Vivo & Evolución (v11.0: La Red Micelial Sináptica & Los Vórtices del Espacio-Tiempo)
+# Terrario Digital — Ecosistema Vivo & Evolución (v12.0: El Gran Leviatán Celestial & Los Megalitos Rúnicos de Líneas Ley)
 
 Un simulador de vida artificial, selección natural y arte generativo que corre por completo en el navegador sobre un `<canvas>` 2D de alto rendimiento (acelerado por Spatial Hash Grid a 60 FPS). Sin dependencias ni build step — HTML, CSS y JS estáticos servidos como tres archivos (`index.html`, `styles.css`, `main.js`).
 
@@ -141,6 +141,34 @@ Un simulador de vida artificial, selección natural y arte generativo que corre 
 - **Saga Legendaria del "Caminante de Dimensiones"**: Aquellas criaturas que logran saltar 3 veces a través de los vórtices sin perecer quedan consagradas para siempre en el libro de las Sagas Legendarias con un halo orbital cuántico perpetuo.
 - **Herramienta en la Barra Inferior (`🌀 Portal`)**: Permite al observador hacer clic en cualquier punto del mundo para recolocar los vórtices Alfa y Omega a voluntad.
 
+## 🐉 El Gran Leviatán Celestial (Serpiente Cósmica de Luz)
+
+- **Coloso Supremo de las Alturas**: Una entidad milenaria que surca el firmamento del terrario mediante cinemática inversa procedural (26 vértebras articuladas, aletas ondulantes translúcidas, corona de astas estelares, bigotes etéreos y cola de cometa bífida).
+- **Asombro Cósmico & Sombra Echérea**: Al sobrevolar el suelo, proyecta una sombra suave y sume a los seres terrestres en un estado de calma sagrada (`✨🐉`), disolviendo el pánico y las cacerías inmediatas.
+- **Aliento de Cometa (`breathe()`)**: Exhala un cono de plasma estelar e irradiación cósmica que restablece instantáneamente la salud, energía, agua y resistencia de las criaturas tocadas, sembrando además nuevos brotes en el suelo.
+- **Modo Encarnación Total (`Key L` o Clic)**: Puedes fundir tu consciencia en el Leviatán:
+  - Telemetría de ritmo cardíaco sub-grave a 30 BPM (*lub-dub* cósmico sintetizado en Web Audio API).
+  - Control de vuelo tridimensional con `WASD` / Flechas y dirección de mirada.
+  - Pensamientos poéticos telepáticos propios de un ser estelar inmortal.
+  - `Barra Espaciadora`: Desata el *Aliento de Cometa* en tiempo real.
+
+## 🗿 Los Megalitos Rúnicos & La Red de Líneas Ley
+
+- **Monolitos Ancestrales (`data-tool="megalith"` o Tecla `K`)**: Menhires tallados en basalto milenario con runas nórdicas ancestrales (Othala ᛟ, Sowilo ᛋ, Tiwaz ᛏ, Perthro ᛈ, Jera ᛃ, Ansuz ᚨ) que laten con luz armónica.
+- **Red de Líneas Ley**: Cuando dos o más megalitos se encuentran en distancia de resonancia (`580px`), trazan haces de energía dorada y cian con partículas que viajan a través del sustrato.
+- **Santuario Rúnico (Triangulación)**: Si 3 o más megalitos forman un polígono, el interior se consagra como un Santuario Rúnico donde las criaturas disfrutan de resistencia inagotable (`stamina = 100%`) y un bono de velocidad de movimiento.
+- **Gran Conjunción Rúnica (`btnConjunction`)**: Dispara columnas colosales de luz hacia la estratosfera desde cada megalito, tocando una escala armónica polifónica de cuarzo y atrayendo al Gran Leviatán hacia el centro del mundo.
+
+## 🪼 Las Medusas Astrales de los Oasis
+
+- **Vida en el Bioma Acuático (`data-tool="jelly"` o Tecla `J`)**: Cada oasis del terrario alberga medusas astrales translúcidas que nadan mediante contracciones rítmicas de su campana y 5 tentáculos con física de Verlet integrada.
+- **Rocío de Agua Viva**: Cuando las criaturas sedientas se acercan a beber a los estanques, las medusas ascienden a recibirlas, emitiendo burbujas bioluminiscentes, sonido de gotas cristalinas y saciando su sed al instante.
+
+## ✨ La Lira Celestial / Theremin Cósmico
+
+- **Modo Instrumento Musical (`#togLyre`)**: Activa la resonancia acústica del lienzo. Arrastrar el puntero o el dedo sobre el cielo y las Líneas Ley pulsa las cuerdas invisibles del cosmos, sintetizando notas de arpa pentatónica (Web Audio API) espacializadas en estéreo 3D según la posición $X$ y con tono según la altura $Y$.
+- **Ondas de Pulsación**: Cada nota pulsada genera ondas circulares de luz concéntrica que reverberan por el mapa.
+
 ## ⚡ Poderes Elementales de Creación
 
 - **⚡ Rayo Celestial (`data-tool="lightning"`)**: Lanza un arco voltaico procedural ramificado desde las alturas con relámpago de pantalla, sonido de trueno envolvente e ionización de suelo que genera un cráter místico super-fértil.
@@ -164,14 +192,17 @@ Un simulador de vida artificial, selección natural y arte generativo que corre 
 ## 🛠️ Herramientas & Controles Interactivos
 
 - **Inspector de Criaturas**: Haz clic en cualquier criatura para ver su cerebro en vivo (estado actual, barras de necesidades, árbol genealógico, estadísticas genéticas y botón `🧬 Transmutar`).
-- **Barra de Herramientas & Spawn**: Siembra comida, invoca cualquiera de las 6 especies base, crea estanques, planta `💎 Geodas de Cristal`, genera `🧬 Quimeras` o desata rayos y vórtices elementales.
+- **Barra de Herramientas & Spawn**: Siembra comida, invoca cualquiera de las 6 especies base, crea estanques, planta `💎 Geodas de Cristal`, genera `🧬 Quimeras`, erige `🗿 Megalitos Rúnicos`, invoca al `🐉 Gran Leviatán` o crea `🪼 Medusas Astrales`.
 - **Gráfico Histórico de Población**: Mini gráfica dinámica en tiempo real que muestra el equilibrio depredador-presa y población de quimeras.
 - **Clima & Lluvia Fértil**: Activa lluvias que nutren el terreno y aceleran el crecimiento botánico.
-- **Modos Visuales**: Alterna conos de visión, emociones flotantes (💭), barras de salud, red cimática y ciclo día/noche automático.
+- **Modos Visuales**: Alterna conos de visión, emociones flotantes (💭), barras de salud, red cimática, Líneas Ley y Lira Cósmica.
 - **Atajos de Teclado**:
+  - `L`: Encarnar en el Gran Leviatán Celestial / Alternar vuelo.
+  - `K`: Abrir / Cerrar el Códice de Megalitos y Líneas Ley.
+  - `J`: Engendrar una Medusa Astral en el oasis más cercano.
   - `E`: Encarnar en criatura seleccionada / Liberar vínculo del alma.
-  - `WASD` / Flechas: Control cinético manual de la criatura poseída.
-  - `Espacio`: Desatar habilidad única de la criatura / quimera poseída.
+  - `WASD` / Flechas: Control cinético manual de la criatura o Leviatán poseído.
+  - `Espacio`: Desatar habilidad única (Aliento de Cometa, Ráfaga, Falla Sísmica, etc.).
   - `A`: Alternar entre instinto autónomo y control manual en modo posesión.
   - `C`: Abrir / Cerrar el Códice de Quimeras Trascendentes.
   - `M`: Abrir / Cerrar el Códice de la Red Micelial Sináptica.

@@ -51,6 +51,8 @@
     autoDayNight: true,
     dreamMode: false,
     showCymatics: true,
+    showLeyLines: true,
+    lyreMode: true,
     activeTool: "food"
   };
 
@@ -213,6 +215,14 @@
   let lastWormholePlacement = "alpha";
   let myceliumCanvasRAF = null;
   let lastMyceliumPulseTs = 0;
+  let celestialLeviathan = null;
+  let megaliths = [];
+  let leyLines = [];
+  let astralJellies = [];
+  let megalithCanvasRAF = null;
+  let lastLeviathanSongTs = 0;
+  let lyrePluckRipples = [];
+  let lastLyreNoteTs = 0;
 
   const CHIMERA_DEFINITIONS = {
     chimera_celestial: {
@@ -755,6 +765,15 @@
         (s) => ancientTree ? `El Árbol Ancestral custodia ${ancientTree.soulsAbsorbed} almas en su savia. Nadie muere por completo mientras su tronco sostenga el cielo.` : `Las raíces del mundo son invisibles, pero sostienen cada paso de este valle.`,
         (s) => `Cuando la sombra del Gran Eclipse cubre el sol, el terrario suspende sus leyes y todo aprende a volar.`,
         (s) => `Bajo el Yggdrasil existe una tregua sagrada: los que comen hojas y los que afilan colmillos descansan bajo el mismo verde.`
+      ]
+    },
+    {
+      id: "leviatan_megalito",
+      keywords: ["leviatan", "dragon", "megalito", "runa", "runas", "ley", "lineas", "linea", "medusa", "oasis"],
+      templates: [
+        (s) => celestialLeviathan ? `El Gran Leviatán surca las alturas sin tocar el suelo; sus alas de luz recuerdan la primera chispa que encendió este terrario.` : `Las alturas guardan el silencio de las bestias estelares.`,
+        (s) => megaliths.length > 0 ? `${megaliths.length} megalitos rúnicos anclan las líneas ley de la tierra; cuando vibran al unísono, el cosmos entero responde.` : `Las piedras aún duermen esperando que alguien talle en ellas las runas del destino.`,
+        (s) => astralJellies.length > 0 ? `En las aguas profundas de los oasis danzan ${astralJellies.length} medusas astrales, purificando la sed de todo ser vivo.` : `El agua aguarda el despertar de las medusas bioluminiscentes.`
       ]
     },
     {
@@ -1501,6 +1520,45 @@
           ping(f, 2.6, "sine", 0.08, i * 0.09, pan);
           ping(f * 2, 1.8, "triangle", 0.03, i * 0.09 + 0.04, pan);
         });
+      },
+      leviathanSong(panX) {
+        if (!ctx) return;
+        const notes = [110, 164.81, 220, 329.63, 440];
+        notes.forEach((f, i) => {
+          ping(f, 3.2, "sine", 0.08 / (i * 0.5 + 1), i * 0.15, panX);
+        });
+      },
+      leviathanBreath(panX) {
+        if (!ctx) return;
+        ping(55, 2.2, "triangle", 0.22, 0, panX);
+        [440, 554.37, 659.25, 880, 1108.73].forEach((f, i) => {
+          ping(f, 1.6, "sine", 0.05, i * 0.08, panX);
+        });
+      },
+      runicChime(freq = 432, panX) {
+        if (!ctx) return;
+        ping(freq, 1.8, "sine", 0.12, 0, panX);
+        ping(freq * 1.5, 2.2, "triangle", 0.06, 0.05, panX);
+        ping(freq * 2.76, 1.2, "sine", 0.04, 0.02, panX);
+      },
+      runicConjunction() {
+        if (!ctx) return;
+        const chord = [216, 271.9, 324, 432, 543.8, 648, 864];
+        chord.forEach((f, i) => {
+          const pan = (i / (chord.length - 1)) * (W || 800);
+          ping(f, 3.5, "sine", 0.09, i * 0.12, pan);
+          ping(f * 2, 2.5, "triangle", 0.03, i * 0.12 + 0.04, pan);
+        });
+      },
+      jellyBubble(panX) {
+        if (!ctx) return;
+        ping(784 + Math.random() * 300, 0.25, "sine", 0.06, 0, panX);
+        ping(1200 + Math.random() * 400, 0.15, "triangle", 0.03, 0.04, panX);
+      },
+      lyreNote(freq = 523.25, panX, vel = 0.08) {
+        if (!ctx) return;
+        ping(freq, 0.85, "sine", vel, 0, panX);
+        ping(freq * 2, 0.55, "triangle", vel * 0.4, 0.015, panX);
       }
     };
   })();
@@ -4109,6 +4167,1000 @@
   }
 
   // ==========================================
+  // EL GRAN LEVIATÁN CELESTIAL (SERPIENTE CÓSMICA DE LUZ)
+  // ==========================================
+  class CelestialLeviathan {
+    constructor(x, y) {
+      this.x = x !== undefined ? x : W * 0.5;
+      this.y = y !== undefined ? y : H * 0.3;
+      this.vx = 0;
+      this.vy = 0;
+      this.heading = -0.55;
+      this.baseSpeed = 2.4;
+      this.speed = this.baseSpeed;
+      this.altitude = 1.0;
+      this.length = 26;
+      this.segments = [];
+      for (let i = 0; i < this.length; i++) {
+        this.segments.push({
+          x: this.x - Math.cos(this.heading) * i * 15,
+          y: this.y - Math.sin(this.heading) * i * 15,
+          angle: this.heading,
+          width: Math.sin((i / (this.length - 1)) * Math.PI) * 17 + 5
+        });
+      }
+      this.finPhase = 0;
+      this.breathActive = 0;
+      this.breathCooldown = 0;
+      this.patrolTarget = { x: W * 0.5, y: H * 0.3 };
+      this.patrolTimer = 0;
+      this.aweTimer = 0;
+      this.name = "Gran Leviatán Celestial";
+      this.speciesId = "celestial_leviathan";
+      this.isLeviathan = true;
+      this.health = 99999;
+      this.maxHealth = 99999;
+      this.energy = 1000;
+      this.maxEnergy = 1000;
+      this.water = 1000;
+      this.maxWater = 1000;
+      this.stamina = 1000;
+      this.maxStamina = 1000;
+      this.gen = "∞";
+      this.kids = 0;
+      this.kills = 0;
+      this.age = 99999;
+      this.maxAge = 9999999;
+      this.legendary = true;
+      this.spec = {
+        id: "celestial_leviathan",
+        name: "Gran Leviatán Celestial",
+        swatch: "#38bdf8",
+        baseSpeed: 2.4
+      };
+    }
+
+    radius() { return 26; }
+    setEmote() {}
+
+    steerToward(tx, ty, weight = 1.0, turnRate = 0.08, speedFactor = 1.0) {
+      const ang = Math.atan2(ty - this.y, tx - this.x);
+      const diff = angleDiff(ang, this.heading);
+      this.heading += diff * turnRate * weight;
+      this.speed = this.baseSpeed * speedFactor;
+    }
+
+    findNearestWater() {
+      if (waterBodies.length === 0) return null;
+      let closest = null, minD = Infinity;
+      for (let p of waterBodies) {
+        const d = distSq(this.x, this.y, p.x, p.y);
+        if (d < minD) { minD = d; closest = p; }
+      }
+      return closest;
+    }
+
+    update(dt) {
+      const isPossessed = (possessedCreature === this);
+      if (!isPossessed) {
+        this.patrolTimer -= dt;
+        if (this.patrolTimer <= 0 || distSq(this.x, this.y, this.patrolTarget.x, this.patrolTarget.y) < 65 * 65) {
+          this.patrolTimer = rand(360, 720);
+          const choice = Math.random();
+          if (choice < 0.35 && ancientTree) {
+            this.patrolTarget = { x: ancientTree.x + spread(140), y: ancientTree.y + spread(120) };
+          } else if (choice < 0.65 && megaliths.length > 0) {
+            const m = megaliths[Math.floor(Math.random() * megaliths.length)];
+            this.patrolTarget = { x: m.x + spread(100), y: m.y + spread(100) };
+          } else if (choice < 0.85 && waterBodies.length > 0) {
+            const w = waterBodies[Math.floor(Math.random() * waterBodies.length)];
+            this.patrolTarget = { x: w.x + spread(80), y: w.y + spread(80) };
+          } else {
+            this.patrolTarget = { x: rand(W * 0.15, W * 0.85), y: rand(H * 0.15, H * 0.85) };
+          }
+        }
+        this.steerToward(this.patrolTarget.x, this.patrolTarget.y, 1.0, 0.038, 1.0);
+      } else {
+        if (possessionKeys.KeyW || possessionKeys.ArrowUp) this.speed = 4.4;
+        else if (possessionKeys.KeyS || possessionKeys.ArrowDown) this.speed = 1.4;
+        else this.speed = this.baseSpeed;
+
+        let steer = 0;
+        if (possessionKeys.KeyA || possessionKeys.ArrowLeft) steer -= 0.055;
+        if (possessionKeys.KeyD || possessionKeys.ArrowRight) steer += 0.055;
+        this.heading += steer * dt;
+      }
+
+      this.vx = Math.cos(this.heading) * this.speed;
+      this.vy = Math.sin(this.heading) * this.speed;
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+
+      // Movimiento envolvente por el firmamento
+      const pad = 140;
+      if (this.x < -pad) this.x = W + pad;
+      else if (this.x > W + pad) this.x = -pad;
+      if (this.y < -pad) this.y = H + pad;
+      else if (this.y > H + pad) this.y = -pad;
+
+      // Cinemática inversa de la columna vertebral
+      this.finPhase += 0.075 * dt;
+      this.segments[0].x = this.x;
+      this.segments[0].y = this.y;
+      this.segments[0].angle = this.heading;
+
+      for (let i = 1; i < this.length; i++) {
+        const prev = this.segments[i - 1];
+        const cur = this.segments[i];
+        const segDist = 14;
+        const dx = cur.x - prev.x;
+        const dy = cur.y - prev.y;
+        let ang = Math.atan2(dy, dx);
+        const wave = Math.sin(this.finPhase - i * 0.35) * (0.045 * Math.min(3.5, i));
+        ang += wave;
+
+        cur.x = prev.x + Math.cos(ang) * segDist;
+        cur.y = prev.y + Math.sin(ang) * segDist;
+        cur.angle = ang;
+      }
+
+      // Estela de polvo estelar
+      if (Math.random() < 0.7 * dt && particles.length < 180) {
+        const tail = this.segments[this.length - 1];
+        particles.push({
+          x: tail.x + spread(12),
+          y: tail.y + spread(12),
+          vx: -Math.cos(tail.angle) * rand(0.5, 2.2) + spread(0.4),
+          vy: -Math.sin(tail.angle) * rand(0.5, 2.2) + spread(0.4),
+          r: rand(1.5, 3.8),
+          alpha: 0.9,
+          color: Math.random() < 0.4 ? "#38bdf8" : (Math.random() < 0.5 ? "#c084fc" : "#fef08a")
+        });
+      }
+
+      if (this.breathActive > 0) {
+        this.breathActive -= dt;
+        this.emitBreathParticles();
+      }
+      if (this.breathCooldown > 0) {
+        this.breathCooldown -= dt;
+      }
+
+      // Asombro cósmico sobre criaturas terrestres
+      this.aweTimer -= dt;
+      if (this.aweTimer <= 0) {
+        this.aweTimer = 50;
+        const near = creatureGrid.queryRange(this.x, this.y, 140);
+        for (let c of near) {
+          if (!c.isLeviathan && Math.random() < 0.14) {
+            c.setEmote("✨🐉", 40);
+            if (c.state === "FLEE" || c.state === "STALK") c.state = "WANDER";
+          }
+        }
+      }
+
+      // Cántico celestial periódico
+      const now = performance.now();
+      if (now - lastLeviathanSongTs > 19000 && !isPossessed) {
+        lastLeviathanSongTs = now;
+        Sound.leviathanSong(this.x);
+      }
+    }
+
+    breathe() {
+      this.breathActive = 120;
+      this.breathCooldown = 300;
+      Sound.leviathanBreath(this.x);
+      showToast("🐉 ¡El Gran Leviatán desata su Aliento de Cometa Cósmico!");
+    }
+
+    emitBreathParticles() {
+      const head = this.segments[0];
+      const bx = head.x + Math.cos(head.angle) * 26;
+      const by = head.y + Math.sin(head.angle) * 26;
+      const spreadAng = 0.52;
+      for (let i = 0; i < 4; i++) {
+        const ang = head.angle + spread(spreadAng);
+        const spd = rand(4, 9);
+        particles.push({
+          x: bx, y: by,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          r: rand(2.5, 5.5),
+          alpha: 0.95,
+          color: Math.random() < 0.4 ? "#67e8f9" : (Math.random() < 0.5 ? "#fde047" : "#e879f9")
+        });
+      }
+      const targets = creatureGrid.queryRange(bx, by, 180);
+      for (let c of targets) {
+        const toC = Math.atan2(c.y - by, c.x - bx);
+        if (Math.abs(angleDiff(toC, head.angle)) < 0.6) {
+          c.energy = c.maxEnergy;
+          c.water = c.maxWater;
+          c.health = 100;
+          c.stamina = c.maxStamina;
+          c.blessed = true;
+          c.blessedTimer = 600;
+          c.setEmote("🌟✨", 60);
+        }
+      }
+      if (plants.length < 240 && Math.random() < 0.35) {
+        spawnFood(bx + Math.cos(head.angle) * rand(40, 140) + spread(30), by + Math.sin(head.angle) * rand(40, 140) + spread(30));
+      }
+    }
+
+    draw(lctx) {
+      lctx.save();
+
+      // Sombra etérea proyectada sobre el suelo
+      lctx.save();
+      lctx.beginPath();
+      for (let i = 0; i < this.length; i += 2) {
+        const s = this.segments[i];
+        const sy = s.y + 40;
+        lctx.ellipse(s.x, sy, s.width * 1.1, s.width * 0.45, s.angle, 0, Math.PI * 2);
+      }
+      lctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+      lctx.fill();
+      lctx.restore();
+
+      // Aletas dorsales y laterales translúcidas
+      for (let i = 3; i < this.length - 2; i += 3) {
+        const s = this.segments[i];
+        const finWave = Math.sin(this.finPhase + i * 0.8) * 12;
+        const finLen = s.width * 1.7 + finWave;
+        const perp = s.angle + Math.PI / 2;
+
+        lctx.save();
+        lctx.translate(s.x, s.y);
+        lctx.rotate(s.angle);
+
+        // Aleta izquierda
+        lctx.beginPath();
+        lctx.moveTo(0, -s.width * 0.5);
+        lctx.quadraticCurveTo(-finLen * 0.6, -finLen, -finLen * 1.2, -finLen * 0.8);
+        lctx.quadraticCurveTo(-finLen * 0.4, -s.width * 0.6, -10, 0);
+        const finGrad1 = lctx.createLinearGradient(0, 0, 0, -finLen);
+        finGrad1.addColorStop(0, "rgba(56, 189, 248, 0.55)");
+        finGrad1.addColorStop(0.7, "rgba(168, 85, 247, 0.3)");
+        finGrad1.addColorStop(1, "rgba(255, 255, 255, 0)");
+        lctx.fillStyle = finGrad1;
+        lctx.fill();
+
+        // Aleta derecha
+        lctx.beginPath();
+        lctx.moveTo(0, s.width * 0.5);
+        lctx.quadraticCurveTo(-finLen * 0.6, finLen, -finLen * 1.2, finLen * 0.8);
+        lctx.quadraticCurveTo(-finLen * 0.4, s.width * 0.6, -10, 0);
+        const finGrad2 = lctx.createLinearGradient(0, 0, 0, finLen);
+        finGrad2.addColorStop(0, "rgba(56, 189, 248, 0.55)");
+        finGrad2.addColorStop(0.7, "rgba(168, 85, 247, 0.3)");
+        finGrad2.addColorStop(1, "rgba(255, 255, 255, 0)");
+        lctx.fillStyle = finGrad2;
+        lctx.fill();
+
+        lctx.restore();
+      }
+
+      // Cuerpo segmentado continuo con gradiente cósmico
+      for (let i = this.length - 1; i >= 0; i--) {
+        const s = this.segments[i];
+        lctx.save();
+        lctx.translate(s.x, s.y);
+        lctx.rotate(s.angle);
+
+        lctx.beginPath();
+        lctx.ellipse(0, 0, s.width * 0.9, s.width * 0.65, 0, 0, Math.PI * 2);
+
+        const bodyGrad = lctx.createRadialGradient(0, 0, 1, 0, 0, s.width);
+        const t = i / this.length;
+        if (t < 0.3) {
+          bodyGrad.addColorStop(0, "#e0f2fe");
+          bodyGrad.addColorStop(0.5, "#38bdf8");
+          bodyGrad.addColorStop(1, "#1e3a8a");
+        } else if (t < 0.7) {
+          bodyGrad.addColorStop(0, "#bae6fd");
+          bodyGrad.addColorStop(0.5, "#818cf8");
+          bodyGrad.addColorStop(1, "#312e81");
+        } else {
+          bodyGrad.addColorStop(0, "#f5d0fe");
+          bodyGrad.addColorStop(0.5, "#c084fc");
+          bodyGrad.addColorStop(1, "#581c87");
+        }
+        lctx.fillStyle = bodyGrad;
+        lctx.fill();
+
+        // Escama central luminosa
+        lctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+        lctx.beginPath();
+        lctx.arc(0, 0, s.width * 0.18, 0, Math.PI * 2);
+        lctx.fill();
+
+        lctx.restore();
+      }
+
+      // Cola de cometa bífida
+      const tail = this.segments[this.length - 1];
+      lctx.save();
+      lctx.translate(tail.x, tail.y);
+      lctx.rotate(tail.angle);
+      const tailWave = Math.sin(this.finPhase * 1.2) * 8;
+
+      lctx.beginPath();
+      lctx.moveTo(0, 0);
+      lctx.quadraticCurveTo(-20, -18 + tailWave, -45, -28 + tailWave);
+      lctx.quadraticCurveTo(-30, 0, -45, 28 - tailWave);
+      lctx.quadraticCurveTo(-20, 18 - tailWave, 0, 0);
+      const tailGrad = lctx.createLinearGradient(0, 0, -45, 0);
+      tailGrad.addColorStop(0, "rgba(56, 189, 248, 0.8)");
+      tailGrad.addColorStop(0.5, "rgba(168, 85, 247, 0.6)");
+      tailGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+      lctx.fillStyle = tailGrad;
+      lctx.fill();
+      lctx.restore();
+
+      // Cabeza celestial con corona de estrellas y bigotes
+      const head = this.segments[0];
+      lctx.save();
+      lctx.translate(head.x, head.y);
+      lctx.rotate(head.angle);
+
+      // Cuernos / Antenas de constelación
+      lctx.strokeStyle = "rgba(254, 240, 138, 0.9)";
+      lctx.lineWidth = 1.8;
+      // Cuerno izquierdo
+      lctx.beginPath();
+      lctx.moveTo(4, -8);
+      lctx.quadraticCurveTo(12, -22, 28, -26);
+      lctx.moveTo(18, -20);
+      lctx.lineTo(24, -14);
+      lctx.stroke();
+      // Cuerno derecho
+      lctx.beginPath();
+      lctx.moveTo(4, 8);
+      lctx.quadraticCurveTo(12, 22, 28, 26);
+      lctx.moveTo(18, 20);
+      lctx.lineTo(24, 14);
+      lctx.stroke();
+
+      // Puntas estelares en los cuernos
+      lctx.fillStyle = "#ffffff";
+      lctx.shadowColor = "#fde047";
+      lctx.shadowBlur = 10;
+      lctx.beginPath();
+      lctx.arc(28, -26, 3, 0, Math.PI * 2);
+      lctx.arc(28, 26, 3, 0, Math.PI * 2);
+      lctx.fill();
+      lctx.shadowBlur = 0;
+
+      // Bigotes que flotan en el viento
+      const whiskerWave = Math.sin(this.finPhase * 1.5) * 6;
+      lctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+      lctx.lineWidth = 1.2;
+      lctx.beginPath();
+      lctx.moveTo(14, -6);
+      lctx.quadraticCurveTo(-15, -18 + whiskerWave, -40, -12 + whiskerWave);
+      lctx.moveTo(14, 6);
+      lctx.quadraticCurveTo(-15, 18 - whiskerWave, -40, 12 - whiskerWave);
+      lctx.stroke();
+
+      // Ojos de supernova
+      lctx.fillStyle = "#ffffff";
+      lctx.shadowColor = "#38bdf8";
+      lctx.shadowBlur = 12;
+      lctx.beginPath();
+      lctx.arc(8, -6, 3.2, 0, Math.PI * 2);
+      lctx.arc(8, 6, 3.2, 0, Math.PI * 2);
+      lctx.fill();
+
+      lctx.fillStyle = "#0284c7";
+      lctx.beginPath();
+      lctx.arc(9, -6, 1.4, 0, Math.PI * 2);
+      lctx.arc(9, 6, 1.4, 0, Math.PI * 2);
+      lctx.fill();
+      lctx.shadowBlur = 0;
+
+      lctx.restore();
+      lctx.restore();
+    }
+  }
+
+  // ==========================================
+  // LOS MEGALITOS RÚNICOS DE LÍNEAS LEY
+  // ==========================================
+  class Megalith {
+    constructor(x, y, runeIndex = 0) {
+      this.x = x;
+      this.y = y;
+      this.seed = rand(0, 1000);
+      const runeCatalog = [
+        { char: "ᛟ", name: "Runa de la Vida (Othala)", color: "#34d399", freq: 392.00 },
+        { char: "ᛋ", name: "Runa del Sol (Sowilo)", color: "#fbbf24", freq: 440.00 },
+        { char: "ᛏ", name: "Runa de la Tormenta (Tiwaz)", color: "#38bdf8", freq: 493.88 },
+        { char: "ᛈ", name: "Runa del Misterio (Perthro)", color: "#c084fc", freq: 523.25 },
+        { char: "ᛃ", name: "Runa del Tiempo (Jera)", color: "#f472b6", freq: 587.33 },
+        { char: "ᚨ", name: "Runa de la Sabiduría (Ansuz)", color: "#60a5fa", freq: 659.25 }
+      ];
+      this.rune = runeCatalog[runeIndex % runeCatalog.length];
+      this.width = 24;
+      this.height = 46;
+      this.resonance = 0.6;
+      this.pulsePhase = rand(0, Math.PI * 2);
+      this.conjunctionPulse = 0;
+      this.facets = [
+        { x: -this.width * 0.5, y: this.height * 0.5 },
+        { x: -this.width * 0.45 + rand(-2, 2), y: 0 },
+        { x: -this.width * 0.35 + rand(-2, 2), y: -this.height * 0.4 },
+        { x: 0 + rand(-3, 3), y: -this.height * 0.52 },
+        { x: this.width * 0.35 + rand(-2, 2), y: -this.height * 0.38 },
+        { x: this.width * 0.48 + rand(-2, 2), y: 0 },
+        { x: this.width * 0.5, y: this.height * 0.5 }
+      ];
+    }
+
+    update(dt) {
+      this.pulsePhase += 0.035 * dt;
+      if (this.conjunctionPulse > 0) {
+        this.conjunctionPulse -= 0.015 * dt;
+        if (particles.length < 180 && Math.random() < 0.45) {
+          particles.push({
+            x: this.x + spread(14),
+            y: this.y - this.height * 0.5 - rand(10, 80),
+            vx: spread(0.3),
+            vy: -rand(2.5, 6.0),
+            r: rand(1.8, 3.5),
+            alpha: 0.95,
+            color: this.rune.color
+          });
+        }
+      }
+    }
+
+    draw(mctx) {
+      mctx.save();
+      mctx.translate(this.x, this.y);
+
+      // Sombra en el suelo
+      mctx.beginPath();
+      mctx.ellipse(0, this.height * 0.48, this.width * 0.8, 8, 0, 0, Math.PI * 2);
+      mctx.fillStyle = "rgba(0, 0, 0, 0.32)";
+      mctx.fill();
+
+      // Aura rúnica
+      const pulse = 0.5 + 0.5 * Math.sin(this.pulsePhase);
+      const auraRadius = (this.width + this.height) * 0.55 + pulse * 12 + this.conjunctionPulse * 40;
+      const auraGrad = mctx.createRadialGradient(0, -this.height * 0.1, 4, 0, -this.height * 0.1, auraRadius);
+      auraGrad.addColorStop(0, this.rune.color + "55");
+      auraGrad.addColorStop(0.6, this.rune.color + "18");
+      auraGrad.addColorStop(1, "rgba(0,0,0,0)");
+      mctx.fillStyle = auraGrad;
+      mctx.beginPath();
+      mctx.arc(0, -this.height * 0.1, auraRadius, 0, Math.PI * 2);
+      mctx.fill();
+
+      // Pilar de luz vertical durante la Gran Conjunción
+      if (this.conjunctionPulse > 0.05) {
+        const beamAlpha = clamp(this.conjunctionPulse, 0, 1);
+        const beamGrad = mctx.createLinearGradient(-16, 0, 16, 0);
+        beamGrad.addColorStop(0, "rgba(255,255,255,0)");
+        beamGrad.addColorStop(0.5, this.rune.color);
+        beamGrad.addColorStop(1, "rgba(255,255,255,0)");
+        mctx.globalAlpha = beamAlpha * 0.75;
+        mctx.fillStyle = beamGrad;
+        mctx.fillRect(-16, -H, 32, H + this.height * 0.5);
+        mctx.globalAlpha = 1.0;
+      }
+
+      // Cuerpo de piedra facetada
+      mctx.beginPath();
+      mctx.moveTo(this.facets[0].x, this.facets[0].y);
+      for (let i = 1; i < this.facets.length; i++) {
+        mctx.lineTo(this.facets[i].x, this.facets[i].y);
+      }
+      mctx.closePath();
+
+      const stoneGrad = mctx.createLinearGradient(-this.width * 0.5, -this.height * 0.5, this.width * 0.5, this.height * 0.5);
+      stoneGrad.addColorStop(0, "#334155");
+      stoneGrad.addColorStop(0.5, "#1e293b");
+      stoneGrad.addColorStop(1, "#0f172a");
+      mctx.fillStyle = stoneGrad;
+      mctx.fill();
+
+      mctx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+      mctx.lineWidth = 1.4;
+      mctx.stroke();
+
+      // Grietas de envejecimiento
+      mctx.strokeStyle = "rgba(15, 23, 42, 0.75)";
+      mctx.lineWidth = 1.0;
+      mctx.beginPath();
+      mctx.moveTo(-4, -14); mctx.lineTo(2, -2); mctx.lineTo(-2, 10);
+      mctx.stroke();
+
+      // Runa tallada con resplandor
+      mctx.save();
+      mctx.font = "bold 20px 'JetBrains Mono', serif";
+      mctx.textAlign = "center";
+      mctx.textBaseline = "middle";
+      mctx.shadowColor = this.rune.color;
+      mctx.shadowBlur = 12 + pulse * 8 + this.conjunctionPulse * 20;
+      mctx.fillStyle = "#ffffff";
+      mctx.fillText(this.rune.char, 0, -4);
+      mctx.fillStyle = this.rune.color;
+      mctx.fillText(this.rune.char, 0, -4);
+      mctx.restore();
+
+      mctx.restore();
+    }
+  }
+
+  // ==========================================
+  // LAS MEDUSAS ASTRALES DE LOS OASIS
+  // ==========================================
+  class AstralJelly {
+    constructor(pond, x, y) {
+      this.pond = pond;
+      this.x = x !== undefined ? x : (pond ? pond.x + spread(pond.radius * 0.4) : rand(100, W - 100));
+      this.y = y !== undefined ? y : (pond ? pond.y + spread(pond.radius * 0.4) : rand(100, H - 100));
+      this.vx = rand(-0.25, 0.25);
+      this.vy = rand(-0.25, 0.25);
+      this.bellRadius = rand(9, 14);
+      this.pulsePhase = rand(0, Math.PI * 2);
+      this.pulseSpeed = rand(0.045, 0.075);
+      this.hue = rand(175, 290);
+      this.numTentacles = 5;
+      this.tentacles = [];
+      for (let i = 0; i < this.numTentacles; i++) {
+        let chain = [];
+        for (let j = 0; j < 5; j++) chain.push({ x: this.x, y: this.y + j * 4 });
+        this.tentacles.push(chain);
+      }
+      this.bubbleTimer = rand(60, 140);
+    }
+
+    update(dt) {
+      this.pulsePhase += this.pulseSpeed * dt;
+      const pulseForce = Math.max(0, Math.sin(this.pulsePhase));
+      if (pulseForce > 0.75) {
+        this.vx += (Math.cos(this.pulsePhase * 0.6) * 0.05) * dt;
+        this.vy += (-0.055 + spread(0.02)) * dt;
+      }
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      this.vx *= 0.96;
+      this.vy *= 0.96;
+
+      if (this.pond) {
+        const d2 = distSq(this.x, this.y, this.pond.x, this.pond.y);
+        const maxR = this.pond.radius * 0.78;
+        if (d2 > maxR * maxR) {
+          const ang = Math.atan2(this.y - this.pond.y, this.x - this.pond.x);
+          this.vx -= Math.cos(ang) * 0.08 * dt;
+          this.vy -= Math.sin(ang) * 0.08 * dt;
+        }
+      }
+
+      for (let t = 0; t < this.numTentacles; t++) {
+        const chain = this.tentacles[t];
+        const rootX = this.x + ((t - (this.numTentacles - 1) * 0.5) / ((this.numTentacles - 1) * 0.5 || 1)) * (this.bellRadius * 0.6);
+        const rootY = this.y + this.bellRadius * 0.3;
+        chain[0].x = rootX;
+        chain[0].y = rootY;
+        for (let j = 1; j < chain.length; j++) {
+          const p1 = chain[j - 1];
+          const p2 = chain[j];
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const targetDist = 4.2;
+          p2.x = p1.x + (dx / dist) * targetDist + Math.sin(this.pulsePhase + t + j) * 0.35;
+          p2.y = p1.y + (dy / dist) * targetDist;
+        }
+      }
+
+      this.bubbleTimer -= dt;
+      if (this.bubbleTimer <= 0) {
+        this.bubbleTimer = rand(90, 180);
+        if (particles.length < 180) {
+          particles.push({
+            x: this.x + spread(this.bellRadius * 0.5),
+            y: this.y + spread(this.bellRadius * 0.5),
+            vx: spread(0.15),
+            vy: -rand(0.4, 0.9),
+            r: rand(1.5, 3.2),
+            alpha: 0.85,
+            color: `hsl(${this.hue}, 90%, 75%)`
+          });
+        }
+      }
+
+      const nearby = creatureGrid.queryRange(this.x, this.y, 45);
+      for (let c of nearby) {
+        if (c.state === "DRINK" || c.water < c.maxWater * 0.85) {
+          c.water = c.maxWater;
+          c.health = Math.min(100, c.health + 0.45 * dt);
+          if (Math.random() < 0.02 * dt) {
+            c.setEmote("✨💧", 30);
+            Sound.jellyBubble(this.x);
+          }
+        }
+      }
+    }
+
+    draw(jctx) {
+      jctx.save();
+      const contraction = 0.25 * Math.sin(this.pulsePhase);
+      const rW = this.bellRadius * (1 - contraction * 0.5);
+      const rH = this.bellRadius * (1 + contraction * 0.7);
+
+      // Onda caústica en la superficie
+      jctx.beginPath();
+      jctx.ellipse(this.x, this.y + rH * 0.4, rW * 1.5, rW * 0.5, 0, 0, Math.PI * 2);
+      jctx.strokeStyle = `hsla(${this.hue}, 80%, 70%, 0.22)`;
+      jctx.lineWidth = 1.0;
+      jctx.stroke();
+
+      // Tentáculos
+      for (let t = 0; t < this.numTentacles; t++) {
+        const chain = this.tentacles[t];
+        jctx.beginPath();
+        jctx.moveTo(chain[0].x, chain[0].y);
+        for (let j = 1; j < chain.length; j++) {
+          jctx.lineTo(chain[j].x, chain[j].y);
+        }
+        jctx.strokeStyle = `hsla(${this.hue}, 85%, 75%, ${0.55 - t * 0.04})`;
+        jctx.lineWidth = 1.2;
+        jctx.stroke();
+      }
+
+      // Campana de la medusa
+      jctx.beginPath();
+      jctx.arc(this.x, this.y, rW, Math.PI, 0);
+      jctx.bezierCurveTo(this.x + rW * 0.6, this.y + rH * 0.4, this.x - rW * 0.6, this.y + rH * 0.4, this.x - rW, this.y);
+      jctx.closePath();
+
+      const bellGrad = jctx.createRadialGradient(this.x, this.y - rH * 0.2, 2, this.x, this.y, rW * 1.2);
+      bellGrad.addColorStop(0, `hsla(${this.hue}, 95%, 85%, 0.78)`);
+      bellGrad.addColorStop(0.6, `hsla(${this.hue}, 85%, 60%, 0.48)`);
+      bellGrad.addColorStop(1, `hsla(${this.hue}, 90%, 45%, 0.15)`);
+      jctx.fillStyle = bellGrad;
+      jctx.fill();
+
+      jctx.strokeStyle = `hsla(${this.hue}, 95%, 85%, 0.65)`;
+      jctx.lineWidth = 1.2;
+      jctx.stroke();
+
+      // Núcleo bioluminiscente
+      jctx.beginPath();
+      jctx.arc(this.x, this.y - rH * 0.1, rW * 0.35, 0, Math.PI * 2);
+      jctx.fillStyle = "#ffffff";
+      jctx.shadowColor = `hsl(${this.hue}, 100%, 70%)`;
+      jctx.shadowBlur = 9;
+      jctx.fill();
+      jctx.shadowBlur = 0;
+
+      jctx.restore();
+    }
+  }
+
+  // ==========================================
+  // LÍNEAS LEY & GESTORES DE LOS SISTEMAS v12.0
+  // ==========================================
+  function initMegaliths() {
+    megaliths = [];
+    const positions = [
+      { x: W * 0.22, y: H * 0.30, idx: 0 },
+      { x: W * 0.78, y: H * 0.34, idx: 1 },
+      { x: W * 0.50, y: H * 0.76, idx: 2 }
+    ];
+    for (let p of positions) {
+      megaliths.push(new Megalith(p.x, p.y, p.idx));
+    }
+    updateLeyLines();
+  }
+
+  function initAstralJellies() {
+    astralJellies = [];
+    for (let p of waterBodies) {
+      const count = Math.floor(rand(1, 3));
+      for (let i = 0; i < count; i++) {
+        astralJellies.push(new AstralJelly(p));
+      }
+    }
+  }
+
+  function spawnMegalith(x, y) {
+    const m = new Megalith(x, y, megaliths.length);
+    m.conjunctionPulse = 0.8;
+    megaliths.push(m);
+    updateLeyLines();
+    Sound.runicChime(m.rune.freq, x);
+    for (let i = 0; i < 28; i++) {
+      particles.push({
+        x, y,
+        vx: spread(3), vy: spread(3),
+        r: rand(2.5, 4.5), alpha: 0.9, color: m.rune.color
+      });
+    }
+    showToast(`🗿 ¡Nuevo Megalito (${m.rune.name}) erigido en la tierra!`);
+    updateUI();
+    return m;
+  }
+
+  function spawnAstralJelly(x, y) {
+    let bestPond = null, minD = Infinity;
+    for (let p of waterBodies) {
+      const d = distSq(x, y, p.x, p.y);
+      if (d < minD) { minD = d; bestPond = p; }
+    }
+    const jelly = new AstralJelly(bestPond, x, y);
+    astralJellies.push(jelly);
+    Sound.jellyBubble(x);
+    for (let i = 0; i < 18; i++) {
+      particles.push({
+        x, y,
+        vx: spread(1.5), vy: spread(1.5),
+        r: rand(2, 4), alpha: 0.9, color: "#38bdf8"
+      });
+    }
+    showToast("🪼 Medusa Astral nacida en las aguas del terrario");
+    updateUI();
+    return jelly;
+  }
+
+  function updateLeyLines() {
+    leyLines = [];
+    const maxDist = 580;
+    const maxDistSq = maxDist * maxDist;
+    for (let i = 0; i < megaliths.length; i++) {
+      for (let j = i + 1; j < megaliths.length; j++) {
+        const m1 = megaliths[i], m2 = megaliths[j];
+        const d2 = distSq(m1.x, m1.y, m2.x, m2.y);
+        if (d2 <= maxDistSq) {
+          leyLines.push({ m1, m2, dist: Math.sqrt(d2), seed: (m1.seed + m2.seed) * 0.5 });
+        }
+      }
+    }
+  }
+
+  function updateMegaliths(dt) {
+    for (let m of megaliths) {
+      m.update(dt);
+    }
+  }
+
+  function updateAstralJellies(dt) {
+    for (let j of astralJellies) {
+      j.update(dt);
+    }
+  }
+
+  function updateLyreRipples(dt) {
+    for (let i = lyrePluckRipples.length - 1; i >= 0; i--) {
+      const r = lyrePluckRipples[i];
+      r.r += 2.2 * dt;
+      r.alpha -= 0.035 * dt;
+      if (r.alpha <= 0 || r.r >= r.maxR) lyrePluckRipples.splice(i, 1);
+    }
+  }
+
+  function drawLeyLines(lctx) {
+    if (!options.showLeyLines || leyLines.length === 0) return;
+    const t = simTime * 0.0012;
+
+    lctx.save();
+
+    // Santuario Rúnico Triangulado (si hay 3 o más megalitos conectados)
+    if (megaliths.length >= 3 && leyLines.length >= 3) {
+      lctx.save();
+      lctx.beginPath();
+      lctx.moveTo(megaliths[0].x, megaliths[0].y);
+      for (let i = 1; i < Math.min(5, megaliths.length); i++) {
+        lctx.lineTo(megaliths[i].x, megaliths[i].y);
+      }
+      lctx.closePath();
+      const sancPulse = 0.5 + 0.5 * Math.sin(t * 1.5);
+      lctx.fillStyle = `rgba(251, 191, 36, ${0.04 + sancPulse * 0.04})`;
+      lctx.fill();
+      lctx.strokeStyle = `rgba(56, 189, 248, ${0.12 + sancPulse * 0.08})`;
+      lctx.lineWidth = 1.0;
+      lctx.stroke();
+      lctx.restore();
+    }
+
+    // Dibujar haces de Líneas Ley
+    for (let line of leyLines) {
+      const { m1, m2 } = line;
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2 + line.seed);
+      const alpha = 0.2 + pulse * 0.22;
+
+      // Cinta exterior dorada
+      lctx.strokeStyle = `rgba(251, 191, 36, ${alpha * 0.7})`;
+      lctx.lineWidth = 2.2;
+      lctx.beginPath();
+      lctx.moveTo(m1.x, m1.y);
+      lctx.lineTo(m2.x, m2.y);
+      lctx.stroke();
+
+      // Haz interior cian de alta energía
+      lctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.9})`;
+      lctx.lineWidth = 1.0;
+      lctx.beginPath();
+      lctx.moveTo(m1.x, m1.y);
+      lctx.lineTo(m2.x, m2.y);
+      lctx.stroke();
+
+      // Partícula de energía viajando por la línea ley
+      const moteProg = (t * 0.6 + line.seed * 0.1) % 1.0;
+      const px = m1.x + (m2.x - m1.x) * moteProg;
+      const py = m1.y + (m2.y - m1.y) * moteProg;
+      lctx.fillStyle = "#ffffff";
+      lctx.shadowColor = "#38bdf8";
+      lctx.shadowBlur = 8;
+      lctx.beginPath();
+      lctx.arc(px, py, 2.5, 0, Math.PI * 2);
+      lctx.fill();
+      lctx.shadowBlur = 0;
+
+      // Sintonía Rúnica en criaturas que caminan sobre la línea
+      const targets = creatureGrid.queryRange(px, py, 32);
+      for (let c of targets) {
+        c.stamina = c.maxStamina;
+        if (Math.random() < 0.015) {
+          c.setEmote("✨ᛟ", 30);
+        }
+      }
+    }
+
+    lctx.restore();
+  }
+
+  function drawMegaliths(mctx) {
+    for (let m of megaliths) {
+      m.draw(mctx);
+    }
+  }
+
+  function drawAstralJellies(jctx) {
+    for (let j of astralJellies) {
+      j.draw(jctx);
+    }
+  }
+
+  function drawCelestialLeviathan(lctx) {
+    if (celestialLeviathan) {
+      celestialLeviathan.draw(lctx);
+    }
+  }
+
+  function drawLyreRipples(rctx) {
+    if (lyrePluckRipples.length === 0) return;
+    rctx.save();
+    for (let r of lyrePluckRipples) {
+      rctx.strokeStyle = r.color || "#38bdf8";
+      rctx.globalAlpha = r.alpha;
+      rctx.lineWidth = 1.6;
+      rctx.beginPath();
+      rctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+      rctx.stroke();
+    }
+    rctx.restore();
+  }
+
+  function drawMegalithMiniMap() {
+    const mCanvas = document.getElementById("megalithCanvas");
+    if (!mCanvas) return;
+    const mctx = mCanvas.getContext("2d");
+    const mw = mCanvas.width, mh = mCanvas.height;
+    mctx.clearRect(0, 0, mw, mh);
+
+    mctx.save();
+    mctx.strokeStyle = "rgba(56, 189, 248, 0.16)";
+    mctx.lineWidth = 1;
+    mctx.beginPath();
+    mctx.arc(mw * 0.5, mh * 0.5, mh * 0.42, 0, Math.PI * 2);
+    mctx.stroke();
+
+    const sx = (x) => (x / (W || 800)) * (mw - 44) + 22;
+    const sy = (y) => (y / (H || 600)) * (mh - 44) + 22;
+
+    // Líneas Ley en el mini-mapa
+    mctx.lineWidth = 1.6;
+    for (let line of leyLines) {
+      mctx.strokeStyle = "rgba(251, 191, 36, 0.6)";
+      mctx.beginPath();
+      mctx.moveTo(sx(line.m1.x), sy(line.m1.y));
+      mctx.lineTo(sx(line.m2.x), sy(line.m2.y));
+      mctx.stroke();
+    }
+
+    // Megalitos en el mini-mapa
+    for (let m of megaliths) {
+      const mx = sx(m.x), my = sy(m.y);
+      mctx.beginPath();
+      mctx.arc(mx, my, 5, 0, Math.PI * 2);
+      mctx.fillStyle = m.rune.color;
+      mctx.shadowColor = m.rune.color;
+      mctx.shadowBlur = 8;
+      mctx.fill();
+      mctx.shadowBlur = 0;
+
+      mctx.font = "bold 9px monospace";
+      mctx.fillStyle = "#ffffff";
+      mctx.textAlign = "center";
+      mctx.fillText(m.rune.char, mx, my - 8);
+    }
+
+    // Leviatán en el mini-mapa
+    if (celestialLeviathan) {
+      const lx = sx(celestialLeviathan.x), ly = sy(celestialLeviathan.y);
+      mctx.beginPath();
+      mctx.arc(lx, ly, 6, 0, Math.PI * 2);
+      mctx.fillStyle = "#38bdf8";
+      mctx.shadowColor = "#38bdf8";
+      mctx.shadowBlur = 10;
+      mctx.fill();
+      mctx.shadowBlur = 0;
+
+      mctx.font = "10px sans-serif";
+      mctx.fillStyle = "#38bdf8";
+      mctx.textAlign = "center";
+      mctx.fillText("🐉", lx, ly - 8);
+    }
+
+    mctx.restore();
+  }
+
+  function openMegalithModal() {
+    const overlay = document.getElementById("megalithOverlay");
+    if (!overlay) return;
+    document.getElementById("megalithCount").textContent = megaliths.length;
+    document.getElementById("leyLineCount").textContent = leyLines.length;
+    let sanctuaries = 0;
+    if (megaliths.length >= 3 && leyLines.length >= 3) sanctuaries = 1;
+    document.getElementById("sanctuaryCount").textContent = sanctuaries;
+    document.getElementById("leviathanStatus").textContent = (possessedCreature === celestialLeviathan)
+      ? "Encarnado"
+      : (celestialLeviathan && celestialLeviathan.breathActive > 0 ? "Aliento Estelar" : "En Vuelo");
+
+    overlay.classList.add("open");
+    Sound.runicChime(523.25);
+
+    function loopMegalithPreview() {
+      drawMegalithMiniMap();
+      megalithCanvasRAF = requestAnimationFrame(loopMegalithPreview);
+    }
+    if (megalithCanvasRAF) cancelAnimationFrame(megalithCanvasRAF);
+    megalithCanvasRAF = requestAnimationFrame(loopMegalithPreview);
+  }
+
+  function closeMegalithModal() {
+    const overlay = document.getElementById("megalithOverlay");
+    if (overlay) overlay.classList.remove("open");
+    if (megalithCanvasRAF) {
+      cancelAnimationFrame(megalithCanvasRAF);
+      megalithCanvasRAF = null;
+    }
+  }
+
+  function triggerRunicConjunction() {
+    if (megaliths.length === 0) {
+      showToast("Erige al menos un Megalito Rúnico en el mundo primero");
+      return;
+    }
+    for (let m of megaliths) {
+      m.conjunctionPulse = 1.0;
+      m.resonance = 1.0;
+    }
+    Sound.runicConjunction();
+    if (celestialLeviathan) {
+      celestialLeviathan.breathe();
+      celestialLeviathan.targetHeading = Math.atan2(H * 0.5 - celestialLeviathan.y, W * 0.5 - celestialLeviathan.x);
+    }
+    showToast("🌌 ¡Gran Conjunción Rúnica desatada! Las Líneas Ley bañan el cosmos");
+  }
+
+  // ==========================================
   // CRISOL DE QUIMERAS & TRANSMUTACIÓN GENÉTICA
   // ==========================================
   function spawnChimera(chimeraType, x, y) {
@@ -4430,6 +5482,10 @@
     actionPotentials = [];
     wormholeJumps = 0;
     myceliumBiomass = 100;
+    megaliths = [];
+    leyLines = [];
+    astralJellies = [];
+    lyrePluckRipples = [];
     camX = W / 2;
     camY = H / 2;
     camZoom = 1.0;
@@ -4438,6 +5494,9 @@
     initCrystals();
     initMycelium();
     initWormholes();
+    initMegaliths();
+    initAstralJellies();
+    celestialLeviathan = new CelestialLeviathan(W * 0.5, H * 0.25);
 
     for (let i = 0; i < 60; i++) spawnFood(rand(0, W), rand(0, H));
 
@@ -4594,6 +5653,10 @@
     updateMycelium(dt);
     updateWormholes(dt);
     updateQuantumEchoes(dt);
+    if (celestialLeviathan) celestialLeviathan.update(dt);
+    updateMegaliths(dt);
+    updateAstralJellies(dt);
+    updateLyreRipples(dt);
     if (cymaticPulse > 0) cymaticPulse = Math.max(0, cymaticPulse - 0.012 * dt);
 
     if (options.dreamMode) {
@@ -4809,6 +5872,12 @@
       (c, ctx) => `La luz solar no me ilumina: me refracta. Cada fotón que me atraviesa se convierte en un acorde cromático de sanación.`,
       (c, ctx) => `Me comunico en frecuencias puras con las geodas de cuarzo del suelo; somos una sola red geométrica y consciente.`,
       (c, ctx) => `No conozco el hambre ni el miedo a la muerte; soy una chispa eterna del prisma que originó este universo.`
+    ],
+    celestial_leviathan: [
+      (c, ctx) => `Surco las corrientes de luz estelar. Abajo, el valle entero respira en un único y conmovedor latido vegetal.`,
+      (c, ctx) => `Siento la pulsación armónica de las líneas ley en las entrañas de la roca; el mundo está vivo y conectado.`,
+      (c, ctx) => `Al exhalar polvo de cometa, la vida florece y el miedo se apaga en el corazón de todas las criaturas.`,
+      (c, ctx) => `He visto nacer y apagarse incontables eras. Soy la memoria del firmamento danzando sobre el verde tapiz del tiempo.`
     ]
   };
 
@@ -4896,7 +5965,8 @@
       chimera_celestial: "🦌✨",
       chimera_behemoth: "🦏🌋",
       chimera_gryphon: "🐺🦅",
-      chimera_prism: "✨💎"
+      chimera_prism: "✨💎",
+      celestial_leviathan: "🐉"
     };
 
     const possAvatar = document.getElementById("possAvatar");
@@ -4915,7 +5985,9 @@
       possBadge.style.borderColor = c.spec.swatch + "66";
     }
     if (possMicroStats) {
-      possMicroStats.textContent = `Gen ${c.gen} · ${c.kids} crías · ${c.kills} presas · ${Math.round(c.energy)}/${Math.round(c.maxEnergy)} En`;
+      possMicroStats.textContent = c.isLeviathan
+        ? `Coloso Inmortal · Aliento Cósmico Activo`
+        : `Gen ${c.gen} · ${c.kids} crías · ${c.kills} presas · ${Math.round(c.energy)}/${Math.round(c.maxEnergy)} En`;
     }
 
     const abilityNames = {
@@ -4928,7 +6000,8 @@
       chimera_celestial: "Lluvia Astral",
       chimera_behemoth: "Falla Geotérmica",
       chimera_gryphon: "Picado Umbrío",
-      chimera_prism: "Nova de Refracción"
+      chimera_prism: "Nova de Refracción",
+      celestial_leviathan: "Aliento de Cometa"
     };
 
     if (possAbilityLabel) {
@@ -4950,6 +6023,13 @@
     if (!possessedCreature || possessionAbilityCooldown > 0) return;
     const c = possessedCreature;
     possessionAbilityCooldown = possessionAbilityMaxCooldown;
+
+    if (c.isLeviathan) {
+      c.breathe();
+      possessionAbilityCooldown = 220;
+      updatePossessionUI();
+      return;
+    }
 
     if (c.fungalEcstasy > 0) {
       alarmWaves.push({ x: c.x, y: c.y, r: 12, maxR: 240, alpha: 1.0, color: "#34d399" });
@@ -5188,12 +6268,14 @@
     }
 
     // Cálculo dinámico de BPM
-    let targetBPM = 72;
-    if (c.state === "FLEE" || c.state === "CHASE") targetBPM += 55;
-    if (c.isSprinting) targetBPM += 32;
-    if (c.energy < c.maxEnergy * 0.3) targetBPM += 22;
-    if (c.state === "SLEEP") targetBPM -= 24;
-    targetBPM = clamp(targetBPM, 48, 168);
+    let targetBPM = c.isLeviathan ? 30 : 72;
+    if (!c.isLeviathan) {
+      if (c.state === "FLEE" || c.state === "CHASE") targetBPM += 55;
+      if (c.isSprinting) targetBPM += 32;
+      if (c.energy < c.maxEnergy * 0.3) targetBPM += 22;
+      if (c.state === "SLEEP") targetBPM -= 24;
+      targetBPM = clamp(targetBPM, 48, 168);
+    }
     possessionBPM += (targetBPM - possessionBPM) * 0.05 * dt;
 
     // Latido cardíaco en audio
@@ -6147,6 +7229,8 @@
       ctx.restore();
     }
 
+    drawAstralJellies(ctx);
+
     for (let b of bushes) {
       ctx.save();
       ctx.translate(b.x, b.y);
@@ -6223,10 +7307,15 @@
     drawCrystalGeodes(ctx);
     drawWormholes(ctx);
     drawQuantumEchoes(ctx);
+    drawLeyLines(ctx);
+    drawMegaliths(ctx);
 
     for (let c of creatures) {
       c.draw(ctx);
     }
+
+    drawCelestialLeviathan(ctx);
+    drawLyreRipples(ctx);
 
     for (let p of particles) {
       ctx.save();
@@ -6617,6 +7706,40 @@
     const stWormholeJumpsEl = document.getElementById("stWormholeJumps");
     if (stWormholeJumpsEl) stWormholeJumpsEl.textContent = wormholeJumps;
 
+    const stLeviathanEl = document.getElementById("stLeviathan");
+    if (stLeviathanEl) {
+      stLeviathanEl.textContent = (possessedCreature === celestialLeviathan)
+        ? "👁️ Encarnado"
+        : (celestialLeviathan && celestialLeviathan.breathActive > 0 ? "✨ Aliento Cósmico" : "En Vuelo");
+    }
+    const stMegalithsEl = document.getElementById("stMegaliths");
+    if (stMegalithsEl) stMegalithsEl.textContent = megaliths.length;
+    const stLeyLinesEl = document.getElementById("stLeyLines");
+    if (stLeyLinesEl) stLeyLinesEl.textContent = leyLines.length;
+    const stJelliesEl = document.getElementById("stJellies");
+    if (stJelliesEl) stJelliesEl.textContent = astralJellies.length;
+
+    const leviathanIconEl = document.getElementById("leviathanIcon");
+    const leviathanLabelEl = document.getElementById("leviathanLabel");
+    if (leviathanIconEl && leviathanLabelEl) {
+      leviathanIconEl.classList.toggle("active", !!celestialLeviathan);
+      leviathanLabelEl.textContent = (possessedCreature === celestialLeviathan)
+        ? "Encarnado"
+        : (celestialLeviathan && celestialLeviathan.breathActive > 0 ? "Aliento Estelar" : "En Vuelo");
+    }
+    const megalithIconEl = document.getElementById("megalithIcon");
+    const megalithLabelEl = document.getElementById("megalithLabel");
+    if (megalithIconEl && megalithLabelEl) {
+      megalithIconEl.classList.toggle("active", megaliths.length > 0);
+      megalithLabelEl.textContent = `${megaliths.length} Megalitos`;
+    }
+    const jellyIconEl = document.getElementById("jellyIcon");
+    const jellyLabelEl = document.getElementById("jellyLabel");
+    if (jellyIconEl && jellyLabelEl) {
+      jellyIconEl.classList.toggle("active", astralJellies.length > 0);
+      jellyLabelEl.textContent = `${astralJellies.length} Medusas`;
+    }
+
     const myceliumIconEl = document.getElementById("myceliumIcon");
     const myceliumLabelEl = document.getElementById("myceliumLabel");
     if (myceliumIconEl && myceliumLabelEl) {
@@ -6893,6 +8016,44 @@
       return;
     }
 
+    // Interacción con Megalitos
+    for (let m of megaliths) {
+      if (distSq(x, y, m.x, m.y) < 38 * 38) {
+        m.resonance = 1.0;
+        m.pulsePhase = 0;
+        Sound.runicChime(m.rune.freq, m.x);
+        for (let i = 0; i < 18; i++) {
+          particles.push({
+            x: m.x + spread(15), y: m.y + spread(15),
+            vx: spread(2), vy: spread(2),
+            r: rand(2, 4), alpha: 0.9, color: m.rune.color
+          });
+        }
+        showToast(`🗿 ${m.rune.name} vibra en resonancia armónica`);
+        return;
+      }
+    }
+
+    // Interacción con Gran Leviatán
+    if (celestialLeviathan && distSq(x, y, celestialLeviathan.x, celestialLeviathan.y) < 48 * 48) {
+      possessCreature(celestialLeviathan);
+      return;
+    }
+
+    // Tocar la Lira Cósmica si está activa
+    if (options.lyreMode && !possessedCreature) {
+      const now = performance.now();
+      if (now - lastLyreNoteTs > 75) {
+        lastLyreNoteTs = now;
+        const lyreScale = [196.00, 220.00, 246.94, 293.66, 329.63, 392.00, 440.00, 493.88, 587.33, 659.25, 783.99, 880.00];
+        const normY = clamp(1 - (screenY / (H || 600)), 0, 0.99);
+        const noteIdx = Math.floor(normY * lyreScale.length);
+        const freq = lyreScale[noteIdx];
+        Sound.lyreNote(freq, x, 0.08);
+        lyrePluckRipples.push({ x, y, r: 3, maxR: 40, alpha: 0.85, color: "#38bdf8" });
+      }
+    }
+
     const clickedCreature = creatureGrid.nearest(x, y, 25);
     if (clickedCreature && options.activeTool !== "lightning" && options.activeTool !== "vortex" && options.activeTool !== "blessing") {
       selectedCreature = clickedCreature;
@@ -6925,6 +8086,20 @@
         break;
       case "pollinator":
         creatures.push(new Creature(x, y, "pollinator"));
+        break;
+      case "leviathan":
+        if (!celestialLeviathan) {
+          celestialLeviathan = new CelestialLeviathan(x, y);
+        } else {
+          celestialLeviathan.steerToward(x, y, 1.0, 0.5, 2.2);
+          celestialLeviathan.breathe();
+        }
+        break;
+      case "megalith":
+        spawnMegalith(x, y);
+        break;
+      case "jelly":
+        spawnAstralJelly(x, y);
         break;
       case "mushroom":
         spawnMushroom(x, y);
@@ -6973,7 +8148,7 @@
   canvas.addEventListener("pointermove", (ev) => {
     if (pointerActive) {
       if (possessedCreature) handlePointer(ev);
-      else if (options.activeTool === "food" || options.activeTool === "vortex") handlePointer(ev);
+      else if (options.activeTool === "food" || options.activeTool === "vortex" || options.lyreMode) handlePointer(ev);
     }
   });
   const endPointer = () => { pointerActive = false; };
@@ -7133,6 +8308,49 @@
     });
   }
 
+  const btnLeviathan = document.getElementById("btnLeviathan");
+  if (btnLeviathan) {
+    btnLeviathan.addEventListener("click", () => {
+      if (possessedCreature === celestialLeviathan) {
+        releaseSoulBond();
+      } else if (celestialLeviathan) {
+        possessCreature(celestialLeviathan);
+      } else {
+        celestialLeviathan = new CelestialLeviathan(W * 0.5, H * 0.3);
+        possessCreature(celestialLeviathan);
+      }
+    });
+  }
+
+  const btnMegalith = document.getElementById("btnMegalith");
+  if (btnMegalith) {
+    btnMegalith.addEventListener("click", openMegalithModal);
+  }
+  const megalithClose = document.getElementById("megalithClose");
+  const megalithOverlay = document.getElementById("megalithOverlay");
+  if (megalithClose && megalithOverlay) {
+    megalithClose.addEventListener("click", closeMegalithModal);
+    megalithOverlay.addEventListener("click", (e) => {
+      if (e.target === megalithOverlay) closeMegalithModal();
+    });
+  }
+  const btnConjunction = document.getElementById("btnConjunction");
+  if (btnConjunction) {
+    btnConjunction.addEventListener("click", () => {
+      triggerRunicConjunction();
+    });
+  }
+  const btnSummonLeviathan = document.getElementById("btnSummonLeviathan");
+  if (btnSummonLeviathan) {
+    btnSummonLeviathan.addEventListener("click", () => {
+      if (!celestialLeviathan) celestialLeviathan = new CelestialLeviathan(W * 0.5, H * 0.3);
+      celestialLeviathan.steerToward(W * 0.5, H * 0.4, 1.0, 0.5, 2.5);
+      celestialLeviathan.breathe();
+      possessCreature(celestialLeviathan);
+      closeMegalithModal();
+    });
+  }
+
   const btnPossess = document.getElementById("btnPossess");
   if (btnPossess) {
     btnPossess.addEventListener("click", () => {
@@ -7197,6 +8415,8 @@
   setupToggle("togBars", "showBars");
   setupToggle("togDayNight", "autoDayNight");
   setupToggle("togCymatics", "showCymatics");
+  setupToggle("togLyre", "lyreMode");
+  setupToggle("togLeyLines", "showLeyLines");
 
   document.getElementById("inspClose").addEventListener("click", () => { selectedCreature = null; updateUI(); });
   document.getElementById("btnFeedSelected").addEventListener("click", () => {
@@ -7271,6 +8491,24 @@
       if (possessedCreature) releaseSoulBond();
       if (chimeraOverlay && chimeraOverlay.classList.contains("open")) closeChimeraModal();
       if (myceliumOverlay && myceliumOverlay.classList.contains("open")) closeMyceliumModal();
+      if (megalithOverlay && megalithOverlay.classList.contains("open")) closeMegalithModal();
+    }
+    if (e.code === "KeyL" && !e.ctrlKey && !e.metaKey) {
+      if (possessedCreature === celestialLeviathan) {
+        releaseSoulBond();
+      } else if (celestialLeviathan) {
+        possessCreature(celestialLeviathan);
+      }
+    }
+    if (e.code === "KeyK" && !e.ctrlKey && !e.metaKey && !possessedCreature) {
+      if (megalithOverlay && megalithOverlay.classList.contains("open")) {
+        closeMegalithModal();
+      } else {
+        openMegalithModal();
+      }
+    }
+    if (e.code === "KeyJ" && !e.ctrlKey && !e.metaKey && !possessedCreature) {
+      spawnAstralJelly(rand(W * 0.2, W * 0.8), rand(H * 0.2, H * 0.8));
     }
     if (e.code === "KeyE" && !e.ctrlKey && !e.metaKey) {
       if (possessedCreature) {

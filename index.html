@@ -19,7 +19,7 @@
 <!-- PANEL PRINCIPAL DE CONTROL Y ESTADÍSTICAS -->
 <div class="panel" id="panel">
   <div class="eyebrow">
-    <span class="eyebrow-label">Ecosistema Vivo v11.0 — La Red Micelial Sináptica & Los Vórtices del Espacio-Tiempo</span>
+    <span class="eyebrow-label">Ecosistema Vivo v12.0 — El Gran Leviatán Celestial & Los Megalitos Rúnicos de Líneas Ley</span>
     <span class="eyebrow-clock" id="clock">
       <span class="tod-icon" id="todIcon">☀️</span>
       <span id="todLabel">Día</span>
@@ -29,6 +29,15 @@
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span class="tod-icon mood-icon" id="moodIcon" title="Clima emocional del terrario">🌾</span>
       <span id="moodLabel">Calma</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon leviathan-icon" id="leviathanIcon" title="Gran Leviatán Celestial">🐉</span>
+      <span id="leviathanLabel">En vuelo</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon megalith-icon" id="megalithIcon" title="Megalitos & Líneas Ley">🗿</span>
+      <span id="megalithLabel">0 Megalitos</span>
+      <span style="opacity:0.5; margin: 0 2px;">|</span>
+      <span class="tod-icon jelly-icon" id="jellyIcon" title="Medusas Astrales">🪼</span>
+      <span id="jellyLabel">0 Medusas</span>
       <span style="opacity:0.5; margin: 0 2px;">|</span>
       <span class="tod-icon aurora-icon" id="auroraIcon" title="Aurora Boreal">✨</span>
       <span id="auroraLabel">Velo Calmo</span>
@@ -82,6 +91,10 @@
       <dt>🌌 Aurora Boreal</dt><dd id="stAurora">Inactiva</dd>
       <dt>🌳 Árbol Ancestral</dt><dd id="stTree">Vigor 100%</dd>
       <dt>🌑 Gran Eclipse</dt><dd id="stEclipse">Alineación</dd>
+      <dt>🐉 Leviatán Celestial</dt><dd id="stLeviathan">En Vuelo</dd>
+      <dt>🗿 Megalitos Rúnicos</dt><dd id="stMegaliths">0</dd>
+      <dt>⚡ Líneas Ley Vivas</dt><dd id="stLeyLines">0</dd>
+      <dt>🪼 Medusas Astrales</dt><dd id="stJellies">0</dd>
       <dt>👁️ Vínculo de Alma</dt><dd id="stPossession">Libre</dd>
     </dl>
 
@@ -108,6 +121,8 @@
       <button class="toggle-btn" id="togAudio">🔊 Audio Vivo</button>
       <button class="toggle-btn" id="togDream">🌀 Modo Onírico</button>
       <button class="toggle-btn active" id="togCymatics">🌊 Cimática</button>
+      <button class="toggle-btn active" id="togLyre">✨ Lira Cósmica</button>
+      <button class="toggle-btn active" id="togLeyLines">⚡ Líneas Ley</button>
     </div>
 
     <div class="btnrow">
@@ -116,6 +131,8 @@
       <button id="btnMeteor">☄️ Meteoritos</button>
       <button id="btnAurora">✨ Aurora</button>
       <button id="btnEclipse">🌑 Eclipse</button>
+      <button id="btnLeviathan">🐉 Leviatán</button>
+      <button id="btnMegalith">🗿 Megalitos</button>
       <button id="btnChimera">🧬 Quimeras</button>
       <button id="btnMycelium">🍄 Micelio</button>
       <button id="btnWormhole">🌀 Portales</button>
@@ -140,6 +157,9 @@
   <button class="tool-item" data-tool="carn_apex">🦖 Apex</button>
   <button class="tool-item" data-tool="scavenger">🦅 Carroñero</button>
   <button class="tool-item" data-tool="pollinator">✨ Polinizador</button>
+  <button class="tool-item" data-tool="leviathan">🐉 Leviatán</button>
+  <button class="tool-item" data-tool="megalith">🗿 Megalito</button>
+  <button class="tool-item" data-tool="jelly">🪼 Medusa</button>
   <button class="tool-item" data-tool="mushroom">🍄 Seta</button>
   <button class="tool-item" data-tool="crystal">💎 Cristal</button>
   <button class="tool-item" data-tool="chimera">🧬 Quimera</button>
@@ -362,6 +382,46 @@
 
     <div class="mycelium-actions">
       <button class="primary mycelium-bloom-btn" id="btnSporeBloom">🌌 Desatar Gran Esporulación Bioluminiscente</button>
+    </div>
+  </div>
+</div>
+
+<div class="megalith-overlay" id="megalithOverlay">
+  <div class="megalith-scroll">
+    <button class="megalith-close" id="megalithClose" aria-label="Cerrar Códice Megalítico">✕</button>
+    <div class="megalith-emblem" aria-hidden="true">🗿</div>
+    <h2>Los Megalitos Rúnicos & El Gran Leviatán</h2>
+    <p class="megalith-quote" id="megalithQuote">«Antes de que las criaturas pisaran el polvo, los ancestros tallaron las runas de la tierra. Cuando resuenan al unísono, el Leviatán de las estrellas desciende a bendecir el valle.»</p>
+
+    <div class="megalith-vital-card">
+      <div class="megalith-vital-stat">
+        <span class="megalith-stat-label">Megalitos Activos</span>
+        <span class="megalith-stat-val" id="megalithCount">0</span>
+      </div>
+      <div class="megalith-vital-stat">
+        <span class="megalith-stat-label">Líneas Ley Vivas</span>
+        <span class="megalith-stat-val" id="leyLineCount">0</span>
+      </div>
+      <div class="megalith-vital-stat">
+        <span class="megalith-stat-label">Santuarios Rúnicos</span>
+        <span class="megalith-stat-val" id="sanctuaryCount">0</span>
+      </div>
+      <div class="megalith-vital-stat">
+        <span class="megalith-stat-label">Leviatán Astral</span>
+        <span class="megalith-stat-val" id="leviathanStatus">En Vuelo</span>
+      </div>
+    </div>
+
+    <div class="megalith-canvas-container">
+      <canvas id="megalithCanvas" width="280" height="190"></canvas>
+      <div class="megalith-legend" id="megalithLegend">
+        Geometría Sagrada de Resonancia Rúnica & Posición del Leviatán
+      </div>
+    </div>
+
+    <div class="megalith-actions">
+      <button class="primary megalith-align-btn" id="btnConjunction">🌌 Despertar Conjunción de Líneas Ley</button>
+      <button class="megalith-summon-btn" id="btnSummonLeviathan">🐉 Invocar / Centrar en el Leviatán</button>
     </div>
   </div>
 </div>
