@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecos de Cristal</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #05050a;
+    overflow: hidden;
+    font-family: system-ui, sans-serif;
+  }
+  canvas { display: block; touch-action: none; }
+  a.back {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    color: #cfd6ff;
+    text-decoration: none;
+    font-size: 0.85rem;
+    opacity: 0.6;
+    z-index: 10;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    background: rgba(0,0,0,0.3);
+  }
+  a.back:hover { opacity: 1; }
+  .hint {
+    position: fixed;
+    bottom: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #9fa6d0;
+    font-size: 0.85rem;
+    opacity: 0.55;
+    z-index: 10;
+    text-align: center;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <a class="back" href="../../">← Hub</a>
+  <canvas id="c"></canvas>
+  <div class="hint">Toca o arrastra sobre el cristal para hacerlo sonar</div>
+
+  <script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  function resize() {
+    W = canvas.width = innerWidth * devicePixelRatio;
+    H = canvas.height = innerHeight * devicePixelRatio;
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+  }
+  resize();
+  addEventListener('resize', resize);
+
+  // Pentatonic scale across octaves for pleasant harmony
+  const baseFreqs = [261.63, 293.66, 329.63, 392.00, 440.00];
+  const freqs = [];
+  for (let oct = -1; oct <= 1; oct++) {
+    baseFreqs.forEach(f => freqs.push(f * Math.pow(2, oct)));
+  }
+
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playChime(freq, x, y) {
+    const ac = ensureAudio();
+    const now = ac.currentTime;
+
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    const osc2 = ac.createOscillator();
+    osc2.type = 'sine';
+    osc2.frequency.value = freq * 2.01; // slightly detuned overtone for shimmer
+
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.28, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+
+    const gain2 = ac.createGain();
+    gain2.gain.setValueAtTime(0, now);
+    gain2.gain.linearRampToValueAtTime(0.08, now + 0.01);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+
+    osc.connect(gain).connect(ac.destination);
+    osc2.connect(gain2).connect(ac.destination);
+
+    osc.start(now); osc.stop(now + 3.3);
+    osc2.start(now); osc2.stop(now + 2.3);
+
+    ripples.push({ x, y, r: 0, maxR: 60 + Math.random()*40, alpha: 1, hue: hueForFreq(freq), born: performance.now() });
+  }
+
+  function hueForFreq(f) {
+    const t = Math.log2(f / 130.81) / 4; // normalize across range
+    return 180 + t * 140; // cyan through violet
+  }
+
+  const ripples = [];
+  let lastPlay = 0;
+
+  function triggerAt(clientX, clientY) {
+    const nowT = performance.now();
+    if (nowT - lastPlay < 55) return; // gentle throttle for drag gestures
+    lastPlay = nowT;
+    const nx = clientX / innerWidth;
+    const idx = Math.min(freqs.length - 1, Math.floor(nx * freqs.length));
+    const freq = freqs[idx] * (0.98 + Math.random() * 0.04);
+    playChime(freq, clientX * devicePixelRatio, clientY * devicePixelRatio);
+  }
+
+  canvas.addEventListener('pointerdown', e => triggerAt(e.clientX, e.clientY));
+  canvas.addEventListener('pointermove', e => {
+    if (e.buttons > 0) triggerAt(e.clientX, e.clientY);
+  });
+
+  function draw() {
+    ctx.fillStyle = 'rgba(5,5,10,0.16)';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      const age = (performance.now() - r.born) / 1000;
+      r.r = age * 260 * devicePixelRatio;
+      r.alpha = Math.max(0, 1 - age / 2.6);
+      if (r.alpha <= 0) { ripples.splice(i, 1); continue; }
+
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${r.hue}, 90%, 70%, ${r.alpha * 0.7})`;
+      ctx.lineWidth = 2 * devicePixelRatio;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.r * 0.55, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${r.hue}, 100%, 85%, ${r.alpha * 0.4})`;
+      ctx.lineWidth = 1 * devicePixelRatio;
+      ctx.stroke();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+  </script>
+</body>
+</html>
