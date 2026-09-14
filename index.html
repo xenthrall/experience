@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experience — Laboratorio de experiencias</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0a12;
+    --bg2: #12121f;
+    --text: #eae8f4;
+    --muted: #9d99b3;
+    --accent: #8ee3ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at top, var(--bg2), var(--bg) 70%);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    padding: 4vw 5vw 6vw;
+  }
+  header {
+    max-width: 900px;
+    margin: 0 auto 3rem;
+    text-align: center;
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.02em;
+    background: linear-gradient(120deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  a.card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 1.6rem;
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  a.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 0%, var(--card-accent, var(--accent)) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  a.card:hover {
+    transform: translateY(-4px);
+    border-color: var(--card-accent, var(--accent));
+    background: rgba(255,255,255,0.05);
+  }
+  a.card:hover::before { opacity: 0.12; }
+  a.card h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.3rem;
+    position: relative;
+  }
+  a.card p {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.4;
+    position: relative;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    position: relative;
+  }
+  .tag {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.07);
+    color: var(--muted);
+  }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    grid-column: 1 / -1;
+    padding: 3rem 1rem;
+  }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    margin-top: 4rem;
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Experience</h1>
+    <p>Un laboratorio de experiencias web independientes: arte generativo, juegos, instrumentos musicales, simulaciones, poesía visual, narrativas interactivas. Cada tarjeta es un mundo propio.</p>
+  </header>
+  <main class="grid" id="grid">
+    <p class="empty">Cargando experiencias…</p>
+  </main>
+  <footer>hecho iteración a iteración</footer>
+
+  <script>
+    fetch('experiences/catalog.json')
+      .then(r => r.json())
+      .then(items => {
+        const grid = document.getElementById('grid');
+        if (!items.length) {
+          grid.innerHTML = '<p class="empty">Aún no hay experiencias publicadas.</p>';
+          return;
+        }
+        grid.innerHTML = items.map(item => `
+          <a class="card" href="experiences/${item.slug}/" style="--card-accent:${item.accent || '#8ee3ff'}">
+            <h2>${item.title}</h2>
+            <p>${item.description}</p>
+            <div class="tags">${(item.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+          </a>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('grid').innerHTML = '<p class="empty">No se pudo cargar el catálogo.</p>';
+      });
+  </script>
+</body>
+</html>
