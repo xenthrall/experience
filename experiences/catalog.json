@@ -6,5 +6,13 @@
     "date": "2026-09-14",
     "tags": ["sonoro", "generativo", "interactivo"],
     "accent": "#8ee3ff"
+  },
+  {
+    "slug": "ultima-luz",
+    "title": "Última Luz",
+    "description": "Un puzzle de luces: cada toque invierte una celda y sus vecinas. Apágalas todas para resolver el tablero, que crece nivel tras nivel.",
+    "date": "2026-09-14",
+    "tags": ["puzzle", "juego", "minimalista"],
+    "accent": "#ffb347"
   }
 ]

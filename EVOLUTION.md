@@ -15,4 +15,17 @@ Categoría explorada: sonora/generativa/interactiva — variando respecto al sim
 ### Direcciones abiertas
 - El hub podría beneficiarse de una miniatura animada por tarjeta (por ahora solo texto + acento de color).
 - Ecos de Cristal podría ganar un modo de "grabar y repetir" la secuencia tocada, o acordes al mantener varios dedos/clicks.
-- Quedan libres las categorías: narrativa interactiva, juego con reglas claras, poesía visual generativa, simulación física.
+- Quedan libres las categorías: narrativa interactiva, poesía visual generativa, simulación física.
+
+## 2026-09-14 — Segunda experiencia: Última Luz (puzzle)
+
+Siguiendo la sugerencia de `NEXT.md`, se exploró la categoría de **juego con reglas claras y estado ganar/perder**, ausente hasta ahora en el hub (las piezas previas eran sonoras/generativas sin objetivo).
+
+- **`experiences/ultima-luz/`**: variante de "Lights Out". Un tablero de celdas empieza scrambleado desde el estado resuelto (garantizando siempre solubilidad); tocar una celda invierte su luz y la de sus vecinas ortogonales. El objetivo es apagar todas las luces. Al resolverlo aparece un overlay con el conteo de movimientos y un botón para pasar al siguiente nivel, que crece el tablero (3×3 hasta 6×6) y aumenta el scramble. HTML/CSS/JS puro, un solo archivo, sin dependencias.
+
+Categoría explorada: puzzle/juego con reglas claras — primera pieza del hub con condición de victoria explícita.
+
+### Direcciones abiertas
+- El hub sigue sin miniaturas animadas por tarjeta.
+- Última Luz podría ganar un contador de "mejor puntaje" persistido en localStorage, o un modo diario con semilla fija.
+- Quedan libres: narrativa interactiva, poesía visual generativa, simulación física.

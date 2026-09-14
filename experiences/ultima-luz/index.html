@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Última Luz</title>
+<style>
+  :root {
+    --bg: #05070d;
+    --off: #12161f;
+    --on: #ffd27a;
+    --on-glow: #ffb347;
+    --accent: #8ee3ff;
+    --text: #e8ecf5;
+    --dim: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: radial-gradient(circle at 50% 20%, #0c1120 0%, #05070d 70%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    padding: 24px;
+    width: 100%;
+    max-width: 520px;
+  }
+  a.back {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    transition: color 0.2s;
+  }
+  a.back:hover { color: var(--accent); }
+  h1 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+    background: linear-gradient(90deg, var(--on), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  p.sub {
+    margin: -14px 0 0;
+    color: var(--dim);
+    font-size: 0.85rem;
+    text-align: center;
+    max-width: 340px;
+    line-height: 1.5;
+  }
+  .hud {
+    display: flex;
+    gap: 24px;
+    font-size: 0.85rem;
+    color: var(--dim);
+  }
+  .hud span { color: var(--text); font-variant-numeric: tabular-nums; }
+  #grid {
+    display: grid;
+    gap: 10px;
+    touch-action: manipulation;
+  }
+  .cell {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    border: 1px solid #1e2433;
+    background: var(--off);
+    cursor: pointer;
+    transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.12s ease;
+  }
+  .cell:active { transform: scale(0.92); }
+  .cell.on {
+    background: var(--on);
+    box-shadow: 0 0 18px 2px var(--on-glow), 0 0 40px 6px rgba(255, 179, 71, 0.25);
+  }
+  .actions {
+    display: flex;
+    gap: 12px;
+  }
+  button {
+    background: transparent;
+    border: 1px solid #2a3245;
+    color: var(--text);
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  button:hover { border-color: var(--accent); background: rgba(142, 227, 255, 0.06); }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 13, 0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  #overlay.show { opacity: 1; pointer-events: all; }
+  #overlay h2 {
+    font-size: 1.8rem;
+    margin: 0;
+    color: var(--on);
+  }
+  #overlay p { color: var(--dim); margin: 0; }
+</style>
+</head>
+<body>
+  <a class="back" href="../../index.html">&larr; hub</a>
+  <div class="wrap">
+    <h1>Última Luz</h1>
+    <p class="sub">Cada celda que tocas invierte su luz y la de sus vecinas. Apágalas todas para resolver el tablero.</p>
+    <div class="hud">
+      <div>Nivel <span id="level">1</span></div>
+      <div>Movimientos <span id="moves">0</span></div>
+    </div>
+    <div id="grid"></div>
+    <div class="actions">
+      <button id="reset">Reiniciar</button>
+      <button id="scramble">Nuevo tablero</button>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <h2>Resuelto</h2>
+    <p id="overlay-stats"></p>
+    <button id="next">Siguiente nivel</button>
+  </div>
+
+<script>
+  const gridEl = document.getElementById('grid');
+  const levelEl = document.getElementById('level');
+  const movesEl = document.getElementById('moves');
+  const overlay = document.getElementById('overlay');
+  const overlayStats = document.getElementById('overlay-stats');
+
+  let size = 3;
+  let level = 1;
+  let moves = 0;
+  let board = [];
+  let cells = [];
+
+  function idx(r, c) { return r * size + c; }
+
+  function neighbors(r, c) {
+    const list = [[r, c]];
+    if (r > 0) list.push([r - 1, c]);
+    if (r < size - 1) list.push([r + 1, c]);
+    if (c > 0) list.push([r, c - 1]);
+    if (c < size - 1) list.push([r, c + 1]);
+    return list;
+  }
+
+  function toggleAt(r, c, record) {
+    neighbors(r, c).forEach(([nr, nc]) => {
+      board[idx(nr, nc)] ^= 1;
+    });
+    if (record) {
+      moves++;
+      movesEl.textContent = moves;
+    }
+  }
+
+  function isSolved() {
+    return board.every(v => v === 0);
+  }
+
+  function render() {
+    gridEl.style.gridTemplateColumns = `repeat(${size}, 56px)`;
+    gridEl.innerHTML = '';
+    cells = [];
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.addEventListener('click', () => onCellClick(r, c));
+        gridEl.appendChild(cell);
+        cells.push(cell);
+      }
+    }
+    paint();
+  }
+
+  function paint() {
+    for (let i = 0; i < board.length; i++) {
+      cells[i].classList.toggle('on', board[i] === 1);
+    }
+  }
+
+  function onCellClick(r, c) {
+    if (overlay.classList.contains('show')) return;
+    toggleAt(r, c, true);
+    paint();
+    if (isSolved()) {
+      setTimeout(showWin, 260);
+    }
+  }
+
+  function showWin() {
+    overlayStats.textContent = `Nivel ${level} resuelto en ${moves} movimientos.`;
+    overlay.classList.add('show');
+  }
+
+  function newBoard(newSize) {
+    size = newSize;
+    board = new Array(size * size).fill(0);
+    moves = 0;
+    movesEl.textContent = 0;
+    // Scramble by applying random valid toggles from the solved state,
+    // guaranteeing the resulting board is always solvable.
+    const scrambleSteps = size * size + level * 2;
+    for (let i = 0; i < scrambleSteps; i++) {
+      const r = Math.floor(Math.random() * size);
+      const c = Math.floor(Math.random() * size);
+      toggleAt(r, c, false);
+    }
+    if (isSolved()) toggleAt(0, 0, false); // avoid a pre-solved board
+    render();
+  }
+
+  document.getElementById('reset').addEventListener('click', () => newBoard(size));
+  document.getElementById('scramble').addEventListener('click', () => newBoard(size));
+  document.getElementById('next').addEventListener('click', () => {
+    overlay.classList.remove('show');
+    level++;
+    levelEl.textContent = level;
+    const nextSize = Math.min(3 + Math.floor(level / 2), 6);
+    newBoard(nextSize);
+  });
+
+  newBoard(size);
+</script>
+</body>
+</html>
