@@ -22,5 +22,13 @@
     "date": "2026-09-16",
     "tags": ["narrativa", "teclado", "terminal"],
     "accent": "#7fffa0"
+  },
+  {
+    "slug": "pozos-de-gravedad",
+    "title": "Pozos de Gravedad",
+    "description": "Simulación de partículas: toca la pantalla para crear pozos de gravedad que atraen y desvían un campo de motas de luz en órbita constante.",
+    "date": "2026-09-16",
+    "tags": ["física", "generativo", "canvas"],
+    "accent": "#c792ff"
   }
 ]

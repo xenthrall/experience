@@ -42,3 +42,16 @@ Categoría explorada: narrativa/texto interactivo con teclado — estética de t
 - El hub sigue sin miniaturas animadas por tarjeta.
 - Última Transmisión podría registrar qué finales ya se vieron (localStorage) para animar a explorar los que faltan.
 - Quedan libres: poesía visual generativa, simulación física simple (partículas/gravedad).
+
+## 2026-09-16 — Cuarta experiencia: Pozos de Gravedad (simulación física)
+
+Cubre la dirección de **simulación física simple** que quedaba pendiente desde el reinicio del hub.
+
+- **`experiences/pozos-de-gravedad/`**: un campo continuo de ~260 partículas flota a la deriva sobre un lienzo oscuro con estelas por desvanecimiento de alfa. Al tocar o hacer clic se crea un pozo de gravedad transitorio que atrae las partículas cercanas con una fuerza inversamente proporcional a la distancia; mantener presionado aumenta su intensidad. Los pozos decaen con el tiempo, las partículas rebotan en los bordes y su brillo/color reacciona a su velocidad. Canvas 2D puro, sin dependencias, con soporte táctil y de mouse.
+
+Categoría explorada: simulación física/generativa con interacción directa por toque — primera pieza del hub con física continua (fuerzas, decaimiento, colisión con bordes) en vez de estados discretos.
+
+### Direcciones abiertas
+- El hub sigue sin miniaturas animadas por tarjeta (ya son 4 experiencias — buen candidato para una próxima iteración dedicada solo a eso).
+- Pozos de Gravedad podría ganar distintos "modos" de partícula (atracción/repulsión alternada) si se quiere expandir, pero no es prioritario.
+- Queda libre: poesía visual generativa con tipografía animada.
