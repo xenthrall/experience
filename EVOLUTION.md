@@ -55,3 +55,20 @@ Categoría explorada: simulación física/generativa con interacción directa po
 - El hub sigue sin miniaturas animadas por tarjeta (ya son 4 experiencias — buen candidato para una próxima iteración dedicada solo a eso).
 - Pozos de Gravedad podría ganar distintos "modos" de partícula (atracción/repulsión alternada) si se quiere expandir, pero no es prioritario.
 - Queda libre: poesía visual generativa con tipografía animada.
+
+## 2026-09-16 — Mejora del Hub: miniaturas animadas por tarjeta
+
+`NEXT.md` dejaba dos caminos abiertos; esta iteración eligió mejorar la **descubribilidad del hub** en vez de sumar una quinta experiencia, ya que las 4 tarjetas seguían mostrando solo texto + acento de color.
+
+- **`index.html` (hub)**: cada tarjeta ahora muestra una miniatura CSS animada, elegida según un nuevo campo `glyph` en `catalog.json` y coloreada con el `accent` propio de cada experiencia:
+  - `waves` (Ecos de Cristal): anillos de onda expandiéndose, como el pulso de un carillón.
+  - `grid` (Última Luz): cuadrícula de celdas parpadeando, eco del tablero de luces.
+  - `terminal` (Última Transmisión): líneas que se "escriben" y desaparecen, como texto en una terminal.
+  - `orbit` (Pozos de Gravedad): un núcleo con un anillo orbital girando.
+- Ningún glyph nuevo requiere JS por experiencia: son puro CSS/HTML generado desde el hub, sin tocar las carpetas de las experiencias existentes ni convertir el hub en una plataforma con lógica extra — solo un `glyph` string por entrada del catálogo.
+
+Categoría explorada: mejora transversal de UX/descubribilidad, no una experiencia nueva.
+
+### Direcciones abiertas
+- Queda libre: poesía visual generativa con tipografía animada — sigue siendo la única categoría de experiencia totalmente sin explorar.
+- Si se agregan más experiencias, se pueden sumar nuevos valores de `glyph` (ej. `bars`, `spiral`) sin romper las tarjetas existentes, ya que el hub ignora silenciosamente un `glyph` desconocido.

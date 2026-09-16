@@ -5,7 +5,8 @@
     "description": "Un instrumento visual: cada toque libera un carillón de cristal que dibuja ondas de luz y deja resonando su eco.",
     "date": "2026-09-14",
     "tags": ["sonoro", "generativo", "interactivo"],
-    "accent": "#8ee3ff"
+    "accent": "#8ee3ff",
+    "glyph": "waves"
   },
   {
     "slug": "ultima-luz",
@@ -13,7 +14,8 @@
     "description": "Un puzzle de luces: cada toque invierte una celda y sus vecinas. Apágalas todas para resolver el tablero, que crece nivel tras nivel.",
     "date": "2026-09-14",
     "tags": ["puzzle", "juego", "minimalista"],
-    "accent": "#ffb347"
+    "accent": "#ffb347",
+    "glyph": "grid"
   },
   {
     "slug": "ultima-transmision",
@@ -21,7 +23,8 @@
     "description": "Ficción interactiva en terminal: una estación abandonada te habla. Elige tus respuestas con el teclado y descubre uno de cinco finales.",
     "date": "2026-09-16",
     "tags": ["narrativa", "teclado", "terminal"],
-    "accent": "#7fffa0"
+    "accent": "#7fffa0",
+    "glyph": "terminal"
   },
   {
     "slug": "pozos-de-gravedad",
@@ -29,6 +32,7 @@
     "description": "Simulación de partículas: toca la pantalla para crear pozos de gravedad que atraen y desvían un campo de motas de luz en órbita constante.",
     "date": "2026-09-16",
     "tags": ["física", "generativo", "canvas"],
-    "accent": "#c792ff"
+    "accent": "#c792ff",
+    "glyph": "orbit"
   }
 ]
