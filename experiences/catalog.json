@@ -14,5 +14,13 @@
     "date": "2026-09-14",
     "tags": ["puzzle", "juego", "minimalista"],
     "accent": "#ffb347"
+  },
+  {
+    "slug": "ultima-transmision",
+    "title": "Última Transmisión",
+    "description": "Ficción interactiva en terminal: una estación abandonada te habla. Elige tus respuestas con el teclado y descubre uno de cinco finales.",
+    "date": "2026-09-16",
+    "tags": ["narrativa", "teclado", "terminal"],
+    "accent": "#7fffa0"
   }
 ]

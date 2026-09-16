@@ -29,3 +29,16 @@ Categoría explorada: puzzle/juego con reglas claras — primera pieza del hub c
 - El hub sigue sin miniaturas animadas por tarjeta.
 - Última Luz podría ganar un contador de "mejor puntaje" persistido en localStorage, o un modo diario con semilla fija.
 - Quedan libres: narrativa interactiva, poesía visual generativa, simulación física.
+
+## 2026-09-16 — Tercera experiencia: Última Transmisión (ficción interactiva)
+
+Cubre dos direcciones sugeridas a la vez: **narrativa interactiva** e **interacción por teclado** (las dos piezas previas eran táctiles/mouse).
+
+- **`experiences/ultima-transmision/`**: ficción interactiva ambientada en una estación espacial abandonada que empieza a transmitir un mensaje. El texto se revela con efecto de máquina de escribir sobre una estética de terminal fósforo verde (scanlines, viñeta, resplandor de texto). Las elecciones se muestran numeradas y se seleccionan con las teclas 1-2 o con clic/touch. Grafo de nodos ramificado con 5 finales distintos según las decisiones tomadas. HTML/CSS/JS puro, un solo archivo, sin dependencias ni assets externos.
+
+Categoría explorada: narrativa/texto interactivo con teclado — estética de terminal, contraste deliberado frente al brillo neón de las dos piezas anteriores.
+
+### Direcciones abiertas
+- El hub sigue sin miniaturas animadas por tarjeta.
+- Última Transmisión podría registrar qué finales ya se vieron (localStorage) para animar a explorar los que faltan.
+- Quedan libres: poesía visual generativa, simulación física simple (partículas/gravedad).

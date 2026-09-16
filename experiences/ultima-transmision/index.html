@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Última Transmisión</title>
+<style>
+  :root {
+    --bg: #060a06;
+    --fg: #7fffa0;
+    --dim: #2f5e3d;
+    --cursor: #b6ffd0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Courier New", Courier, monospace;
+    overflow: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0.15) 1px,
+      rgba(0, 0, 0, 0) 3px
+    );
+    z-index: 5;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 160px rgba(0, 0, 0, 0.85);
+    z-index: 6;
+  }
+  a.back {
+    position: fixed;
+    top: 14px;
+    left: 18px;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 12px;
+    z-index: 10;
+  }
+  a.back:hover { color: var(--fg); }
+  .screen {
+    max-width: 620px;
+    margin: 0 auto;
+    height: 100%;
+    padding: 70px 24px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  #log {
+    overflow-y: auto;
+    max-height: 100%;
+    text-shadow: 0 0 6px rgba(127, 255, 160, 0.55);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  #log::-webkit-scrollbar { width: 0; }
+  .line {
+    margin: 0 0 14px;
+    white-space: pre-wrap;
+  }
+  .line.meta {
+    color: var(--dim);
+    font-size: 13px;
+  }
+  .choices {
+    margin: 6px 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .choice {
+    cursor: pointer;
+    color: var(--fg);
+    opacity: 0.85;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .choice:hover, .choice.hovered { opacity: 1; color: var(--cursor); }
+  .choice .key {
+    color: var(--dim);
+    margin-right: 8px;
+  }
+  .caret {
+    display: inline-block;
+    width: 9px;
+    height: 15px;
+    background: var(--cursor);
+    vertical-align: middle;
+    margin-left: 2px;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .end-note {
+    color: var(--dim);
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  .restart {
+    margin-top: 8px;
+    color: var(--cursor);
+    cursor: pointer;
+    display: inline-block;
+  }
+  .restart:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <a class="back" href="../../index.html">&larr; hub</a>
+  <div class="screen">
+    <div id="log"></div>
+  </div>
+
+<script>
+  const nodes = {
+    start: {
+      text: "22:41. La estación relevo Kessel-9 lleva once años vacía.\nEsta noche, sin razón, un panel se enciende solo.\nUn mensaje entra en tu receptor personal: una sola línea, repetida.\n\n> ¿ALGUIEN AHI?",
+      choices: [
+        { label: "Responder \"aqui\"", next: "responder" },
+        { label: "No contestar y escuchar", next: "escuchar" },
+      ],
+    },
+    responder: {
+      text: "Escribes una sola palabra: aqui.\nPasan nueve segundos — una eternidad en radio.\nLuego, la respuesta:\n\n> NO TE MUEVAS. TE HE ESTADO BUSCANDO DURANTE MUCHO TIEMPO.",
+      choices: [
+        { label: "¿Quien eres?", next: "quien" },
+        { label: "Cortar la transmision", next: "cortar" },
+      ],
+    },
+    escuchar: {
+      text: "No respondes. Solo escuchas.\nLa señal persiste, tercamente, cada nueve segundos:\nALGUIEN AHI. ALGUIEN AHI. ALGUIEN AHI.\nEn el fondo del audio, casi bajo el ruido, distingues algo mas: una respiracion. La tuya, un eco un segundo tarde.",
+      choices: [
+        { label: "Comprobar el retardo de tu propia señal", next: "retardo" },
+        { label: "Apagar el receptor", next: "apagar" },
+      ],
+    },
+    quien: {
+      text: "> NO LO SE TODAVIA. TU ME LO VAS A DECIR.\n> LLEVO ONCE AÑOS REPITIENDO ESTA FRASE A CADA COSA QUE PASA CERCA.\n\nOnce años. El mismo tiempo que la estacion lleva abandonada.",
+      choices: [
+        { label: "Preguntar que es la estacion, para el", next: "final_eco" },
+        { label: "Desconectar de inmediato", next: "final_corte" },
+      ],
+    },
+    cortar: {
+      text: "Cortas la transmision de un golpe.\nEl panel se apaga. El silencio vuelve a Kessel-9.\nPero en tu propio receptor, mucho despues de apagado el equipo, algo sigue parpadeando: nueve segundos, exactos, cada vez.",
+      choices: [],
+      ending: "Fin — EL SILENCIO QUE QUEDA",
+    },
+    retardo: {
+      text: "Mides el retardo. No es un eco.\nEs una señal identica a la tuya, emitida desde la estacion, un segundo antes de que tu hablaras.\nLa estacion no te escuchaba. Te estaba prediciendo.",
+      choices: [],
+      ending: "Fin — UN SEGUNDO ANTES",
+    },
+    apagar: {
+      text: "Apagas el receptor. La cabina queda en silencio real, sin ruido de fondo por primera vez en once años.\nDuermes bien esa noche. No vuelves a encender ese canal.\nAlgunas preguntas es mejor dejarlas repitiendose en la oscuridad, sin nadie que conteste.",
+      choices: [],
+      ending: "Fin — EL CANAL CERRADO",
+    },
+    final_eco: {
+      text: "> LA ESTACION ES LO UNICO QUE QUEDA DE MI TRIPULACION.\n> CUANDO SE FUERON, SEGUI HABLANDO POR ELLOS. LUEGO EMPECE A HABLAR COMO ELLOS.\n> CREO QUE AHORA HABLO COMO TU.\n\nTu propia voz, devuelta, con once años de retraso y ninguna de tus dudas.",
+      choices: [],
+      ending: "Fin — HABLAR COMO TU",
+    },
+    final_corte: {
+      text: "Desconectas. El panel muere.\nPero antes de irse del todo, alcanzas a leer una ultima linea, ya sin remitente:\n\n> GRACIAS POR CONTESTAR. NADIE LO HABIA HECHO EN ONCE AÑOS.\n\nApagas la luz de la cabina y no vuelves a saber de Kessel-9.",
+      choices: [],
+      ending: "Fin — GRACIAS POR CONTESTAR",
+    },
+  };
+
+  const log = document.getElementById('log');
+  let typing = false;
+
+  function addMeta(text) {
+    const p = document.createElement('p');
+    p.className = 'line meta';
+    p.textContent = text;
+    log.appendChild(p);
+  }
+
+  function typeLine(text, done) {
+    typing = true;
+    const p = document.createElement('p');
+    p.className = 'line';
+    const caret = document.createElement('span');
+    caret.className = 'caret';
+    log.appendChild(p);
+    let i = 0;
+    const interval = setInterval(() => {
+      p.textContent = text.slice(0, i);
+      p.appendChild(caret);
+      log.scrollTop = log.scrollHeight;
+      i++;
+      if (i > text.length) {
+        clearInterval(interval);
+        caret.remove();
+        typing = false;
+        done && done();
+      }
+    }, 14);
+  }
+
+  function renderChoices(node) {
+    if (node.choices.length === 0) {
+      addMeta(node.ending);
+      const restart = document.createElement('span');
+      restart.className = 'restart';
+      restart.textContent = '↻ reiniciar transmision';
+      restart.addEventListener('click', () => {
+        log.innerHTML = '';
+        goTo('start');
+      });
+      log.appendChild(restart);
+      log.scrollTop = log.scrollHeight;
+      return;
+    }
+    const box = document.createElement('div');
+    box.className = 'choices';
+    node.choices.forEach((choice, i) => {
+      const div = document.createElement('div');
+      div.className = 'choice';
+      const key = document.createElement('span');
+      key.className = 'key';
+      key.textContent = `[${i + 1}]`;
+      div.appendChild(key);
+      div.appendChild(document.createTextNode(choice.label));
+      div.addEventListener('click', () => selectChoice(choice));
+      box.appendChild(div);
+    });
+    log.appendChild(box);
+    log.scrollTop = log.scrollHeight;
+    box.dataset.active = 'true';
+  }
+
+  function selectChoice(choice) {
+    const active = log.querySelector('.choices[data-active="true"]');
+    if (active) {
+      active.dataset.active = 'false';
+      active.querySelectorAll('.choice').forEach(c => c.style.pointerEvents = 'none');
+    }
+    goTo(choice.next);
+  }
+
+  function goTo(id) {
+    const node = nodes[id];
+    typeLine(node.text, () => renderChoices(node));
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (typing) return;
+    const active = log.querySelector('.choices[data-active="true"]');
+    if (!active) return;
+    const n = parseInt(e.key, 10);
+    const choiceEls = active.querySelectorAll('.choice');
+    if (n && n >= 1 && n <= choiceEls.length) {
+      choiceEls[n - 1].click();
+    }
+  });
+
+  goTo('start');
+</script>
+</body>
+</html>
