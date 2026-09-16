@@ -34,5 +34,14 @@
     "tags": ["física", "generativo", "canvas"],
     "accent": "#c792ff",
     "glyph": "orbit"
+  },
+  {
+    "slug": "polvo-de-versos",
+    "title": "Polvo de Versos",
+    "description": "Poesía visual generativa: versos improvisados se posan sobre el papel palabra a palabra y responden al cursor como polvo suspendido.",
+    "date": "2026-09-16",
+    "tags": ["poesía", "generativo", "tipografía"],
+    "accent": "#a8412f",
+    "glyph": "verse"
   }
 ]

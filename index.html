@@ -195,6 +195,29 @@
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+  .thumb--verse {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 14px;
+  }
+  .thumb--verse span {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--card-accent, var(--accent));
+    opacity: 0;
+    animation: settle 4.5s ease-in-out infinite;
+  }
+  .thumb--verse span:nth-child(1) { width: 78%; animation-delay: 0s; }
+  .thumb--verse span:nth-child(2) { width: 55%; animation-delay: 0.5s; margin-left: 12%; }
+  .thumb--verse span:nth-child(3) { width: 66%; animation-delay: 1s; }
+  @keyframes settle {
+    0% { opacity: 0; transform: translateY(6px); }
+    15%, 70% { opacity: 0.55; transform: translateY(0); }
+    90%, 100% { opacity: 0; transform: translateY(-4px); }
+  }
   a.card h2 {
     margin: 0 0 0.5rem;
     font-size: 1.3rem;
@@ -258,6 +281,7 @@
           grid: `<div class="thumb thumb--grid">${'<i></i>'.repeat(18)}</div>`,
           terminal: '<div class="thumb thumb--terminal"><div class="row"></div><div class="row"></div><div class="row"></div></div>',
           orbit: '<div class="thumb thumb--orbit"><div class="system"><div class="ring"></div><div class="core"></div></div></div>',
+          verse: '<div class="thumb thumb--verse"><span></span><span></span><span></span></div>',
         };
         grid.innerHTML = items.map(item => `
           <a class="card" href="experiences/${item.slug}/" style="--card-accent:${item.accent || '#8ee3ff'}">

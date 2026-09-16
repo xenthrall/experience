@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polvo de Versos</title>
+<style>
+  :root {
+    --paper: #f3ede1;
+    --paper2: #ece3d2;
+    --ink: #2b2620;
+    --ink-soft: #6b6152;
+    --accent: #a8412f;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: radial-gradient(ellipse at 50% 30%, var(--paper2), var(--paper) 75%);
+    color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif;
+    overflow: hidden;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(rgba(43,38,32,0.035) 1px, transparent 1px);
+    background-size: 3px 3px;
+    mix-blend-mode: multiply;
+  }
+  a.back {
+    position: fixed;
+    top: 16px;
+    left: 18px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 12px;
+    font-family: -apple-system, sans-serif;
+    z-index: 10;
+  }
+  a.back:hover { color: var(--accent); }
+  #hint {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-family: -apple-system, sans-serif;
+    letter-spacing: 0.03em;
+    z-index: 10;
+    text-align: center;
+  }
+  main {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8vw;
+  }
+  #poem {
+    max-width: 720px;
+    text-align: center;
+  }
+  .line {
+    display: block;
+    margin: 0 0 0.35em;
+    font-size: clamp(1.4rem, 4.2vw, 2.6rem);
+    line-height: 1.35;
+    font-style: italic;
+  }
+  .word {
+    display: inline-block;
+    margin: 0 0.14em;
+    opacity: 0;
+    transform: translateY(14px) rotate(1deg);
+    animation: rise 0.9s cubic-bezier(.2,.7,.25,1) forwards;
+    will-change: transform, opacity;
+  }
+  .word .drift {
+    display: inline-block;
+    transition: transform 0.25s ease;
+  }
+  .word.accent { color: var(--accent); }
+  @keyframes rise {
+    to { opacity: 1; transform: translateY(0) rotate(0deg); }
+  }
+  #poem.fading .word {
+    transition: opacity 0.7s ease, transform 0.7s ease, filter 0.7s ease;
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-10px) scale(0.96);
+  }
+</style>
+</head>
+<body>
+  <a class="back" href="../../index.html">&larr; hub</a>
+  <main>
+    <div id="poem"></div>
+  </main>
+  <div id="hint">toca en cualquier lugar para un nuevo verso &middot; mueve el cursor</div>
+
+<script>
+  const banks = {
+    subject: ["la luna", "el silencio", "tu nombre", "la marea", "el humo", "un pájaro", "la ceniza", "el invierno", "tu voz", "la niebla"],
+    verb: ["deshace", "reescribe", "olvida", "sostiene", "atraviesa", "inventa", "despierta", "disuelve", "recuerda", "habita"],
+    object: ["los mapas del insomnio", "una habitación sin puertas", "el peso de las horas", "lo que el mar dejó afuera", "el idioma de las piedras", "un jardín que no existe", "cada nombre que perdimos", "la sombra de otra casa"],
+    tail: ["y no vuelve.", "sin pedir permiso.", "como si fuera fácil.", "otra vez, despacio.", "hasta quedarse quieta.", "y algo en mí lo sabe."],
+  };
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function makeLine() {
+    return `${cap(pick(banks.subject))} ${pick(banks.verb)} ${pick(banks.object)} ${pick(banks.tail)}`;
+  }
+
+  const poemEl = document.getElementById('poem');
+  let words = [];
+
+  function render() {
+    const lineCount = 2 + Math.floor(Math.random() * 2);
+    const lines = Array.from({ length: lineCount }, makeLine);
+    poemEl.classList.remove('fading');
+    poemEl.innerHTML = '';
+    words = [];
+    let delay = 0;
+    lines.forEach(lineText => {
+      const lineEl = document.createElement('span');
+      lineEl.className = 'line';
+      lineText.split(' ').forEach((w, i) => {
+        const span = document.createElement('span');
+        span.className = 'word';
+        if (Math.random() < 0.16) span.classList.add('accent');
+        span.style.animationDelay = `${delay}s`;
+        delay += 0.045 + Math.random() * 0.03;
+        const drift = document.createElement('span');
+        drift.className = 'drift';
+        drift.textContent = w;
+        span.appendChild(drift);
+        lineEl.appendChild(span);
+        lineEl.appendChild(document.createTextNode(' '));
+        words.push(drift);
+      });
+      poemEl.appendChild(lineEl);
+    });
+  }
+
+  let regenerating = false;
+  function next() {
+    if (regenerating) return;
+    regenerating = true;
+    poemEl.classList.add('fading');
+    setTimeout(() => {
+      render();
+      regenerating = false;
+    }, 650);
+  }
+
+  document.addEventListener('click', next);
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') { e.preventDefault(); next(); }
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const dx = (e.clientX - cx) / cx;
+    const dy = (e.clientY - cy) / cy;
+    words.forEach((w, i) => {
+      const depth = ((i % 5) + 1) * 1.1;
+      w.style.transform = `translate(${dx * depth}px, ${dy * depth}px)`;
+    });
+  });
+
+  render();
+</script>
+</body>
+</html>

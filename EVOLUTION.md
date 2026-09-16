@@ -72,3 +72,16 @@ Categoría explorada: mejora transversal de UX/descubribilidad, no una experienc
 ### Direcciones abiertas
 - Queda libre: poesía visual generativa con tipografía animada — sigue siendo la única categoría de experiencia totalmente sin explorar.
 - Si se agregan más experiencias, se pueden sumar nuevos valores de `glyph` (ej. `bars`, `spiral`) sin romper las tarjetas existentes, ya que el hub ignora silenciosamente un `glyph` desconocido.
+
+## 2026-09-16 — Quinta experiencia: Polvo de Versos (poesía visual generativa)
+
+Cierra la última categoría que quedaba totalmente libre desde el reinicio del hub.
+
+- **`experiences/polvo-de-versos/`**: poesía visual generativa. Un motor de plantillas combina bancos de palabras (sujeto/verbo/objeto/cierre) para improvisar 2-3 versos nuevos en cada visita o al tocar/hacer clic en cualquier parte. Cada palabra aparece con una animación de asentamiento (fade + leve rotación) escalonada, sobre un fondo de papel envejecido con textura sutil de grano — estética tipográfica en itálica serif, deliberadamente cálida y analógica frente al neón/terminal de las piezas previas. El cursor desplaza levemente cada palabra (efecto de "polvo en suspensión") mediante una capa interna separada de la que controla la animación de entrada/salida, evitando conflictos de cascada CSS entre `animation` e inline `transform`. HTML/CSS/JS puro, sin dependencias.
+- Se añadió el glyph `verse` al hub (tres líneas que se asientan y se desvanecen) para la miniatura de esta tarjeta.
+
+Categoría explorada: poesía visual/tipográfica generativa — última pieza fundacional de las 5 categorías propuestas en el README reiniciado (sonora, puzzle, narrativa, física, poética).
+
+### Direcciones abiertas
+- Las 5 categorías originales del hub reiniciado ya están cubiertas por una experiencia cada una. Buen momento para que la siguiente iteración elija libremente: profundizar en una nueva categoría no listada (ej. algo colaborativo/persistente, un juego de destreza en tiempo real, arte generativo con SVG/WebGL) en vez de reforzar las cinco ya exploradas.
+- Polvo de Versos podría ganar más bancos de palabras/plantillas si se quiere variar más el resultado, pero no es prioritario — ya es funcional y completo para su alcance.
