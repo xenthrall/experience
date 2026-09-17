@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pozos de Gravedad</title>
+<style>
+  :root { --bg: #04050a; --text: #cfd6ea; --dim: #4a5170; --accent: #c792ff; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow: hidden;
+  }
+  a.back {
+    position: fixed;
+    top: 14px;
+    left: 18px;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 12px;
+    z-index: 10;
+  }
+  a.back:hover { color: var(--accent); }
+  #hint {
+    position: fixed;
+    top: 14px;
+    right: 18px;
+    color: var(--dim);
+    font-size: 12px;
+    text-align: right;
+    line-height: 1.5;
+    z-index: 10;
+    max-width: 220px;
+  }
+  #reset {
+    position: fixed;
+    bottom: 16px;
+    left: 18px;
+    z-index: 10;
+    background: transparent;
+    border: 1px solid #2a3252;
+    color: var(--text);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #reset:hover { border-color: var(--accent); color: var(--accent); }
+  canvas { display: block; touch-action: none; }
+</style>
+</head>
+<body>
+  <a class="back" href="../../index.html">&larr; hub</a>
+  <div id="hint">toca o haz clic para crear un pozo de gravedad<br>mantén presionado para uno más fuerte</div>
+  <button id="reset">limpiar</button>
+  <canvas id="c"></canvas>
+
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const wells = [];
+  const particles = [];
+  const PARTICLE_COUNT = 260;
+  const hues = [265, 280, 300, 190, 320];
+
+  function spawnParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      hue: hues[Math.floor(Math.random() * hues.length)],
+      r: 1 + Math.random() * 1.6,
+    };
+  }
+  for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(spawnParticle());
+
+  function addWell(x, y, strength) {
+    wells.push({ x, y, strength, life: 1 });
+  }
+
+  let pressTimer = null;
+  let pressStrength = 1;
+
+  function pointerPos(e) {
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX, y: t.clientY };
+  }
+
+  function onDown(e) {
+    e.preventDefault();
+    const p = pointerPos(e);
+    pressStrength = 1;
+    addWell(p.x, p.y, pressStrength);
+    pressTimer = setInterval(() => {
+      pressStrength = Math.min(pressStrength + 0.6, 5);
+    }, 120);
+  }
+  function onUp() {
+    if (pressTimer) clearInterval(pressTimer);
+    pressTimer = null;
+  }
+
+  canvas.addEventListener('mousedown', onDown);
+  canvas.addEventListener('mouseup', onUp);
+  canvas.addEventListener('mouseleave', onUp);
+  canvas.addEventListener('touchstart', onDown, { passive: false });
+  canvas.addEventListener('touchend', onUp);
+
+  document.getElementById('reset').addEventListener('click', () => {
+    wells.length = 0;
+    particles.length = 0;
+    for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(spawnParticle());
+    ctx.clearRect(0, 0, W, H);
+  });
+
+  function step() {
+    ctx.fillStyle = 'rgba(4, 5, 10, 0.16)';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = wells.length - 1; i >= 0; i--) {
+      const w = wells[i];
+      w.life -= 0.006;
+      if (w.life <= 0) { wells.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, 3 + w.strength * 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(199, 146, 255, ${0.5 * w.life})`;
+      ctx.fill();
+    }
+
+    for (const p of particles) {
+      for (const w of wells) {
+        const dx = w.x - p.x;
+        const dy = w.y - p.y;
+        const distSq = dx * dx + dy * dy + 40;
+        const force = (w.strength * 90 * w.life) / distSq;
+        p.vx += dx * force * 0.02;
+        p.vy += dy * force * 0.02;
+      }
+      p.vx *= 0.995;
+      p.vy *= 0.995;
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.x < 0) { p.x = 0; p.vx *= -0.6; }
+      if (p.x > W) { p.x = W; p.vx *= -0.6; }
+      if (p.y < 0) { p.y = 0; p.vy *= -0.6; }
+      if (p.y > H) { p.y = H; p.vy *= -0.6; }
+
+      const speed = Math.min(Math.hypot(p.vx, p.vy) * 4, 1);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue}, 90%, ${65 + speed * 20}%, 0.85)`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(step);
+  }
+  step();
+</script>
+</body>
+</html>

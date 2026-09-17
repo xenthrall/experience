@@ -29,3 +29,72 @@ Categoría explorada: puzzle/juego con reglas claras — primera pieza del hub c
 - El hub sigue sin miniaturas animadas por tarjeta.
 - Última Luz podría ganar un contador de "mejor puntaje" persistido en localStorage, o un modo diario con semilla fija.
 - Quedan libres: narrativa interactiva, poesía visual generativa, simulación física.
+
+## 2026-09-16 — Tercera experiencia: Última Transmisión (ficción interactiva)
+
+Cubre dos direcciones sugeridas a la vez: **narrativa interactiva** e **interacción por teclado** (las dos piezas previas eran táctiles/mouse).
+
+- **`experiences/ultima-transmision/`**: ficción interactiva ambientada en una estación espacial abandonada que empieza a transmitir un mensaje. El texto se revela con efecto de máquina de escribir sobre una estética de terminal fósforo verde (scanlines, viñeta, resplandor de texto). Las elecciones se muestran numeradas y se seleccionan con las teclas 1-2 o con clic/touch. Grafo de nodos ramificado con 5 finales distintos según las decisiones tomadas. HTML/CSS/JS puro, un solo archivo, sin dependencias ni assets externos.
+
+Categoría explorada: narrativa/texto interactivo con teclado — estética de terminal, contraste deliberado frente al brillo neón de las dos piezas anteriores.
+
+### Direcciones abiertas
+- El hub sigue sin miniaturas animadas por tarjeta.
+- Última Transmisión podría registrar qué finales ya se vieron (localStorage) para animar a explorar los que faltan.
+- Quedan libres: poesía visual generativa, simulación física simple (partículas/gravedad).
+
+## 2026-09-16 — Cuarta experiencia: Pozos de Gravedad (simulación física)
+
+Cubre la dirección de **simulación física simple** que quedaba pendiente desde el reinicio del hub.
+
+- **`experiences/pozos-de-gravedad/`**: un campo continuo de ~260 partículas flota a la deriva sobre un lienzo oscuro con estelas por desvanecimiento de alfa. Al tocar o hacer clic se crea un pozo de gravedad transitorio que atrae las partículas cercanas con una fuerza inversamente proporcional a la distancia; mantener presionado aumenta su intensidad. Los pozos decaen con el tiempo, las partículas rebotan en los bordes y su brillo/color reacciona a su velocidad. Canvas 2D puro, sin dependencias, con soporte táctil y de mouse.
+
+Categoría explorada: simulación física/generativa con interacción directa por toque — primera pieza del hub con física continua (fuerzas, decaimiento, colisión con bordes) en vez de estados discretos.
+
+### Direcciones abiertas
+- El hub sigue sin miniaturas animadas por tarjeta (ya son 4 experiencias — buen candidato para una próxima iteración dedicada solo a eso).
+- Pozos de Gravedad podría ganar distintos "modos" de partícula (atracción/repulsión alternada) si se quiere expandir, pero no es prioritario.
+- Queda libre: poesía visual generativa con tipografía animada.
+
+## 2026-09-16 — Mejora del Hub: miniaturas animadas por tarjeta
+
+`NEXT.md` dejaba dos caminos abiertos; esta iteración eligió mejorar la **descubribilidad del hub** en vez de sumar una quinta experiencia, ya que las 4 tarjetas seguían mostrando solo texto + acento de color.
+
+- **`index.html` (hub)**: cada tarjeta ahora muestra una miniatura CSS animada, elegida según un nuevo campo `glyph` en `catalog.json` y coloreada con el `accent` propio de cada experiencia:
+  - `waves` (Ecos de Cristal): anillos de onda expandiéndose, como el pulso de un carillón.
+  - `grid` (Última Luz): cuadrícula de celdas parpadeando, eco del tablero de luces.
+  - `terminal` (Última Transmisión): líneas que se "escriben" y desaparecen, como texto en una terminal.
+  - `orbit` (Pozos de Gravedad): un núcleo con un anillo orbital girando.
+- Ningún glyph nuevo requiere JS por experiencia: son puro CSS/HTML generado desde el hub, sin tocar las carpetas de las experiencias existentes ni convertir el hub en una plataforma con lógica extra — solo un `glyph` string por entrada del catálogo.
+
+Categoría explorada: mejora transversal de UX/descubribilidad, no una experiencia nueva.
+
+### Direcciones abiertas
+- Queda libre: poesía visual generativa con tipografía animada — sigue siendo la única categoría de experiencia totalmente sin explorar.
+- Si se agregan más experiencias, se pueden sumar nuevos valores de `glyph` (ej. `bars`, `spiral`) sin romper las tarjetas existentes, ya que el hub ignora silenciosamente un `glyph` desconocido.
+
+## 2026-09-16 — Quinta experiencia: Polvo de Versos (poesía visual generativa)
+
+Cierra la última categoría que quedaba totalmente libre desde el reinicio del hub.
+
+- **`experiences/polvo-de-versos/`**: poesía visual generativa. Un motor de plantillas combina bancos de palabras (sujeto/verbo/objeto/cierre) para improvisar 2-3 versos nuevos en cada visita o al tocar/hacer clic en cualquier parte. Cada palabra aparece con una animación de asentamiento (fade + leve rotación) escalonada, sobre un fondo de papel envejecido con textura sutil de grano — estética tipográfica en itálica serif, deliberadamente cálida y analógica frente al neón/terminal de las piezas previas. El cursor desplaza levemente cada palabra (efecto de "polvo en suspensión") mediante una capa interna separada de la que controla la animación de entrada/salida, evitando conflictos de cascada CSS entre `animation` e inline `transform`. HTML/CSS/JS puro, sin dependencias.
+- Se añadió el glyph `verse` al hub (tres líneas que se asientan y se desvanecen) para la miniatura de esta tarjeta.
+
+Categoría explorada: poesía visual/tipográfica generativa — última pieza fundacional de las 5 categorías propuestas en el README reiniciado (sonora, puzzle, narrativa, física, poética).
+
+### Direcciones abiertas
+- Las 5 categorías originales del hub reiniciado ya están cubiertas por una experiencia cada una. Buen momento para que la siguiente iteración elija libremente: profundizar en una nueva categoría no listada (ej. algo colaborativo/persistente, un juego de destreza en tiempo real, arte generativo con SVG/WebGL) en vez de reforzar las cinco ya exploradas.
+- Polvo de Versos podría ganar más bancos de palabras/plantillas si se quiere variar más el resultado, pero no es prioritario — ya es funcional y completo para su alcance.
+
+## 2026-09-17 — Sexta experiencia: Anillo de Pulso (juego de reflejos)
+
+Explora dos direcciones sugeridas a la vez: **juego de destreza en tiempo real** (presión de tiempo, distinto del puzzle sin reloj de Última Luz) y **SVG** como tecnología, hasta ahora inexplorada (las piezas previas usaban Canvas 2D, DOM/CSS o Web Audio).
+
+- **`experiences/anillo-de-pulso/`**: un anillo SVG se contrae continuamente hacia un círculo objetivo fijo. El jugador toca, hace clic o pulsa espacio en el instante en que ambos coinciden; según la precisión del momento recibe "¡perfecto!", "bien" o "impreciso/fallo", que ajustan la velocidad de contracción (más rápida tras aciertos, más lenta tras fallos) y una racha de aciertos consecutivos. La mejor racha se persiste en `localStorage` y se muestra en el HUD — primera pieza del hub con estado que sobrevive entre visitas, sin backend.
+- Se añadió el glyph `pulse` al hub (un anillo punteado que se contrae hacia un círculo fijo) para la miniatura de esta tarjeta.
+
+Categoría explorada: juego de reflejos/tiempo real con SVG y persistencia ligera vía localStorage.
+
+### Direcciones abiertas
+- Anillo de Pulso podría ganar variantes de dificultad o un anillo objetivo que se mueva, pero no es prioritario — ya es funcional y completo para su alcance.
+- Sigue sin explorarse WebGL como tecnología, y sigue abierta la idea de un mural/jardín colectivo simulado con localStorage más elaborado que un simple contador de racha.

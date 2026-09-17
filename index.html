@@ -76,6 +76,185 @@
     background: rgba(255,255,255,0.05);
   }
   a.card:hover::before { opacity: 0.12; }
+  .thumb {
+    position: relative;
+    height: 64px;
+    margin: -0.2rem 0 1rem;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    overflow: hidden;
+  }
+  .thumb::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .thumb--waves span {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--card-accent, var(--accent));
+    transform: translate(-50%, -50%);
+    animation: ripple 2.6s ease-out infinite;
+    opacity: 0;
+  }
+  .thumb--waves span:nth-child(2) { animation-delay: 0.65s; }
+  .thumb--waves span:nth-child(3) { animation-delay: 1.3s; }
+  @keyframes ripple {
+    0% { width: 10px; height: 10px; opacity: 0.8; }
+    100% { width: 140px; height: 140px; opacity: 0; }
+  }
+  .thumb--grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    padding: 8px;
+    height: 100%;
+  }
+  .thumb--grid i {
+    background: var(--card-accent, var(--accent));
+    border-radius: 3px;
+    opacity: 0.12;
+    animation: blink 3.2s ease-in-out infinite;
+  }
+  .thumb--grid i:nth-child(4n) { animation-delay: 0.2s; }
+  .thumb--grid i:nth-child(5n) { animation-delay: 0.9s; }
+  .thumb--grid i:nth-child(7n) { animation-delay: 1.6s; }
+  @keyframes blink {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.75; }
+  }
+  .thumb--terminal {
+    padding: 10px 12px;
+    font-family: "Courier New", monospace;
+    font-size: 0.7rem;
+    color: var(--card-accent, var(--accent));
+    opacity: 0.75;
+  }
+  .thumb--terminal .row {
+    height: 2px;
+    background: var(--card-accent, var(--accent));
+    opacity: 0.5;
+    margin-bottom: 8px;
+    border-radius: 1px;
+    animation: type-row 3s ease-in-out infinite;
+  }
+  .thumb--terminal .row:nth-child(2) { width: 70%; animation-delay: 0.4s; }
+  .thumb--terminal .row:nth-child(3) { width: 45%; animation-delay: 0.9s; }
+  @keyframes type-row {
+    0%, 100% { width: 0%; opacity: 0; }
+    10% { opacity: 0.6; }
+    50% { opacity: 0.6; }
+    60% { opacity: 0; }
+  }
+  .thumb--orbit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb--orbit .system {
+    position: relative;
+    width: 46px;
+    height: 46px;
+  }
+  .thumb--orbit .core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 50%;
+    background: var(--card-accent, var(--accent));
+    box-shadow: 0 0 10px 2px var(--card-accent, var(--accent));
+  }
+  .thumb--orbit .ring {
+    position: absolute;
+    inset: 0;
+    border: 1px dashed rgba(255,255,255,0.15);
+    border-radius: 50%;
+    animation: spin 6s linear infinite;
+  }
+  .thumb--orbit .ring::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    margin-left: -2.5px;
+    border-radius: 50%;
+    background: var(--card-accent, var(--accent));
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .thumb--verse {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 14px;
+  }
+  .thumb--verse span {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--card-accent, var(--accent));
+    opacity: 0;
+    animation: settle 4.5s ease-in-out infinite;
+  }
+  .thumb--verse span:nth-child(1) { width: 78%; animation-delay: 0s; }
+  .thumb--verse span:nth-child(2) { width: 55%; animation-delay: 0.5s; margin-left: 12%; }
+  .thumb--verse span:nth-child(3) { width: 66%; animation-delay: 1s; }
+  @keyframes settle {
+    0% { opacity: 0; transform: translateY(6px); }
+    15%, 70% { opacity: 0.55; transform: translateY(0); }
+    90%, 100% { opacity: 0; transform: translateY(-4px); }
+  }
+  .thumb--pulse {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb--pulse .target {
+    position: relative;
+    width: 0;
+    height: 0;
+  }
+  .thumb--pulse .target::before {
+    content: "";
+    position: absolute;
+    left: -15px;
+    top: -15px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--card-accent, var(--accent));
+    opacity: 0.8;
+  }
+  .thumb--pulse .shrink {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 54px;
+    height: 54px;
+    margin: -27px 0 0 -27px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.35);
+    animation: shrink-ring 2.2s ease-in infinite;
+  }
+  @keyframes shrink-ring {
+    0% { width: 54px; height: 54px; margin: -27px 0 0 -27px; opacity: 0.9; }
+    85% { opacity: 0.9; }
+    100% { width: 30px; height: 30px; margin: -15px 0 0 -15px; opacity: 0; }
+  }
   a.card h2 {
     margin: 0 0 0.5rem;
     font-size: 1.3rem;
@@ -134,8 +313,17 @@
           grid.innerHTML = '<p class="empty">Aún no hay experiencias publicadas.</p>';
           return;
         }
+        const thumbs = {
+          waves: '<div class="thumb thumb--waves"><span></span><span></span><span></span></div>',
+          grid: `<div class="thumb thumb--grid">${'<i></i>'.repeat(18)}</div>`,
+          terminal: '<div class="thumb thumb--terminal"><div class="row"></div><div class="row"></div><div class="row"></div></div>',
+          orbit: '<div class="thumb thumb--orbit"><div class="system"><div class="ring"></div><div class="core"></div></div></div>',
+          verse: '<div class="thumb thumb--verse"><span></span><span></span><span></span></div>',
+          pulse: '<div class="thumb thumb--pulse"><div class="target"><div class="shrink"></div></div></div>',
+        };
         grid.innerHTML = items.map(item => `
           <a class="card" href="experiences/${item.slug}/" style="--card-accent:${item.accent || '#8ee3ff'}">
+            ${thumbs[item.glyph] || ''}
             <h2>${item.title}</h2>
             <p>${item.description}</p>
             <div class="tags">${(item.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
