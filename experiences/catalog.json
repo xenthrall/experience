@@ -43,5 +43,14 @@
     "tags": ["poesía", "generativo", "tipografía"],
     "accent": "#a8412f",
     "glyph": "verse"
+  },
+  {
+    "slug": "anillo-de-pulso",
+    "title": "Anillo de Pulso",
+    "description": "Juego de reflejos en SVG: un anillo se contrae hacia un blanco fijo. Toca en el instante exacto para encadenar una racha de precisión.",
+    "date": "2026-09-17",
+    "tags": ["reflejos", "juego", "svg"],
+    "accent": "#ff5a7a",
+    "glyph": "pulse"
   }
 ]

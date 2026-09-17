@@ -218,6 +218,43 @@
     15%, 70% { opacity: 0.55; transform: translateY(0); }
     90%, 100% { opacity: 0; transform: translateY(-4px); }
   }
+  .thumb--pulse {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb--pulse .target {
+    position: relative;
+    width: 0;
+    height: 0;
+  }
+  .thumb--pulse .target::before {
+    content: "";
+    position: absolute;
+    left: -15px;
+    top: -15px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--card-accent, var(--accent));
+    opacity: 0.8;
+  }
+  .thumb--pulse .shrink {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 54px;
+    height: 54px;
+    margin: -27px 0 0 -27px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.35);
+    animation: shrink-ring 2.2s ease-in infinite;
+  }
+  @keyframes shrink-ring {
+    0% { width: 54px; height: 54px; margin: -27px 0 0 -27px; opacity: 0.9; }
+    85% { opacity: 0.9; }
+    100% { width: 30px; height: 30px; margin: -15px 0 0 -15px; opacity: 0; }
+  }
   a.card h2 {
     margin: 0 0 0.5rem;
     font-size: 1.3rem;
@@ -282,6 +319,7 @@
           terminal: '<div class="thumb thumb--terminal"><div class="row"></div><div class="row"></div><div class="row"></div></div>',
           orbit: '<div class="thumb thumb--orbit"><div class="system"><div class="ring"></div><div class="core"></div></div></div>',
           verse: '<div class="thumb thumb--verse"><span></span><span></span><span></span></div>',
+          pulse: '<div class="thumb thumb--pulse"><div class="target"><div class="shrink"></div></div></div>',
         };
         grid.innerHTML = items.map(item => `
           <a class="card" href="experiences/${item.slug}/" style="--card-accent:${item.accent || '#8ee3ff'}">

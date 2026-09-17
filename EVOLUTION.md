@@ -85,3 +85,16 @@ Categoría explorada: poesía visual/tipográfica generativa — última pieza f
 ### Direcciones abiertas
 - Las 5 categorías originales del hub reiniciado ya están cubiertas por una experiencia cada una. Buen momento para que la siguiente iteración elija libremente: profundizar en una nueva categoría no listada (ej. algo colaborativo/persistente, un juego de destreza en tiempo real, arte generativo con SVG/WebGL) en vez de reforzar las cinco ya exploradas.
 - Polvo de Versos podría ganar más bancos de palabras/plantillas si se quiere variar más el resultado, pero no es prioritario — ya es funcional y completo para su alcance.
+
+## 2026-09-17 — Sexta experiencia: Anillo de Pulso (juego de reflejos)
+
+Explora dos direcciones sugeridas a la vez: **juego de destreza en tiempo real** (presión de tiempo, distinto del puzzle sin reloj de Última Luz) y **SVG** como tecnología, hasta ahora inexplorada (las piezas previas usaban Canvas 2D, DOM/CSS o Web Audio).
+
+- **`experiences/anillo-de-pulso/`**: un anillo SVG se contrae continuamente hacia un círculo objetivo fijo. El jugador toca, hace clic o pulsa espacio en el instante en que ambos coinciden; según la precisión del momento recibe "¡perfecto!", "bien" o "impreciso/fallo", que ajustan la velocidad de contracción (más rápida tras aciertos, más lenta tras fallos) y una racha de aciertos consecutivos. La mejor racha se persiste en `localStorage` y se muestra en el HUD — primera pieza del hub con estado que sobrevive entre visitas, sin backend.
+- Se añadió el glyph `pulse` al hub (un anillo punteado que se contrae hacia un círculo fijo) para la miniatura de esta tarjeta.
+
+Categoría explorada: juego de reflejos/tiempo real con SVG y persistencia ligera vía localStorage.
+
+### Direcciones abiertas
+- Anillo de Pulso podría ganar variantes de dificultad o un anillo objetivo que se mueva, pero no es prioritario — ya es funcional y completo para su alcance.
+- Sigue sin explorarse WebGL como tecnología, y sigue abierta la idea de un mural/jardín colectivo simulado con localStorage más elaborado que un simple contador de racha.
